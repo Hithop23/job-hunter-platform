@@ -42,9 +42,11 @@ RUN pip install --no-cache-dir -r requirements.txt \
 # Install Playwright browser binaries
 RUN playwright install chromium
 
+# Create runtime storage directories
+RUN mkdir -p /app/cv/variants /app/logs/screenshots
+
 # Copy application source code
 COPY app/ ./app/
-COPY cv/ ./cv/
 COPY data/ ./data/
 COPY run.py .
 
