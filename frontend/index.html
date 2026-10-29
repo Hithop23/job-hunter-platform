@@ -838,7 +838,10 @@
           const { data, error } = await sbClient.auth.signUp({
             email,
             password,
-            options: { data: { full_name: fullName || 'Candidato' } }
+            options: {
+              data: { full_name: fullName || 'Candidato' },
+              emailRedirectTo: window.location.origin
+            }
           });
           if (error) throw error;
           
