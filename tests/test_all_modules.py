@@ -609,50 +609,53 @@ def test_bilingual_cover_letter():
     assert len(letter_es.split()) <= 250
 
 
-def test_verification_code_and_hil_flow():
+def test_verification_code_and_hil_flow(db_session):
     """Verifies that verification code handling and HIL resolution work correctly."""
     from app.api.routes_applications import ApplyAutopilotRequest
     from app.storage.models import Application, HumanReviewItem, ApplicationStatus
     from app.storage.repository import Repository
-    from app.storage.database import SessionLocal
 
     # Test request model
     req = ApplyAutopilotRequest(dry_run=True, verification_code="987654")
     assert req.dry_run is True
     assert req.verification_code == "987654"
 
-    db = SessionLocal()
-    try:
-        repo = Repository(db)
-        app = repo.create_or_update_application({
-            "job_id": "test-otp-job-1",
-            "company": "Bancolombia Test",
-            "position": "Auxiliar de Soporte TI",
-            "url": "https://empleo.grupobancolombia.com/job/test",
-            "source": "Bancolombia",
-            "status": ApplicationStatus.CONFIRMATION_REQUIRED.value
-        })
-        
-        # Enqueue HIL
-        review = repo.enqueue_human_review(
-            application_id=app.id,
-            reason="LOGIN_REQUIRED",
-            url=app.url,
-            question_prompt="El portal ha enviado un código de acceso a tu correo."
-        )
-        assert review.resolved is False
-        
-        # Resolve HIL with user_input (verification code)
-        resolved_review = repo.resolve_human_review(
-            review_id=review.id,
-            action="APPROVED",
-            user_input="554433"
-        )
-        assert resolved_review.resolved is True
-        assert resolved_review.user_input == "554433"
-        assert resolved_review.application.status == ApplicationStatus.READY.value
-    finally:
-        db.close()
+    repo = Repository(db_session)
+    repo.store_job({
+        "id": "test-otp-job-1",
+        "source": "Bancolombia",
+        "external_id": "test-otp-ext-1",
+        "company": "Bancolombia Test",
+        "title": "Auxiliar de Soporte TI",
+        "url": "https://empleo.grupobancolombia.com/job/test"
+    })
+    app = repo.create_or_update_application({
+        "job_id": "test-otp-job-1",
+        "company": "Bancolombia Test",
+        "position": "Auxiliar de Soporte TI",
+        "url": "https://empleo.grupobancolombia.com/job/test",
+        "source": "Bancolombia",
+        "status": ApplicationStatus.CONFIRMATION_REQUIRED.value
+    })
+    
+    # Enqueue HIL
+    review = repo.enqueue_human_review(
+        application_id=app.id,
+        reason="LOGIN_REQUIRED",
+        url=app.url,
+        question_prompt="El portal ha enviado un código de acceso a tu correo."
+    )
+    assert review.resolved is False
+    
+    # Resolve HIL with user_input (verification code)
+    resolved_review = repo.resolve_human_review(
+        review_id=review.id,
+        action="APPROVED",
+        user_input="554433"
+    )
+    assert resolved_review.resolved is True
+    assert resolved_review.user_input == "554433"
+    assert resolved_review.application.status == ApplicationStatus.READY.value
 
 
 
