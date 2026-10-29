@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from app.storage.database import get_db
 from app.storage.repository import Repository
 from app.cv.cv_transformer import CVTransformer
+from app.cv.ai_groq import GroqAIEngine
 
 router = APIRouter(prefix="/api/cv", tags=["CV & ATS Generation"])
 
@@ -39,6 +40,12 @@ class GenerateCvPayload(BaseModel):
     education: Optional[List[Dict[str, Any]]] = None
     certifications: Optional[List[Dict[str, Any]]] = None
     languages: Optional[List[Dict[str, Any]]] = None
+
+
+class AiQuestionnairePayload(BaseModel):
+    user_id: Optional[str] = None
+    answers: Dict[str, Any]
+    groq_api_key: Optional[str] = None
 
 
 @router.post("/upload")
@@ -170,6 +177,64 @@ def generate_custom_ats_cv(payload: GenerateCvPayload, db: Session = Depends(get
     return {
         "status": "SUCCESS",
         "message": "Hoja de vida ATS generada correctamente.",
+        "pdf_filename": pdf_filename,
+        "docx_filename": docx_filename,
+        "pdf_download_url": f"/api/cv/download/{pdf_filename}",
+        "docx_download_url": f"/api/cv/download/{docx_filename}"
+    }
+
+
+@router.post("/ai-builder")
+def ai_questionnaire_builder(payload: AiQuestionnairePayload, db: Session = Depends(get_db)):
+    """
+    Transforms questionnaire answers into an elite ATS-optimized profile using Groq LLM
+    (llama/gpt-oss), generating ready-to-download ATS PDF and editable Word DOCX.
+    """
+    optimized = GroqAIEngine.transform_questionnaire_to_ats(
+        answers=payload.answers,
+        custom_key=payload.groq_api_key
+    )
+
+    clean_name = re.sub(r"[^\w]", "_", optimized.get("name", "Candidato")[:12].strip())
+    unique_tag = uuid.uuid4().hex[:6]
+    pdf_filename = f"ATS-{clean_name}-{unique_tag}.pdf"
+    docx_filename = f"ATS-{clean_name}-{unique_tag}.docx"
+
+    pdf_path = CV_DIR / pdf_filename
+    docx_path = CV_DIR / docx_filename
+
+    CVTransformer.generate_ats_pdf(optimized, pdf_path)
+    CVTransformer.generate_ats_docx(optimized, docx_path)
+
+    # If user_id is provided, save or merge into their profile
+    if payload.user_id:
+        repo = Repository(db)
+        repo.upsert_user_profile({
+            "user_id": payload.user_id,
+            "email": optimized.get("email") or payload.answers.get("email") or "",
+            "full_name": optimized.get("name") or "Candidato",
+            "phone": optimized.get("phone") or payload.answers.get("phone") or "",
+            "city": optimized.get("city") or "Colombia",
+            "department": optimized.get("department") or "",
+            "country": optimized.get("country") or "Colombia",
+            "target_role": optimized.get("target_role") or "Profesional",
+            "headline": optimized.get("headline") or optimized.get("target_role") or "Profesional",
+            "summary": optimized.get("summary") or "",
+            "english_level": optimized.get("english_level") or "B2",
+            "salary_min_cop": payload.answers.get("salary_min_cop") or 2500000,
+            "salary_max_cop": payload.answers.get("salary_max_cop") or 4500000,
+            "remote_only": payload.answers.get("remote_only", True),
+            "technical_skills": optimized.get("technical_skills") or {},
+            "experience": optimized.get("experience") or [],
+            "education": optimized.get("education") or [],
+            "certifications": optimized.get("certifications") or [],
+            "languages": optimized.get("languages") or []
+        })
+
+    return {
+        "status": "SUCCESS",
+        "message": "Perfil profesional optimizado con IA y Hoja de Vida ATS generada exitosamente.",
+        "optimized_profile": optimized,
         "pdf_filename": pdf_filename,
         "docx_filename": docx_filename,
         "pdf_download_url": f"/api/cv/download/{pdf_filename}",

@@ -85,3 +85,40 @@ def test_cv_upload_text():
     assert data["status"] == "SUCCESS"
     assert data["parsed_profile"]["name"] == "MARIA RODRIGUEZ"
     assert data["parsed_profile"]["email"] == "maria@example.com"
+
+def test_cv_ai_builder_api():
+    payload = {
+        "answers": {
+            "full_name": "Carlos Gomez",
+            "email": "carlos@example.com",
+            "phone": "+57 300 123 4567",
+            "city": "Barranquilla, Colombia",
+            "target_role": "Analista de Datos",
+            "raw_bio": "Experiencia en reportes de Excel y soporte técnico.",
+            "skills_raw": "Excel, Power BI, Python",
+            "experiences": [
+                {
+                    "title": "Auxiliar de Datos",
+                    "company": "Logística del Norte",
+                    "period": "2023 - 2024",
+                    "tasks": "Elaboración de tablas dinámicas y soporte a usuarios"
+                }
+            ],
+            "education": [
+                {
+                    "institution": "SENA",
+                    "degree": "Tecnólogo en Sistemas",
+                    "year": "2022"
+                }
+            ]
+        }
+    }
+    r = client.post("/api/cv/ai-builder", json=payload)
+    assert r.status_code == 200, r.text
+    data = r.json()
+    assert data["status"] == "SUCCESS"
+    assert "pdf_download_url" in data
+    assert "docx_download_url" in data
+    assert "optimized_profile" in data
+    assert data["optimized_profile"]["name"] == "Carlos Gomez"
+    assert len(data["optimized_profile"]["summary"]) > 10

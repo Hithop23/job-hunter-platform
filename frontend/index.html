@@ -475,18 +475,55 @@
         </div>
       </div>
 
-      <!-- SECCIÓN 2: CREADOR INTERACTIVO PASO A PASO -->
+      <!-- SECCIÓN 2: CUESTIONARIO INTERACTIVO CON INTELIGENCIA ARTIFICIAL -->
       <div id="cvBuilderSection" class="hidden space-y-6">
-        <form id="interactiveCvForm" onsubmit="handleInteractiveCvSubmit(event)" class="space-y-6">
-          
-          <!-- Bloque 1: Datos Personales -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2 border-b border-slate-100 pb-2">
-              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black">1</span>
-              <span>Datos Personales & Contacto</span>
-            </h3>
+        
+        <!-- Header del Cuestionario con Barra de Progreso -->
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
+                <span>Cuestionario Guiado con Inteligencia Artificial (Groq 120B)</span>
+              </span>
+              <h3 class="text-lg sm:text-xl font-bold text-slate-900 mt-2">Construye tu Perfil Profesional ATS</h3>
+              <p class="text-xs text-slate-500">Responde con tus propias palabras. La IA redactará tus logros con verbos de acción y métricas para superar cualquier filtro corporativo.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-lg" id="stepIndicator">Paso 1 de 5</span>
+            </div>
+          </div>
+
+          <!-- Barra de Progreso Visual -->
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
+            <div id="qProgressBar" class="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-purple-600 rounded-full transition-all duration-300" style="width: 20%"></div>
+          </div>
+
+          <!-- Pasos Tabs Visuales -->
+          <div class="grid grid-cols-5 gap-1 text-[11px] font-semibold text-center text-slate-500 pt-1">
+            <button type="button" onclick="goToStep(1)" id="tabStep1" class="py-1 rounded-lg text-emerald-700 font-bold bg-emerald-50 border border-emerald-200">1. Contacto</button>
+            <button type="button" onclick="goToStep(2)" id="tabStep2" class="py-1 rounded-lg hover:bg-slate-100">2. Objetivo</button>
+            <button type="button" onclick="goToStep(3)" id="tabStep3" class="py-1 rounded-lg hover:bg-slate-100">3. Experiencia</button>
+            <button type="button" onclick="goToStep(4)" id="tabStep4" class="py-1 rounded-lg hover:bg-slate-100">4. Educación</button>
+            <button type="button" onclick="goToStep(5)" id="tabStep5" class="py-1 rounded-lg hover:bg-slate-100">5. IA & ATS</button>
+          </div>
+        </div>
+
+        <!-- FORMULARIO POR PASOS INTERACTIVOS -->
+        <form id="interactiveCvForm" onsubmit="event.preventDefault()" class="space-y-6">
+
+          <!-- PASO 1: CONTACTO & DATOS PERSONALES -->
+          <div id="qStep1" class="q-step bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="user-check" class="w-5 h-5 text-emerald-600"></i>
+                <span>¿Cómo te llamas y cómo pueden contactarte los reclutadores?</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-1">Los sistemas ATS necesitan encabezados limpios con correo, teléfono y ubicación sin caracteres extraños ni tablas.</p>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-              <div>
+              <div class="sm:col-span-2 lg:col-span-1">
                 <label class="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
                 <input type="text" id="bldName" required placeholder="Ej: Julian David Diaz Medina" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
@@ -500,127 +537,314 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Ciudad *</label>
-                <input type="text" id="bldCity" required placeholder="Valledupar / Bogotá / Remoto" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
+                <input type="text" id="bldCity" required placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Departamento / Estado</label>
-                <input type="text" id="bldDepartment" placeholder="Cesar / Cundinamarca" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
+                <label class="block font-semibold text-slate-700 mb-1">Departamento / País</label>
+                <input type="text" id="bldDepartment" placeholder="Colombia" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Enlace a LinkedIn</label>
+                <label class="block font-semibold text-slate-700 mb-1">Perfil de LinkedIn o Portafolio Web</label>
                 <input type="url" id="bldLinkedin" placeholder="https://linkedin.com/in/usuario" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
             </div>
+
+            <div class="flex justify-end pt-2">
+              <button type="button" onclick="nextStep(2)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                <span>Continuar a Rol & Objetivo</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
 
-          <!-- Bloque 2: Perfil y Resumen -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2 border-b border-slate-100 pb-2">
-              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black">2</span>
-              <span>Cargo Objetivo & Resumen Profesional</span>
-            </h3>
+          <!-- PASO 2: ROL OBJETIVO & BIO INFORMAL -->
+          <div id="qStep2" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="target" class="w-5 h-5 text-purple-600"></i>
+                <span>¿A qué puesto o cargo estás aspirando?</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-1">Escribe tu aspiración y una descripción breve. La IA redactará un Resumen Ejecutivo formal con palabras clave de alta búsqueda.</p>
+            </div>
+
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label class="block font-semibold text-slate-700 mb-1">Cargo Objetivo / Titular *</label>
-                <input type="text" id="bldRole" required placeholder="Ej: Técnico en Sistemas Teleinformáticos | Soporte TI" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
+                <label class="block font-semibold text-slate-700 mb-1">Cargo Objetivo / Profesión *</label>
+                <input type="text" id="bldRole" required placeholder="Ej: Técnico en Soporte TI / Analista de Datos / Asistente Administrativo" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Nivel de Inglés</label>
                 <select id="bldEnglish" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
-                  <option value="A1">A1 - Principiante</option>
-                  <option value="A2">A2 - Básico</option>
-                  <option value="B1">B1 - Pre-Intermedio</option>
-                  <option value="B2" selected>B2 - Intermedio Alto (Profesional)</option>
-                  <option value="C1">C1 - Avanzado / Fluido</option>
-                  <option value="C2">C2 - Nativo / Bilingüe</option>
+                  <option value="A1">A1 - Básico inicial</option>
+                  <option value="A2">A2 - Básico elemental</option>
+                  <option value="B1">B1 - Intermedio cotidiano</option>
+                  <option value="B2" selected>B2 - Intermedio profesional (Apto para trabajar)</option>
+                  <option value="C1">C1 - Avanzado fluido</option>
+                  <option value="C2">C2 - Bilingüe / Nativo</option>
                 </select>
               </div>
+
               <div class="sm:col-span-2">
                 <div class="flex items-center justify-between mb-1">
-                  <label class="block font-semibold text-slate-700">Resumen Profesional (Optimizado con Palabras Clave) *</label>
-                  <button type="button" onclick="autoGenerateSummary()" class="text-emerald-700 hover:text-emerald-800 font-semibold text-[11px] flex items-center gap-1">
-                    <i data-lucide="sparkles" class="w-3 h-3"></i> Autocompletar con Plantilla Pro
+                  <label class="block font-semibold text-slate-700">Cuéntanos sobre ti, tus fortalezas o qué buscas (¡con tus propias palabras!):</label>
+                  <button type="button" onclick="autoGenerateSummary()" class="text-purple-600 hover:text-purple-700 font-semibold text-[11px] flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3"></i> Sugerir borrador rápido
                   </button>
                 </div>
-                <textarea id="bldSummary" rows="3" required placeholder="Describe tu experiencia, fortalezas técnicas y el valor que aportas a la empresa..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 leading-relaxed"></textarea>
+                <textarea id="bldSummary" rows="3" placeholder="Ej: Tengo 3 años de experiencia en soporte y redes. Me gusta solucionar problemas de computadores, atender usuarios y aprender sobre servidores y nube..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-purple-500 leading-relaxed"></textarea>
+                <p class="text-[11px] text-slate-400 mt-1">💡 La IA tomará esto y redactará un <b>Resumen Ejecutivo</b> persuasivo de 3-4 oraciones para los reclutadores.</p>
               </div>
             </div>
-          </div>
 
-          <!-- Bloque 3: Competencias Técnicas -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2 border-b border-slate-100 pb-2">
-              <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black">3</span>
-              <span>Habilidades Técnicas & Herramientas Clave</span>
-            </h3>
-            <div class="text-xs space-y-2">
-              <label class="block font-semibold text-slate-700">Habilidades (separadas por comas) *</label>
-              <textarea id="bldSkills" rows="2" required placeholder="Ej: Soporte TI, Mantenimiento preventivo, Windows 11, Linux, Redes LAN/WLAN, Active Directory, Cableado estructurado, AnyDesk, Python" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"></textarea>
-              <div class="flex flex-wrap items-center gap-1.5 pt-1">
-                <span class="text-slate-400 font-medium">Sugerencias rápidas:</span>
-                <button type="button" onclick="addSkillTag('Diagnóstico de Hardware y Software')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Diagnóstico HW/SW</button>
-                <button type="button" onclick="addSkillTag('Mesa de Ayuda / Help Desk')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Help Desk</button>
-                <button type="button" onclick="addSkillTag('Windows 10/11 & Linux')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Windows & Linux</button>
-                <button type="button" onclick="addSkillTag('Redes LAN y Wi-Fi')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Redes LAN/Wi-Fi</button>
-                <button type="button" onclick="addSkillTag('Microsoft Office 365')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Office 365</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bloque 4: Experiencia Laboral -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black">4</span>
-                <span>Experiencia Laboral</span>
-              </h3>
-              <button type="button" onclick="addExperienceRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                <i data-lucide="plus" class="w-3.5 h-3.5"></i> Agregar Empleo
+            <div class="flex justify-between pt-2">
+              <button type="button" onclick="prevStep(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Atrás</span>
+              </button>
+              <button type="button" onclick="nextStep(3)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                <span>Continuar a Experiencia</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
               </button>
             </div>
-            <div id="experienceRowsContainer" class="space-y-4"></div>
           </div>
 
-          <!-- Bloque 5: Educación & Certificaciones -->
-          <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-              <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wide flex items-center gap-2">
-                <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-black">5</span>
-                <span>Educación & Certificaciones Oficiales</span>
-              </h3>
+          <!-- PASO 3: EXPERIENCIA LABORAL GUIADA -->
+          <div id="qStep3" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                  <i data-lucide="briefcase" class="w-5 h-5 text-indigo-600"></i>
+                  <span>¿En qué empresas, proyectos o prácticas has trabajado?</span>
+                </h4>
+                <p class="text-xs text-slate-500 mt-1">Escribe lo que hacías informalmente. La IA generará viñetas con la fórmula <b>[Verbo de acción] + [Contexto] + [Impacto cuantificable]</b>.</p>
+              </div>
+              <button type="button" onclick="addExperienceRow()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                <span>+ Agregar Trabajo / Proyecto</span>
+              </button>
+            </div>
+
+            <div id="experienceRowsContainer" class="space-y-4">
+              <!-- Dynamically added -->
+            </div>
+
+            <div class="bg-indigo-50/60 border border-indigo-100 rounded-xl p-3.5 flex items-start gap-3 text-xs text-indigo-900">
+              <i data-lucide="lightbulb" class="w-5 h-5 text-indigo-600 shrink-0 mt-0.5"></i>
+              <div>
+                <p class="font-bold">¿No tienes experiencia laboral formal?</p>
+                <p class="text-indigo-800/80 text-[11px] mt-0.5">Agrega tus proyectos del SENA, universidad, trabajos freelance o voluntariados. La IA los estructurará como experiencia práctica de alto valor.</p>
+              </div>
+            </div>
+
+            <div class="flex justify-between pt-2">
+              <button type="button" onclick="prevStep(2)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Atrás</span>
+              </button>
+              <button type="button" onclick="nextStep(4)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                <span>Continuar a Educación</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- PASO 4: EDUCACIÓN & CERTIFICACIONES -->
+          <div id="qStep4" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                  <i data-lucide="graduation-cap" class="w-5 h-5 text-amber-600"></i>
+                  <span>¿Cuál es tu formación académica y qué certificados tienes?</span>
+                </h4>
+                <p class="text-xs text-slate-500 mt-1">Registra tus estudios universitarios, tecnológicos (SENA), cursos técnicos o diplomados.</p>
+              </div>
               <div class="flex gap-2">
-                <button type="button" onclick="addEducationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Educación
+                <button type="button" onclick="addEducationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Título / Estudio
                 </button>
-                <button type="button" onclick="addCertificationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
-                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> Certificación
+                <button type="button" onclick="addCertificationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Certificación
                 </button>
               </div>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <h4 class="text-xs font-bold text-slate-600 uppercase mb-2">Títulos Académicos</h4>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="space-y-3">
+                <h5 class="text-xs font-bold text-slate-600 uppercase tracking-wide">Títulos Académicos & Carreras</h5>
                 <div id="educationRowsContainer" class="space-y-2"></div>
               </div>
-              <div>
-                <h4 class="text-xs font-bold text-slate-600 uppercase mb-2">Certificaciones</h4>
+              <div class="space-y-3">
+                <h5 class="text-xs font-bold text-slate-600 uppercase tracking-wide">Certificaciones & Cursos Oficiales</h5>
                 <div id="certificationsRowsContainer" class="space-y-2"></div>
               </div>
             </div>
+
+            <div class="flex justify-between pt-2">
+              <button type="button" onclick="prevStep(3)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Atrás</span>
+              </button>
+              <button type="button" onclick="nextStep(5)" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm">
+                <span>Continuar a Habilidades & IA</span>
+                <i data-lucide="arrow-right" class="w-4 h-4"></i>
+              </button>
+            </div>
           </div>
 
-          <!-- Botones de Acción Finales -->
-          <div class="flex flex-wrap items-center justify-end gap-3 pt-4">
-            <button type="button" onclick="generateInteractiveCv('docx')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-md">
-              <i data-lucide="file-text" class="w-4 h-4"></i>
-              <span>Descargar en Word (.DOCX)</span>
-            </button>
-            <button type="submit" class="bg-emerald-600 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-md">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
-              <span>Generar Hoja de Vida ATS (PDF)</span>
-            </button>
+          <!-- PASO 5: HABILIDADES & GENERACIÓN CON IA GROQ -->
+          <div id="qStep5" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="cpu" class="w-5 h-5 text-emerald-600"></i>
+                <span>¿Qué herramientas, programas o habilidades dominas?</span>
+              </h4>
+              <p class="text-xs text-slate-500 mt-1">Selecciona o escribe tus competencias. La IA las clasificará automáticamente en Habilidades Técnicas, Herramientas y Habilidades Blandas.</p>
+            </div>
+
+            <div class="text-xs space-y-3">
+              <label class="block font-semibold text-slate-700">Herramientas & Habilidades (separadas por comas):</label>
+              <textarea id="bldSkills" rows="3" placeholder="Ej: Excel avanzado, Soporte técnico, Windows 11, Redes LAN, Python, Atención al cliente, Mesa de ayuda, Active Directory" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"></textarea>
+
+              <div class="flex flex-wrap items-center gap-1.5 pt-1">
+                <span class="text-slate-400 font-medium">Sugerencias rápidas:</span>
+                <button type="button" onclick="addSkillTag('Soporte TI y Mantenimiento')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Soporte TI</button>
+                <button type="button" onclick="addSkillTag('Mesa de Ayuda (Help Desk)')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Help Desk</button>
+                <button type="button" onclick="addSkillTag('Windows 11 & Linux')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Windows & Linux</button>
+                <button type="button" onclick="addSkillTag('Redes LAN / WLAN')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Redes LAN</button>
+                <button type="button" onclick="addSkillTag('Excel Avanzado & Reportes')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Excel Avanzado</button>
+                <button type="button" onclick="addSkillTag('Atención al Usuario')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Atención al Usuario</button>
+              </div>
+            </div>
+
+            <!-- Panel de Configuración de IA (Groq) -->
+            <div class="bg-gradient-to-r from-purple-50 via-indigo-50 to-emerald-50 p-5 rounded-2xl border border-purple-200/80 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-xs shadow-sm">
+                    AI
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-xs text-purple-950">Motor de Inteligencia Artificial Groq (LPU Ultra-Fast)</h5>
+                    <p class="text-[11px] text-purple-700">Modelo: <b>openai/gpt-oss-120b</b> &bull; Optimización ATS en tiempo real (~2 seg)</p>
+                  </div>
+                </div>
+                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
+                  Clave Activa Conectada
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-600 leading-relaxed">
+                Al presionar el botón de abajo, la IA tomará todas las respuestas del cuestionario, creará viñetas profesionales con logros cuantificables, optimizará las palabras clave para pasar el filtro de selección y generará al instante tus archivos en <b>PDF ATS</b> y <b>Word (.DOCX)</b>.
+              </p>
+            </div>
+
+            <!-- Botones de Acción -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <button type="button" onclick="prevStep(4)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+                <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                <span>Atrás</span>
+              </button>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <button type="button" onclick="generateInteractiveCv('docx')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-1.5 transition">
+                  <i data-lucide="file-text" class="w-4 h-4 text-indigo-400"></i>
+                  <span>Descargar Word (.DOCX)</span>
+                </button>
+                <button type="button" onclick="generateInteractiveCv('pdf')" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-3 rounded-xl font-bold text-xs flex items-center gap-1.5 transition">
+                  <i data-lucide="file" class="w-4 h-4 text-emerald-400"></i>
+                  <span>Descargar PDF</span>
+                </button>
+                <button type="button" onclick="generateAiAtsCv()" id="btnGenerateAiCv" class="bg-gradient-to-r from-purple-600 via-indigo-600 to-emerald-600 hover:from-purple-500 hover:to-emerald-500 text-white px-7 py-3 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-lg shadow-purple-500/20">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-amber-300 animate-spin"></i>
+                  <span>✨ Generar Formato ATS con Inteligencia Artificial</span>
+                </button>
+              </div>
+            </div>
           </div>
         </form>
+
+        <!-- PANEL DE CARGA ANIMADO DE IA -->
+        <div id="aiCvLoadingPanel" class="hidden bg-white p-8 sm:p-12 rounded-2xl border border-purple-200 shadow-xl text-center space-y-4">
+          <div class="w-16 h-16 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner animate-bounce">
+            <i data-lucide="cpu" class="w-8 h-8"></i>
+          </div>
+          <div class="space-y-1">
+            <h4 class="text-base font-bold text-slate-800" id="aiLoadingTitle">Optimizando Perfil ATS con Inteligencia Artificial...</h4>
+            <p class="text-xs text-slate-500" id="aiLoadingSubtitle">Consultando modelo Groq 120B para redactar viñetas de alto impacto y palabras clave corporativas.</p>
+          </div>
+          <div class="w-64 max-w-full mx-auto bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
+            <div class="bg-gradient-to-r from-purple-500 to-emerald-500 h-2 rounded-full w-2/3 animate-pulse"></div>
+          </div>
+        </div>
+
+        <!-- RESULTADOS GENERADOS POR IA (VISTA PREVIA Y DESCARGAS) -->
+        <div id="aiCvResultsPanel" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="bg-purple-100 text-purple-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
+                  ✨ Optimizado con IA Groq 120B
+                </span>
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200 flex items-center gap-1">
+                  <i data-lucide="check-check" class="w-3.5 h-3.5"></i> 98% Compatibilidad ATS
+                </span>
+              </div>
+              <h3 class="text-xl font-black text-slate-900 mt-2" id="aiResName">Candidato Profesional</h3>
+              <p class="text-xs font-semibold text-emerald-700" id="aiResHeadline"></p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <a id="btnAiDownloadPdf" href="#" target="_blank" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="download" class="w-4 h-4"></i>
+                <span>Descargar PDF ATS</span>
+              </a>
+              <a id="btnAiDownloadDocx" href="#" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
+                <span>Descargar Word (.DOCX)</span>
+              </a>
+              <button type="button" onclick="goToStep(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-semibold transition" title="Modificar datos">
+                <i data-lucide="edit-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Preview Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
+            <div class="md:col-span-2 space-y-4">
+              <div>
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                  <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
+                  <span>Resumen Profesional Optimizado por IA</span>
+                </h5>
+                <p id="aiResSummary" class="text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
+              </div>
+
+              <div>
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-600"></i>
+                  <span>Experiencia Laboral (Viñetas con Verbos de Acción y Métricas)</span>
+                </h5>
+                <div id="aiResExperiences" class="space-y-3"></div>
+              </div>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-600"></i>
+                  <span>Habilidades & Competencias ATS</span>
+                </h5>
+                <div id="aiResSkills" class="space-y-2"></div>
+              </div>
+
+              <div>
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                  <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-600"></i>
+                  <span>Educación & Idiomas</span>
+                </h5>
+                <div id="aiResEducation" class="space-y-1.5"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2584,6 +2808,47 @@
       }
     }
 
+    let currentStep = 1;
+
+    function goToStep(step) {
+      if (step < 1 || step > 5) return;
+      currentStep = step;
+      for (let i = 1; i <= 5; i++) {
+        const stepEl = document.getElementById(`qStep${i}`);
+        const tabEl = document.getElementById(`tabStep${i}`);
+        if (stepEl) stepEl.classList.toggle('hidden', i !== currentStep);
+        if (tabEl) {
+          if (i === currentStep) {
+            tabEl.className = 'py-1 rounded-lg text-emerald-700 font-bold bg-emerald-50 border border-emerald-200';
+          } else if (i < currentStep) {
+            tabEl.className = 'py-1 rounded-lg text-slate-700 font-semibold bg-slate-50 hover:bg-slate-100';
+          } else {
+            tabEl.className = 'py-1 rounded-lg text-slate-400 hover:bg-slate-50';
+          }
+        }
+      }
+      const progressBar = document.getElementById('qProgressBar');
+      if (progressBar) progressBar.style.width = `${(currentStep / 5) * 100}%`;
+      const stepIndicator = document.getElementById('stepIndicator');
+      if (stepIndicator) stepIndicator.textContent = `Paso ${currentStep} de 5`;
+      lucide.createIcons();
+    }
+
+    function nextStep(step) {
+      if (currentStep === 1) {
+        const name = document.getElementById('bldName').value.trim();
+        const email = document.getElementById('bldEmail').value.trim();
+        if (!name || !email) {
+          return showToast('Por favor escribe al menos tu Nombre y Correo.');
+        }
+      }
+      goToStep(step);
+    }
+
+    function prevStep(step) {
+      goToStep(step);
+    }
+
     function addExperienceRow(exp = {}) {
       const c = document.getElementById('experienceRowsContainer');
       const id = 'exp_' + Date.now() + Math.random().toString(36).substr(2, 4);
@@ -2743,10 +3008,147 @@
       await generateInteractiveCv('pdf');
     }
 
+    async function generateAiAtsCv() {
+      const payload = getBuilderPayload();
+      if (!payload.name || !payload.email) {
+        goToStep(1);
+        return showToast('Por favor completa al menos tu nombre y correo en el Paso 1.');
+      }
+
+      const answers = {
+        full_name: payload.name,
+        email: payload.email,
+        phone: payload.phone,
+        city: payload.city,
+        department: payload.department,
+        country: payload.country,
+        target_role: payload.target_role,
+        english_level: payload.english_level,
+        linkedin: payload.linkedin,
+        raw_bio: payload.summary,
+        skills_raw: document.getElementById('bldSkills').value,
+        experiences: payload.experience,
+        education: payload.education,
+        certifications: payload.certifications,
+        languages: payload.languages
+      };
+
+      const loadingPanel = document.getElementById('aiCvLoadingPanel');
+      const resultsPanel = document.getElementById('aiCvResultsPanel');
+      const btnGenerate = document.getElementById('btnGenerateAiCv');
+
+      if (loadingPanel) loadingPanel.classList.remove('hidden');
+      if (resultsPanel) resultsPanel.classList.add('hidden');
+      if (btnGenerate) {
+        btnGenerate.disabled = true;
+        btnGenerate.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+
+      showToast('🤖 Conectando con Inteligencia Artificial Groq (120B)...');
+
+      try {
+        const res = await fetch('/api/cv/ai-builder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: currentUserId || null,
+            answers: answers
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error procesando perfil con IA');
+
+        const opt = data.optimized_profile || {};
+        
+        // Populate AI Results Panel
+        document.getElementById('aiResName').textContent = opt.name || payload.name;
+        document.getElementById('aiResHeadline').textContent = opt.headline || opt.target_role || payload.target_role;
+        document.getElementById('aiResSummary').textContent = opt.summary || 'Resumen optimizado generado exitosamente.';
+
+        // Render AI Experiences
+        const expContainer = document.getElementById('aiResExperiences');
+        expContainer.innerHTML = '';
+        (opt.experience || []).forEach(exp => {
+          const div = document.createElement('div');
+          div.className = 'bg-slate-50 p-3.5 rounded-xl border border-slate-200';
+          const bullets = Array.isArray(exp.achievements) ? exp.achievements : [exp.achievements];
+          const bulletsHtml = bullets.map(b => `<li class="flex items-start gap-1.5"><span class="text-emerald-500 font-bold">&bull;</span><span>${b}</span></li>`).join('');
+          div.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+              <span class="font-bold text-slate-800">${exp.title || 'Cargo'}</span>
+              <span class="text-[11px] font-semibold text-slate-500">${exp.period || ''}</span>
+            </div>
+            <p class="text-xs text-indigo-700 font-medium mb-1.5">${exp.company || ''}</p>
+            <ul class="text-xs text-slate-600 space-y-1">${bulletsHtml}</ul>
+          `;
+          expContainer.appendChild(div);
+        });
+
+        // Render AI Skills
+        const skillsContainer = document.getElementById('aiResSkills');
+        skillsContainer.innerHTML = '';
+        const techSkills = opt.technical_skills || {};
+        for (const [category, skillsList] of Object.entries(techSkills)) {
+          if (Array.isArray(skillsList) && skillsList.length > 0) {
+            const catDiv = document.createElement('div');
+            catDiv.className = 'bg-slate-50 p-2.5 rounded-lg border border-slate-100';
+            const chips = skillsList.map(s => `<span class="bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
+            catDiv.innerHTML = `<p class="font-bold text-slate-700 text-[11px] mb-1">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
+            skillsContainer.appendChild(catDiv);
+          }
+        }
+
+        // Render AI Education & Languages
+        const eduContainer = document.getElementById('aiResEducation');
+        eduContainer.innerHTML = '';
+        (opt.education || []).forEach(edu => {
+          const p = document.createElement('div');
+          p.className = 'text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100';
+          p.innerHTML = `<p class="font-bold">${edu.degree || 'Estudios'}</p><p class="text-[11px] text-slate-500">${edu.institution || ''} ${edu.year ? '('+edu.year+')' : ''}</p>`;
+          eduContainer.appendChild(p);
+        });
+        (opt.languages || []).forEach(lang => {
+          const l = document.createElement('span');
+          l.className = 'inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-semibold mr-1 mt-1';
+          l.textContent = `${lang.language}: ${lang.level}`;
+          eduContainer.appendChild(l);
+        });
+
+        // Set download buttons
+        document.getElementById('btnAiDownloadPdf').href = data.pdf_download_url;
+        document.getElementById('btnAiDownloadDocx').href = data.docx_download_url;
+
+        // Automatically open PDF download in new tab
+        window.open(data.pdf_download_url, '_blank');
+
+        if (loadingPanel) loadingPanel.classList.add('hidden');
+        if (resultsPanel) {
+          resultsPanel.classList.remove('hidden');
+          resultsPanel.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        showToast('🎉 ¡Hoja de vida ATS optimizada con IA Groq 120B con éxito!');
+
+        if (currentUserId) {
+          await loadProfile();
+        }
+      } catch (err) {
+        if (loadingPanel) loadingPanel.classList.add('hidden');
+        showToast('Error generando con IA: ' + err.message);
+      } finally {
+        if (btnGenerate) {
+          btnGenerate.disabled = false;
+          btnGenerate.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
+    }
+
     async function generateInteractiveCv(format = 'pdf') {
       const payload = getBuilderPayload();
       if (!payload.name || !payload.email) {
-        return showToast('Por favor completa al menos tu nombre y correo.');
+        goToStep(1);
+        return showToast('Por favor completa al menos tu nombre y correo en el Paso 1.');
       }
       showToast(`Generando hoja de vida ATS en ${format.toUpperCase()}...`);
 
