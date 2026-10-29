@@ -176,7 +176,11 @@ class Repository:
     ) -> List[Application]:
         q = self.db.query(Application)
         if user_id:
-            q = q.filter(Application.user_id == user_id)
+            try:
+                valid_uuid = str(uuid.UUID(str(user_id)))
+                q = q.filter(Application.user_id == valid_uuid)
+            except (ValueError, TypeError, AttributeError):
+                return []
         if status:
             q = q.filter(Application.status == status)
         if source:
@@ -320,7 +324,13 @@ class Repository:
         total_jobs = self.db.query(Job).count()
         app_q = self.db.query(Application)
         if user_id:
-            app_q = app_q.filter(Application.user_id == user_id)
+            try:
+                valid_uuid = str(uuid.UUID(str(user_id)))
+                app_q = app_q.filter(Application.user_id == valid_uuid)
+            except (ValueError, TypeError, AttributeError):
+                app_q = app_q.filter(Application.user_id.is_(None))
+        else:
+            app_q = app_q.filter(Application.user_id.is_(None))
 
         compatible_jobs = (
             app_q.filter(

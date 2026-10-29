@@ -1,4 +1,5 @@
 import enum
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import (
@@ -13,9 +14,40 @@ from sqlalchemy import (
     Index,
     Enum as SqlEnum,
 )
+from sqlalchemy.types import TypeDecorator
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
+
+
+class GUID(TypeDecorator):
+    """Platform-independent GUID type.
+    Uses PostgreSQL's native UUID type, otherwise uses String(64) for SQLite.
+    Safely binds non-UUID strings to nil UUID on PostgreSQL to avoid syntax crashes.
+    """
+    impl = String(64)
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PG_UUID(as_uuid=False))
+        return dialect.type_descriptor(String(64))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        if dialect.name == 'postgresql':
+            try:
+                return str(uuid.UUID(str(value)))
+            except (ValueError, TypeError, AttributeError):
+                return '00000000-0000-0000-0000-000000000000'
+        return str(value)
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return None
+        return str(value)
 
 
 class ApplicationStatus(str, enum.Enum):
@@ -74,7 +106,7 @@ class Application(Base):
     __tablename__ = "applications"
 
     id = Column(String(64), primary_key=True, index=True)
-    user_id = Column(String(64), nullable=True, index=True)  # Multi-tenant isolation
+    user_id = Column(GUID, nullable=True, index=True)  # Multi-tenant isolation (UUID in PostgreSQL, String in SQLite)
     job_id = Column(String(64), ForeignKey("jobs.id"), nullable=False, index=True)
     company = Column(String(150), nullable=False, index=True)
     position = Column(String(200), nullable=False)
@@ -193,7 +225,7 @@ class PortalCredential(Base):
     __tablename__ = "portal_credentials"
 
     id = Column(String(64), primary_key=True, index=True)
-    user_id = Column(String(64), ForeignKey("user_profiles.user_id"), nullable=False, index=True)
+    user_id = Column(GUID, nullable=False, index=True)
     portal_name = Column(String(50), nullable=False, index=True)  # computrabajo, linkedin, magneto, elempleo
     username = Column(String(150), nullable=False)
     password_hash = Column(String(255), nullable=False)
