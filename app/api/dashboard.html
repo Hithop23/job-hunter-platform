@@ -8,6 +8,8 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client (Auth & Realtime) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -50,9 +52,9 @@
         </div>
         <div>
           <h1 class="text-lg font-bold flex items-center gap-2">
-            JOB-HUNTER-CO <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">Colombia TI</span>
+            JOB-HUNTER-CO <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">SaaS Multi-Usuario</span>
           </h1>
-          <p class="text-xs text-slate-400">Candidato: <span class="text-white font-medium">Julian David Diaz Medina</span> (Técnico en Sistemas Teleinformáticos)</p>
+          <p class="text-xs text-slate-400">Candidato: <span id="candidateNameDisplay" class="text-white font-medium">Julian David Diaz Medina</span> <span id="candidateRoleDisplay" class="text-slate-400">(Técnico en Sistemas Teleinformáticos)</span></p>
         </div>
       </div>
 
@@ -82,7 +84,26 @@
           <i data-lucide="download" class="w-3.5 h-3.5"></i>
           <span>Exportar CSV</span>
         </a>
-      </div>
+
+        <!-- Supabase Auth / Multi-tenant Profile Controls -->
+        <div id="authContainer" class="flex items-center gap-1.5 border-l border-slate-700 pl-2">
+          <!-- Button when Logged Out -->
+          <button id="btnOpenAuth" onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-sm">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Iniciar Sesión / Registro</span>
+          </button>
+          
+          <!-- Buttons when Logged In -->
+          <div id="userLoggedInGroup" class="hidden flex items-center gap-1.5">
+            <button onclick="openProfileModal()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/40 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition" title="Configurar tu perfil y datos para la hoja de vida ATS">
+              <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span id="userProfileBtnLabel">Mi Perfil ATS</span>
+            </button>
+            <button onclick="handleSignOut()" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 transition" title="Cerrar Sesión">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
     </div>
   </header>
 
@@ -597,6 +618,148 @@
     </div>
   </div>
 
+  <!-- Modal de Autenticación Supabase (Login & Sign Up) -->
+  <div id="authModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="bg-emerald-500 text-slate-900 p-1.5 rounded-lg font-black text-sm">JH</div>
+          <div>
+            <h3 class="font-bold text-sm text-white" id="authModalTitle">Acceso a JOB-HUNTER SaaS</h3>
+            <p class="text-xs text-slate-400">Postulaciones y Hojas de Vida ATS independientes</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-slate-200 text-xs font-semibold">
+        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50">Iniciar Sesión</button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800">Crear Cuenta Nueva</button>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4 text-xs">
+        <div id="authNameField" class="hidden space-y-1">
+          <label class="font-semibold text-slate-700">Nombre Completo:</label>
+          <input type="text" id="authFullName" placeholder="Ej: Carlos Gómez Morales" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-semibold text-slate-700">Correo Electrónico:</label>
+          <input type="email" id="authEmail" required placeholder="tu@correo.com" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-semibold text-slate-700">Contraseña:</label>
+          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div id="authFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed"></div>
+
+        <button type="submit" id="btnAuthSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span id="btnAuthSubmitText">Entrar a Mi Panel</span>
+        </button>
+
+        <p class="text-[11px] text-slate-400 text-center">Protegido por Supabase Auth & Row Level Security (RLS).</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Configuración de Perfil ATS Personal -->
+  <div id="profileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+            <i data-lucide="user" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Mi Perfil Profesional & ATS</h3>
+            <p class="text-[11px] text-slate-400">Tus hojas de vida personalizadas se generarán con estos datos</p>
+          </div>
+        </div>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="profileForm" onsubmit="handleSaveProfile(event)" class="p-6 space-y-4 text-xs overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Nombre Completo:</label>
+            <input type="text" id="mProfName" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Teléfono / WhatsApp:</label>
+            <input type="text" id="mProfPhone" placeholder="+57 300 000 0000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Ciudad:</label>
+            <input type="text" id="mProfCity" value="Valledupar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Departamento / Región:</label>
+            <input type="text" id="mProfDepartment" value="Cesar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Cargo Objetivo (Titular):</label>
+            <input type="text" id="mProfTargetRole" placeholder="Ej: Técnico de Soporte TI / Sistemas" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Nivel de Inglés:</label>
+            <select id="mProfEnglish" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+              <option value="A1">A1 - Principiante</option>
+              <option value="A2">A2 - Básico</option>
+              <option value="B1">B1 - Intermedio</option>
+              <option value="B2" selected>B2 - Intermedio Alto (Profesional)</option>
+              <option value="C1">C1 - Avanzado / Fluido</option>
+              <option value="C2">C2 - Nativo / Bilingüe</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Salario Mínimo Esperado (COP):</label>
+            <input type="number" id="mProfSalaryMin" step="100000" value="2500000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div class="flex items-center gap-2 pt-5">
+            <input type="checkbox" id="mProfRemoteOnly" checked class="w-4 h-4 text-emerald-600 rounded">
+            <label for="mProfRemoteOnly" class="text-slate-700 font-medium">Priorizar ofertas 100% remotas</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700">Habilidades Técnicas Clave (separadas por coma):</label>
+          <input type="text" id="mProfSkills" placeholder="Soporte Técnico, Windows Server, Linux, Redes TCP/IP, Active Directory, Python" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700">Resumen Profesional (Extracto ATS):</label>
+          <textarea id="mProfSummary" rows="3" placeholder="Técnico apasionado por el soporte de sistemas, redes e infraestructura..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-4 py-2 rounded-lg transition">Cancelar</button>
+          <button type="submit" id="btnSaveProfile" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Guardar y Actualizar ATS</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Notification Toast -->
   <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
     <i data-lucide="info" class="w-4 h-4 text-emerald-400"></i>
@@ -604,6 +767,251 @@
   </div>
 
   <script>
+    // Supabase Auth & Multi-Tenant State
+    const SUPABASE_URL = 'https://kocenqwglnryhvmliwxh.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_FCYl1Bvfk3lP51xLXd-Lvw_H3xrEROL';
+    let sbClient = null;
+    let currentUser = null;
+    let currentUserId = null;
+
+    if (window.supabase) {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    }
+
+    function openAuthModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+      document.getElementById('authFeedback').classList.add('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
+
+    let authTabMode = 'login';
+    function switchAuthTab(mode) {
+      authTabMode = mode;
+      const tabLogin = document.getElementById('authTabLogin');
+      const tabReg = document.getElementById('authTabRegister');
+      const nameField = document.getElementById('authNameField');
+      const submitText = document.getElementById('btnAuthSubmitText');
+      const feedback = document.getElementById('authFeedback');
+      feedback.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
+        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
+        nameField.classList.add('hidden');
+        submitText.innerText = 'Entrar a Mi Panel';
+      } else {
+        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
+        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
+        nameField.classList.remove('hidden');
+        submitText.innerText = 'Registrarme y Configurar Perfil';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      if (!sbClient) return showToast('Supabase Client no inicializado.');
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const fullName = document.getElementById('authFullName').value.trim();
+      const feedback = document.getElementById('authFeedback');
+      const btn = document.getElementById('btnAuthSubmit');
+      
+      feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-slate-100 text-slate-700';
+      feedback.innerText = 'Procesando...';
+      feedback.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        if (authTabMode === 'login') {
+          const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
+          feedback.innerText = '¡Inicio de sesión exitoso! Cargando tus datos...';
+          closeAuthModal();
+          await checkAuth();
+          showToast('Sesión iniciada correctamente.');
+        } else {
+          const { data, error } = await sbClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName || 'Candidato' } }
+          });
+          if (error) throw error;
+          
+          if (data?.user) {
+            await fetch('/api/stats/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: data.user.id,
+                email: email,
+                full_name: fullName || 'Candidato',
+                target_role: 'Técnico de Soporte TI / Sistemas'
+              })
+            });
+          }
+          feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
+          feedback.innerText = '¡Cuenta creada! Revisa tu correo o inicia sesión para ingresar.';
+          showToast('¡Cuenta creada con éxito!');
+          setTimeout(() => {
+            switchAuthTab('login');
+          }, 1500);
+        }
+      } catch (err) {
+        feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-rose-100 text-rose-800 font-medium';
+        feedback.innerText = 'Error: ' + (err.message || 'No se pudo completar');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleSignOut() {
+      if (sbClient) {
+        await sbClient.auth.signOut();
+      }
+      currentUser = null;
+      currentUserId = null;
+      updateAuthUI(null);
+      loadStats();
+      loadApplications();
+      loadProfile();
+      showToast('Has cerrado sesión.');
+    }
+
+    async function checkAuth() {
+      if (!sbClient) return;
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+        currentUserId = session.user.id;
+        updateAuthUI(currentUser);
+      } else {
+        currentUser = null;
+        currentUserId = null;
+        updateAuthUI(null);
+      }
+      loadStats();
+      loadApplications();
+      loadProfile();
+    }
+
+    function updateAuthUI(user) {
+      const btnOpenAuth = document.getElementById('btnOpenAuth');
+      const userGroup = document.getElementById('userLoggedInGroup');
+      const nameDisp = document.getElementById('candidateNameDisplay');
+      const roleDisp = document.getElementById('candidateRoleDisplay');
+      const badgeLabel = document.getElementById('userProfileBtnLabel');
+
+      if (user) {
+        if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
+        if (userGroup) userGroup.classList.remove('hidden');
+        const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+        if (nameDisp) nameDisp.innerText = displayName;
+        if (roleDisp) roleDisp.innerText = `(${user.email})`;
+        if (badgeLabel) badgeLabel.innerText = displayName.split(' ')[0] || 'Mi Perfil';
+      } else {
+        if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
+        if (userGroup) userGroup.classList.add('hidden');
+        if (nameDisp) nameDisp.innerText = 'Julian David Diaz Medina';
+        if (roleDisp) roleDisp.innerText = '(Técnico en Sistemas Teleinformáticos)';
+      }
+      lucide.createIcons();
+    }
+
+    function openProfileModal() {
+      document.getElementById('profileModal').classList.remove('hidden');
+      loadProfileToModal();
+      lucide.createIcons();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    async function loadProfileToModal() {
+      const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
+      try {
+        const res = await fetch(url);
+        const p = await res.json();
+        document.getElementById('mProfName').value = p.name || '';
+        document.getElementById('mProfPhone').value = p.phone || '';
+        document.getElementById('mProfCity').value = p.city || 'Valledupar';
+        document.getElementById('mProfDepartment').value = p.department || 'Cesar';
+        document.getElementById('mProfTargetRole').value = p.target_role || '';
+        if (p.english_level) document.getElementById('mProfEnglish').value = p.english_level;
+        document.getElementById('mProfSalaryMin').value = p.salary_min_cop || 2500000;
+        document.getElementById('mProfRemoteOnly').checked = p.remote_only !== false;
+        
+        // Skills
+        let skillsStr = '';
+        if (p.technical_skills) {
+          if (typeof p.technical_skills === 'object') {
+            const all = Object.values(p.technical_skills).flat();
+            skillsStr = all.join(', ');
+          } else {
+            skillsStr = p.technical_skills;
+          }
+        }
+        document.getElementById('mProfSkills').value = skillsStr;
+        document.getElementById('mProfSummary').value = p.summary || '';
+      } catch (e) {
+        console.error('Error cargando perfil en modal:', e);
+      }
+    }
+
+    async function handleSaveProfile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveProfile');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Guardando...</span>`;
+      lucide.createIcons();
+
+      const skillsInput = document.getElementById('mProfSkills').value;
+      const skillsArray = skillsInput.split(',').map(s => s.trim()).filter(Boolean);
+
+      const payload = {
+        user_id: currentUserId || 'guest',
+        email: currentUser?.email || 'maestrecs92@gmail.com',
+        full_name: document.getElementById('mProfName').value.trim(),
+        phone: document.getElementById('mProfPhone').value.trim(),
+        city: document.getElementById('mProfCity').value.trim(),
+        department: document.getElementById('mProfDepartment').value.trim(),
+        target_role: document.getElementById('mProfTargetRole').value.trim(),
+        headline: document.getElementById('mProfTargetRole').value.trim() + ' | Bilingüe ' + document.getElementById('mProfEnglish').value,
+        english_level: document.getElementById('mProfEnglish').value,
+        salary_min_cop: parseInt(document.getElementById('mProfSalaryMin').value) || 2500000,
+        remote_only: document.getElementById('mProfRemoteOnly').checked,
+        summary: document.getElementById('mProfSummary').value.trim(),
+        technical_skills: {
+          "destacadas": skillsArray
+        }
+      };
+
+      try {
+        const res = await fetch('/api/stats/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        showToast('✅ ' + (data.message || 'Perfil guardado correctamente.'));
+        closeProfileModal();
+        loadProfile();
+        loadStats();
+      } catch (err) {
+        showToast('Error guardando perfil: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        lucide.createIcons();
+      }
+    }
+
     // Tab switching
     function openTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
@@ -632,7 +1040,8 @@
     // Fetch Dashboard Stats
     async function loadStats() {
       try {
-        const res = await fetch('/api/stats/dashboard');
+        const url = currentUserId ? `/api/stats/dashboard?user_id=${currentUserId}` : '/api/stats/dashboard';
+        const res = await fetch(url);
         const data = await res.json();
         document.getElementById('statTotalJobs').innerText = data.total_jobs_found || 0;
         document.getElementById('statCompatible').innerText = data.compatible_jobs || 0;
@@ -669,6 +1078,7 @@
       const filterSalary = document.getElementById('filterSalary')?.value || '';
 
       let url = '/api/applications/?limit=100';
+      if (currentUserId) url += `&user_id=${currentUserId}`;
       if (source) url += `&source=${source}`;
       if (status) url += `&status=${status}`;
       if (minScore) url += `&min_score=${minScore}`;
@@ -1059,12 +1469,19 @@
     // Fetch Profile & Location Preferences
     async function loadProfile() {
       try {
-        const res = await fetch('/api/stats/profile');
+        const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
+        const res = await fetch(url);
         const p = await res.json();
+        if (p.name) {
+          const nameDisp = document.getElementById('candidateNameDisplay');
+          const roleDisp = document.getElementById('candidateRoleDisplay');
+          if (nameDisp) nameDisp.innerText = p.name;
+          if (roleDisp) roleDisp.innerText = `(${p.target_role || p.headline || 'Candidato'})`;
+        }
         document.getElementById('profName').innerText = p.name;
         document.getElementById('profHeadline').innerText = p.headline;
-        document.getElementById('profLocation').innerText = `${p.location} | ${p.phone} | ${p.email}`;
-        document.getElementById('profSummary').innerText = p.summary;
+        document.getElementById('profLocation').innerText = `${p.location || (p.city + ', ' + p.country)} | ${p.phone} | ${p.email}`;
+        document.getElementById('profSummary').innerText = p.summary || '';
 
         // Populate search preferences if available
         if (p.search_preferences) {
@@ -1190,6 +1607,7 @@
           query: query,
           location: targetLoc
         });
+        if (currentUserId) params.append('user_id', currentUserId);
 
         const res = await fetch(`/api/jobs/scan?${params.toString()}`, { method: 'POST' });
         const data = await res.json();
@@ -1689,6 +2107,7 @@
     // Init
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      checkAuth();
       loadStats();
       loadApplications();
       loadHIL();

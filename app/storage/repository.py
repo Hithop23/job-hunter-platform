@@ -12,6 +12,7 @@ from app.storage.models import (
     HumanReviewItem,
     DomainRateRecord,
     SystemAuditLog,
+    UserProfile,
 )
 
 
@@ -169,10 +170,13 @@ class Repository:
         source: Optional[str] = None,
         company: Optional[str] = None,
         min_score: Optional[float] = None,
+        user_id: Optional[str] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[Application]:
         q = self.db.query(Application)
+        if user_id:
+            q = q.filter(Application.user_id == user_id)
         if status:
             q = q.filter(Application.status == status)
         if source:
@@ -312,42 +316,40 @@ class Repository:
         self.db.commit()
 
     # ------------------ DASHBOARD STATS ------------------
-    def get_dashboard_stats(self) -> Dict[str, Any]:
+    def get_dashboard_stats(self, user_id: Optional[str] = None) -> Dict[str, Any]:
         total_jobs = self.db.query(Job).count()
-        total_applications = self.db.query(Application).count()
+        app_q = self.db.query(Application)
+        if user_id:
+            app_q = app_q.filter(Application.user_id == user_id)
+
         compatible_jobs = (
-            self.db.query(Application)
-            .filter(
+            app_q.filter(
                 Application.match_score >= 60,
                 Application.does_not_meet_required_requirement == False,
             )
             .count()
         )
         high_priority_jobs = (
-            self.db.query(Application)
-            .filter(
+            app_q.filter(
                 Application.match_score >= 75,
                 Application.does_not_meet_required_requirement == False,
             )
             .count()
         )
-        cvs_prepared = self.db.query(Application).filter(Application.cv_path.isnot(None)).count()
+        cvs_prepared = app_q.filter(Application.cv_path.isnot(None)).count()
         submitted = (
-            self.db.query(Application)
-            .filter(Application.status == ApplicationStatus.SUBMITTED.value)
+            app_q.filter(Application.status == ApplicationStatus.SUBMITTED.value)
             .count()
         )
         pending_review = (
             self.db.query(HumanReviewItem).filter(HumanReviewItem.resolved == False).count()
         )
         interviews = (
-            self.db.query(Application)
-            .filter(Application.status == ApplicationStatus.INTERVIEW.value)
+            app_q.filter(Application.status == ApplicationStatus.INTERVIEW.value)
             .count()
         )
         failed = (
-            self.db.query(Application)
-            .filter(Application.status == ApplicationStatus.FAILED.value)
+            app_q.filter(Application.status == ApplicationStatus.FAILED.value)
             .count()
         )
 
@@ -361,7 +363,7 @@ class Repository:
 
         # Status breakdown
         status_q = (
-            self.db.query(Application.status, func.count(Application.id))
+            app_q.with_entities(Application.status, func.count(Application.id))
             .group_by(Application.status)
             .all()
         )
@@ -383,3 +385,42 @@ class Repository:
             "sources_breakdown": source_counts,
             "status_breakdown": status_counts,
         }
+
+    # ------------------ MULTI-TENANT USER PROFILES ------------------
+    def get_user_profile(self, user_id: str) -> Optional[UserProfile]:
+        return self.db.query(UserProfile).filter(UserProfile.user_id == user_id).first()
+
+    def upsert_user_profile(self, profile_data: Dict[str, Any]) -> UserProfile:
+        user_id = profile_data.get("user_id") or str(uuid.uuid4())
+        profile = self.get_user_profile(user_id)
+        if not profile:
+            profile = UserProfile(
+                user_id=user_id,
+                email=profile_data.get("email", ""),
+                full_name=profile_data.get("full_name", ""),
+                created_at=datetime.now(timezone.utc),
+            )
+            self.db.add(profile)
+
+        # Update profile fields
+        for field in [
+            "email", "full_name", "phone", "city", "department", "country",
+            "target_role", "headline", "summary", "english_level",
+            "salary_min_cop", "salary_max_cop", "remote_only",
+            "has_computer", "has_internet", "immediate_availability"
+        ]:
+            if field in profile_data and profile_data[field] is not None:
+                setattr(profile, field, profile_data[field])
+
+        # Serialize JSON fields if dicts or lists
+        for json_field in ["technical_skills", "experience", "education", "certifications", "languages"]:
+            if json_field in profile_data and profile_data[json_field] is not None:
+                val = profile_data[json_field]
+                if not isinstance(val, str):
+                    val = json.dumps(val, ensure_ascii=False)
+                setattr(profile, json_field, val)
+
+        profile.updated_at = datetime.now(timezone.utc)
+        self.db.commit()
+        self.db.refresh(profile)
+        return profile

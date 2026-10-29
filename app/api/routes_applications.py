@@ -24,13 +24,14 @@ def list_applications(
     source: Optional[str] = None,
     company: Optional[str] = None,
     min_score: Optional[float] = None,
+    user_id: Optional[str] = None,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db)
 ):
     repo = Repository(db)
     apps = repo.list_applications(
-        status=status, source=source, company=company, min_score=min_score, limit=limit, offset=offset
+        status=status, source=source, company=company, min_score=min_score, user_id=user_id, limit=limit, offset=offset
     )
     return {
         "total": len(apps),

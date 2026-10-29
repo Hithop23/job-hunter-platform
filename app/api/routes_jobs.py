@@ -31,12 +31,37 @@ async def run_discovery_task(
     location: str,
     country: str = "Colombia",
     region: str = "Cesar",
-    remote: bool = True
+    remote: bool = True,
+    user_id: Optional[str] = None,
 ):
     repo = Repository(db_session)
     matcher = JobMatcher()
     cv_gen = ATSCVGenerator()
     cl_gen = CoverLetterGenerator()
+
+    # Load custom user profile if user_id is provided
+    custom_profile = None
+    if user_id:
+        up = repo.get_user_profile(user_id)
+        if up:
+            try:
+                skills_data = json.loads(up.technical_skills) if up.technical_skills else {}
+                exp_data = json.loads(up.experience) if up.experience else []
+                edu_data = json.loads(up.education) if up.education else []
+            except Exception:
+                skills_data, exp_data, edu_data = {}, [], []
+            custom_profile = {
+                "name": up.full_name,
+                "email": up.email,
+                "phone": up.phone or "",
+                "location": f"{up.city or 'Valledupar'}, {up.department or 'Cesar'}, {up.country or 'Colombia'}",
+                "headline": up.headline or up.target_role,
+                "summary": up.summary or "",
+                "technical_skills": skills_data,
+                "experience": exp_data,
+                "education": edu_data,
+                "languages": [{"language": "Español", "level": "Nativo"}, {"language": "Inglés", "level": up.english_level or "B2"}]
+            }
 
     adapters = [
         SENAAdapter(db_session),
@@ -91,7 +116,8 @@ async def run_discovery_task(
                         company=job_obj.company,
                         job_description=f"{job_obj.description} {job_obj.requirements}",
                         location=job_obj.location or "",
-                        source=job_obj.source or ""
+                        source=job_obj.source or "",
+                        user_profile=custom_profile
                     )
                     cv_path = cv_res["pdf_path"]
                     cv_ver = cv_res["cv_version"]
@@ -107,6 +133,7 @@ async def run_discovery_task(
 
                 app_obj = repo.create_or_update_application({
                     "job_id": job_obj.id,
+                    "user_id": user_id,
                     "company": job_obj.company,
                     "position": job_obj.title,
                     "url": job_obj.url,
@@ -161,6 +188,7 @@ async def trigger_scan(
     city: Optional[str] = Query(None, description="Ciudad o Municipio"),
     remote: Optional[bool] = Query(None, description="Incluir vacantes remotas"),
     location: Optional[str] = Query(None, description="Ubicación consolidada"),
+    user_id: Optional[str] = Query(None, description="ID del usuario en Supabase"),
     db: Session = Depends(get_db)
 ):
     """
@@ -182,6 +210,16 @@ async def trigger_scan(
         except Exception:
             pass
 
+    if user_id:
+        repo = Repository(db)
+        up = repo.get_user_profile(user_id)
+        if up:
+            prefs["country"] = up.country or "Colombia"
+            prefs["region"] = up.department or "Cesar"
+            prefs["city"] = up.city or "Valledupar"
+            prefs["remote"] = up.remote_only
+            prefs["keywords"] = up.target_role or "soporte TI sistemas"
+
     final_country = country or prefs.get("country") or "Colombia"
     final_region = region or prefs.get("region") or "Cesar"
     final_city = city or prefs.get("city") or "Valledupar"
@@ -196,7 +234,8 @@ async def trigger_scan(
         final_location,
         final_country,
         final_region,
-        final_remote
+        final_remote,
+        user_id=user_id,
     )
     return {
         "status": "completed",
