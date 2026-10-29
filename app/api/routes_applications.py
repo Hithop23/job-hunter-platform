@@ -336,7 +336,7 @@ async def apply_batch_autopilot(
 @router.put("/{application_id}/status")
 def update_application_status(
     application_id: str,
-    status: str = Query(..., enum=[s.value for s in ApplicationStatus]),
+    status: ApplicationStatus = Query(..., description="Nuevo estado de la postulación"),
     notes: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
@@ -344,7 +344,7 @@ def update_application_status(
     app = repo.get_application(application_id)
     if not app:
         raise HTTPException(status_code=404, detail="Postulación no encontrada")
-    app.status = status
+    app.status = status.value if hasattr(status, "value") else str(status)
     if notes:
         app.notes = notes
     if status == ApplicationStatus.SUBMITTED.value and not app.submitted_at:

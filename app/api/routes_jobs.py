@@ -154,7 +154,7 @@ async def run_discovery_task(
 
 @router.post("/scan")
 async def trigger_scan(
-    mode: str = Query("SCAN", enum=["SCAN", "PREPARE", "AUTOPILOT"]),
+    mode: str = Query("SCAN", description="Modes: SCAN, PREPARE, AUTOPILOT"),
     query: Optional[str] = Query(None, description="Cargos o tecnologías a buscar"),
     country: Optional[str] = Query(None, description="País"),
     region: Optional[str] = Query(None, description="Departamento o Región"),
