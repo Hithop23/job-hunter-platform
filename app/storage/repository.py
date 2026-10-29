@@ -392,11 +392,16 @@ class Repository:
 
     def upsert_user_profile(self, profile_data: Dict[str, Any]) -> UserProfile:
         user_id = profile_data.get("user_id") or str(uuid.uuid4())
+        email = (profile_data.get("email") or "").strip().lower()
         profile = self.get_user_profile(user_id)
+        if not profile and email:
+            profile = self.db.query(UserProfile).filter(UserProfile.email.ilike(email)).first()
+            if profile:
+                profile.user_id = user_id
         if not profile:
             profile = UserProfile(
                 user_id=user_id,
-                email=profile_data.get("email", ""),
+                email=email,
                 full_name=profile_data.get("full_name", ""),
                 created_at=datetime.now(timezone.utc),
             )
@@ -423,4 +428,17 @@ class Repository:
         profile.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         self.db.refresh(profile)
+
+        # Claim initial applications for Julian's master account if user_id is a valid UUID
+        if profile.email and profile.email.strip().lower() == "maestrecs92@gmail.com":
+            try:
+                valid_uuid = str(uuid.UUID(str(profile.user_id)))
+                self.db.query(Application).filter(Application.user_id.is_(None)).update(
+                    {Application.user_id: valid_uuid},
+                    synchronize_session=False
+                )
+                self.db.commit()
+            except Exception:
+                self.db.rollback()
+
         return profile

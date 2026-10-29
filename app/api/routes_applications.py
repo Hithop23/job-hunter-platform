@@ -24,11 +24,17 @@ def list_applications(
     source: Optional[str] = None,
     company: Optional[str] = None,
     min_score: Optional[float] = None,
-    user_id: Optional[str] = None,
+    user_id: Optional[str] = Query(None),
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db)
 ):
+    if not user_id:
+        return {
+            "total": 0,
+            "applications": [],
+            "message": "Inicia sesión o regístrate para ver y gestionar tus postulaciones personales."
+        }
     repo = Repository(db)
     apps = repo.list_applications(
         status=status, source=source, company=company, min_score=min_score, user_id=user_id, limit=limit, offset=offset

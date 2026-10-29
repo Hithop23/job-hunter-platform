@@ -294,7 +294,7 @@ class BrowserManager:
                     is_authenticated = True
                     add_step("3. Autenticación de Cuenta", "completed", "Sesión activa verificada en Computrabajo (Julian Diaz).")
                 else:
-                    ct_email = os.getenv("COMPUTRABAJO_EMAIL") or self.profile_data.get("portal_credentials", {}).get("computrabajo", {}).get("email") or "maestrecs92@gmail.com"
+                    ct_email = os.getenv("COMPUTRABAJO_EMAIL") or self.profile_data.get("portal_credentials", {}).get("computrabajo", {}).get("email") or self.profile_data.get("email", "")
                     ct_pass = os.getenv("COMPUTRABAJO_PASSWORD") or self.profile_data.get("portal_credentials", {}).get("computrabajo", {}).get("password") or "Jul14n2006@23H"
                     add_step("3. Autenticación de Cuenta", "in_progress", f"Iniciando sesión en Computrabajo con {ct_email}...")
                     try:
@@ -632,7 +632,7 @@ class BrowserManager:
                 email_step_inp = await page.query_selector("input[type='email'], input[name='Email'], input[placeholder*='Correo']")
                 continue_btn = await page.query_selector("button:has-text('CONTINUAR'), input[value*='CONTINUAR']")
                 if email_step_inp and continue_btn and await email_step_inp.is_visible():
-                    cand_email = self.profile_data.get("email") or os.getenv("LINKEDIN_EMAIL") or "maestrecs92@gmail.com"
+                    cand_email = self.profile_data.get("email") or os.getenv("LINKEDIN_EMAIL", "")
                     add_step("5.2 Identificación de Candidato", "in_progress", f"Identificando candidatura con {cand_email}...")
                     try:
                         await email_step_inp.fill(cand_email)
@@ -785,13 +785,13 @@ class BrowserManager:
                 is_pure_login_page = (login_username_field and login_password_field and not await page.query_selector("input[type='file'], input[name='phone'], input#phone"))
 
                 if is_ats_login or is_pure_login_page:
-                    add_step("5.2 Portal Corporativo / Autenticación y Registro", "in_progress", "Accediendo con credenciales de candidato Julian Díaz o registrando cuenta nueva...")
-                    auth_email = self.profile_data.get("email", "maestrecs92@gmail.com")
-                    auth_pwd = self.profile_data.get("portal_credentials", {}).get("password", "JulianDiaz2026*")
-                    first_name = self.profile_data.get("first_name", "Julian David")
-                    last_name = self.profile_data.get("last_name", "Diaz Medina")
-                    phone_val = "3206841270"
-                    cedula_val = self.profile_data.get("cedula") or self.profile_data.get("document_number", "1081795939")
+                    add_step("5.2 Portal Corporativo / Autenticación y Registro", "in_progress", "Accediendo con credenciales de candidato o registrando cuenta nueva...")
+                    auth_email = self.profile_data.get("email", "")
+                    auth_pwd = self.profile_data.get("portal_credentials", {}).get("password", "")
+                    first_name = self.profile_data.get("first_name", "")
+                    last_name = self.profile_data.get("last_name", "")
+                    phone_val = re.sub(r"[^\d]", "", self.profile_data.get("phone", ""))
+                    cedula_val = self.profile_data.get("cedula") or self.profile_data.get("document_number", "")
                     
                     # 1. Attempt login if username & password fields are present
                     login_user_el = await page.query_selector("input#username, input[name='username'], input#user_email, input[name='user_email'], input[name='login']")
@@ -870,7 +870,7 @@ class BrowserManager:
                     page_t_curr = (await page.content()).lower()
                     is_already_on_code_step = any(k in page_t_curr for k in ["código de acceso", "codigo de acceso", "contraseña de un solo uso", "one-time passcode", "código"])
                     if not is_already_on_code_step and not verification_code and create_acc_link and (any(k in curr_url_after for k in ["login", "signin", "auth"]) or await page.query_selector(".error, .alert-danger, [id*='error']")):
-                        add_step("5.3 Creación Autónoma de Cuenta", "in_progress", "Registrando automáticamente cuenta de candidato en el portal con maestrecs92@gmail.com...")
+                        add_step("5.3 Creación Autónoma de Cuenta", "in_progress", f"Registrando automáticamente cuenta de candidato en el portal con {auth_email}...")
                         try:
                             await create_acc_link.click()
                             await asyncio.sleep(3.0)
@@ -1140,15 +1140,15 @@ class BrowserManager:
 
             full_el = await search_scope.query_selector("input[name='full_name'], input#full_name, input[name='candidate.name'], input[name='name'], input#name, input[name='job_application[name]'], input[placeholder*='Full Name'], input[placeholder*='Nombre Completo']") or await page.query_selector("input[name='full_name'], input#full_name, input[name='candidate.name'], input[name='name'], input#name, input[name='job_application[name]']")
             if not fn_el:
-                if await _fill_field(full_el, "Julian David Diaz Medina"):
+                if await _fill_field(full_el, self.profile_data.get("name", "")):
                     filled_count += 1
 
             email_el = await search_scope.query_selector("input[type='email'], input[name*='email'], input#email, input[name='candidate.email'], input[name='job_application[email]'], input[placeholder*='Email'], input[placeholder*='Correo']") or await page.query_selector("input[type='email'], input[name*='email'], input#email, input[name='candidate.email'], input[name='job_application[email]']")
-            if await _fill_field(email_el, "maestrecs92@gmail.com"):
+            if await _fill_field(email_el, self.profile_data.get("email", "")):
                 filled_count += 1
 
             phone_el = await search_scope.query_selector("input[name*='phone'], input#phone, input[type='tel'], input[name='candidate.phone'], input[name='job_application[phone]'], input[placeholder*='Phone'], input[placeholder*='Teléfono'], input[placeholder*='Celular']") or await page.query_selector("input[name*='phone'], input#phone, input[type='tel'], input[name='candidate.phone'], input[name='job_application[phone]']")
-            if await _fill_field(phone_el, "3206841270"):
+            if await _fill_field(phone_el, re.sub(r"[^\d]", "", self.profile_data.get("phone", ""))):
                 filled_count += 1
 
             prefix_el = await search_scope.query_selector("input[name='PrefixPhone'], input#PrefixPhone") or await page.query_selector("input[name='PrefixPhone'], input#PrefixPhone")
@@ -1156,7 +1156,7 @@ class BrowserManager:
                 filled_count += 1
 
             addr_el = await search_scope.query_selector("input[name='Address'], input#Address, input[name*='location'], input#location, input[placeholder*='City'], input[placeholder*='Ciudad']") or await page.query_selector("input[name='Address'], input#Address, input[name*='location'], input#location")
-            if await _fill_field(addr_el, "Valledupar, Cesar"):
+            if await _fill_field(addr_el, self.profile_data.get("location") or self.profile_data.get("city", "")):
                 filled_count += 1
 
             doc_el = await search_scope.query_selector("input[name*='cedula' i], input[name*='document' i], input#document, input[name*='dni' i], input[placeholder*='cédula' i], input[placeholder*='documento' i]") or await page.query_selector("input[name*='cedula' i], input[name*='document' i], input#document, input[placeholder*='cédula' i], input[placeholder*='documento' i]")

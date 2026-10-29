@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 from app.storage.database import get_db
 from app.storage.repository import Repository
+from app.storage.models import Job
 
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
@@ -45,6 +46,21 @@ class UserProfilePayload(BaseModel):
 @router.get("/dashboard")
 def get_dashboard_metrics(user_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
     repo = Repository(db)
+    if not user_id:
+        total_jobs = repo.db.query(Job).count()
+        return {
+            "total_jobs_found": total_jobs,
+            "compatible_jobs": 0,
+            "high_priority_jobs": 0,
+            "cvs_prepared": 0,
+            "submitted_applications": 0,
+            "pending_human_interventions": 0,
+            "interviews_scheduled": 0,
+            "failed_submissions": 0,
+            "response_rate_percent": 0.0,
+            "sources_breakdown": {},
+            "status_breakdown": {}
+        }
     return repo.get_dashboard_stats(user_id=user_id)
 
 
@@ -72,9 +88,9 @@ def get_profile(user_id: Optional[str] = Query(None), db: Session = Depends(get_
                 "city": up.city or "Valledupar",
                 "department": up.department or "Cesar",
                 "country": up.country or "Colombia",
-                "location": f"{up.city or 'Valledupar'}, {up.department or 'Cesar'}, {up.country or 'Colombia'}",
+                "location": f"{up.city or 'Valledupar'}{', ' + up.department if up.department else ''}, {up.country or 'Colombia'}",
                 "target_role": up.target_role or "Técnico en Sistemas Teleinformáticos",
-                "headline": up.headline or f"{up.target_role} | Bilingüe B2",
+                "headline": up.headline or f"{up.target_role}",
                 "summary": up.summary or "",
                 "english_level": up.english_level or "B2",
                 "salary_min_cop": up.salary_min_cop or 2500000,
@@ -85,19 +101,26 @@ def get_profile(user_id: Optional[str] = Query(None), db: Session = Depends(get_
                 "education": parse_json(up.education, [])
             }
 
-    # Baseline profile.json
-    base_dir = Path(__file__).resolve().parent.parent.parent
-    p_path = base_dir / "data" / "profile.json"
-    if p_path.exists():
-        with open(p_path, "r", encoding="utf-8") as f:
-            return json.load(f)
+    # Clean guest / non-authenticated profile template (NEVER leaks private candidate details)
     return {
-        "name": "Candidato",
+        "user_id": None,
         "email": "",
+        "name": "Invitado (Sin Iniciar Sesión)",
         "phone": "",
-        "target_role": "Soporte TI / Sistemas",
+        "city": "Colombia",
+        "department": "",
+        "country": "Colombia",
+        "location": "Colombia",
+        "target_role": "Candidato",
+        "headline": "Inicia sesión o regístrate para configurar tu perfil ATS",
+        "summary": "Crea tu cuenta gratuita para personalizar tu hoja de vida ATS con tus propias habilidades y experiencia.",
         "english_level": "B2",
-        "salary_min_cop": 2500000
+        "salary_min_cop": 2500000,
+        "salary_max_cop": 4000000,
+        "remote_only": True,
+        "technical_skills": {},
+        "experience": [],
+        "education": []
     }
 
 

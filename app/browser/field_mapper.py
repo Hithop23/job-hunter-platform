@@ -162,36 +162,36 @@ class FieldMapper:
 
     @classmethod
     def get_candidate_value(cls, field_type: str, profile: Dict[str, Any], cv_path: str = None, cover_letter: str = None) -> Any:
-        name_parts = profile.get("name", "Julian David Diaz Medina").split()
+        name_parts = profile.get("name", "").split()
         first_name = " ".join(name_parts[:2]) if len(name_parts) >= 2 else profile.get("name", "")
         last_name = " ".join(name_parts[2:]) if len(name_parts) >= 3 else ""
 
-        raw_phone = profile.get("phone", "+57 320 684 1270")
+        raw_phone = profile.get("phone", "")
         clean_phone = re.sub(r"[^\d]", "", raw_phone)
         if clean_phone.startswith("57") and len(clean_phone) > 10:
             local_phone = clean_phone[2:]
         else:
             local_phone = clean_phone
 
-        portal_pwd = profile.get("portal_credentials", {}).get("password", "JulianTalento2026*!")
-        portal_usr = profile.get("portal_credentials", {}).get("username", "maestrecs92")
+        portal_pwd = profile.get("portal_credentials", {}).get("password", "")
+        portal_usr = profile.get("portal_credentials", {}).get("username", "")
 
         values = {
-            "full_name": profile.get("name", "Julian David Diaz Medina"),
+            "full_name": profile.get("name", ""),
             "first_name": first_name,
             "last_name": last_name,
-            "email": profile.get("email", "maestrecs92@gmail.com"),
-            "phone": local_phone or "3206841270",
+            "email": profile.get("email", ""),
+            "phone": local_phone or "",
             "prefix_phone": "57",
-            "city": "Valledupar",
-            "address": "Valledupar, Cesar",
-            "country": "Colombia",
-            "document_number": profile.get("cedula") or profile.get("document_number", "1081795939"),
+            "city": profile.get("city", "Colombia"),
+            "address": profile.get("location") or profile.get("city", "Colombia"),
+            "country": profile.get("country", "Colombia"),
+            "document_number": profile.get("cedula") or profile.get("document_number", ""),
             "document_type": "CC",
             "password": portal_pwd,
             "confirm_password": portal_pwd,
             "username": portal_usr,
-            "linkedin": profile.get("linkedin", "https://www.linkedin.com/in/julian-diaz-soporte-ti"),
+            "linkedin": profile.get("linkedin", ""),
             "resume": cv_path,
             "cover_letter": cover_letter or profile.get("summary", ""),
             "terms": True,

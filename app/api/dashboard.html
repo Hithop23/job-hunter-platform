@@ -54,7 +54,7 @@
           <h1 class="text-lg font-bold flex items-center gap-2">
             JOB-HUNTER-CO <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">SaaS Multi-Usuario</span>
           </h1>
-          <p class="text-xs text-slate-400">Candidato: <span id="candidateNameDisplay" class="text-white font-medium">Julian David Diaz Medina</span> <span id="candidateRoleDisplay" class="text-slate-400">(Técnico en Sistemas Teleinformáticos)</span></p>
+          <p class="text-xs text-slate-400">Candidato: <span id="candidateNameDisplay" class="text-white font-medium">Invitado</span> <span id="candidateRoleDisplay" class="text-slate-400">(Sin iniciar sesión)</span></p>
         </div>
       </div>
 
@@ -398,12 +398,12 @@
       <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
         <div class="flex items-start justify-between">
           <div>
-            <h2 class="text-xl font-bold text-slate-900" id="profName">Julian David Diaz Medina</h2>
-            <p class="text-sm text-emerald-600 font-semibold" id="profHeadline">Técnico en Sistemas Teleinformáticos | Soporte TI</p>
-            <p class="text-xs text-slate-500 mt-1" id="profLocation">Valledupar, Cesar, Colombia</p>
+            <h2 class="text-xl font-bold text-slate-900" id="profName">Modo Invitado</h2>
+            <p class="text-sm text-emerald-600 font-semibold" id="profHeadline">Inicia sesión o regístrate para configurar tu perfil profesional</p>
+            <p class="text-xs text-slate-500 mt-1" id="profLocation">Sin sesión activa</p>
           </div>
           <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
-            Perfil 100% Auténtico
+            Perfil ATS Multi-Usuario
           </span>
         </div>
 
@@ -916,13 +916,19 @@
       } else {
         if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
         if (userGroup) userGroup.classList.add('hidden');
-        if (nameDisp) nameDisp.innerText = 'Julian David Diaz Medina';
-        if (roleDisp) roleDisp.innerText = '(Técnico en Sistemas Teleinformáticos)';
+        if (nameDisp) nameDisp.innerText = 'Invitado';
+        if (roleDisp) roleDisp.innerText = '(Sin iniciar sesión)';
+        if (badgeLabel) badgeLabel.innerText = 'Iniciar Sesión';
       }
       lucide.createIcons();
     }
 
     function openProfileModal() {
+      if (!currentUserId) {
+        showToast('ℹ️ Inicia sesión o regístrate para configurar tu perfil.');
+        openAuthModal('login');
+        return;
+      }
       document.getElementById('profileModal').classList.remove('hidden');
       loadProfileToModal();
       lucide.createIcons();
@@ -933,14 +939,15 @@
     }
 
     async function loadProfileToModal() {
-      const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
+      if (!currentUserId) return;
+      const url = `/api/stats/profile?user_id=${currentUserId}`;
       try {
         const res = await fetch(url);
         const p = await res.json();
         document.getElementById('mProfName').value = p.name || '';
         document.getElementById('mProfPhone').value = p.phone || '';
-        document.getElementById('mProfCity').value = p.city || 'Valledupar';
-        document.getElementById('mProfDepartment').value = p.department || 'Cesar';
+        document.getElementById('mProfCity').value = p.city || '';
+        document.getElementById('mProfDepartment').value = p.department || '';
         document.getElementById('mProfTargetRole').value = p.target_role || '';
         if (p.english_level) document.getElementById('mProfEnglish').value = p.english_level;
         document.getElementById('mProfSalaryMin').value = p.salary_min_cop || 2500000;
@@ -965,6 +972,11 @@
 
     async function handleSaveProfile(e) {
       e.preventDefault();
+      if (!currentUserId) {
+        showToast('⚠️ Debes iniciar sesión o registrarte para guardar tu perfil.');
+        openAuthModal('register');
+        return;
+      }
       const btn = document.getElementById('btnSaveProfile');
       const original = btn.innerHTML;
       btn.disabled = true;
@@ -975,8 +987,8 @@
       const skillsArray = skillsInput.split(',').map(s => s.trim()).filter(Boolean);
 
       const payload = {
-        user_id: currentUserId || 'guest',
-        email: currentUser?.email || 'maestrecs92@gmail.com',
+        user_id: currentUserId,
+        email: currentUser?.email || '',
         full_name: document.getElementById('mProfName').value.trim(),
         phone: document.getElementById('mProfPhone').value.trim(),
         city: document.getElementById('mProfCity').value.trim(),
@@ -1125,7 +1137,28 @@
         document.getElementById('appsCount').innerText = apps.length;
 
         if (apps.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No hay vacantes registradas con los filtros seleccionados.</td></tr>`;
+          if (!currentUserId) {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center">
+              <div class="max-w-md mx-auto space-y-3">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+                  <i data-lucide="lock" class="w-6 h-6"></i>
+                </div>
+                <h3 class="text-base font-bold text-slate-800">Modo Invitado / Sin Iniciar Sesión</h3>
+                <p class="text-xs text-slate-500">Inicia sesión o regístrate con tu correo para acceder a tu panel personalizado de postulaciones, generar CVs ATS con tus habilidades y hacer seguimiento privado.</p>
+                <div class="flex justify-center gap-2 pt-1">
+                  <button onclick="openAuthModal('login')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+                    <i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión
+                  </button>
+                  <button onclick="openAuthModal('register')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
+                    <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Cuenta
+                  </button>
+                </div>
+              </div>
+            </td></tr>`;
+          } else {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No hay postulaciones registradas en tu cuenta con los filtros seleccionados.</td></tr>`;
+          }
+          lucide.createIcons();
           return;
         }
 
@@ -1469,18 +1502,33 @@
     // Fetch Profile & Location Preferences
     async function loadProfile() {
       try {
-        const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
-        const res = await fetch(url);
-        const p = await res.json();
-        if (p.name) {
+        if (!currentUserId) {
           const nameDisp = document.getElementById('candidateNameDisplay');
           const roleDisp = document.getElementById('candidateRoleDisplay');
-          if (nameDisp) nameDisp.innerText = p.name;
-          if (roleDisp) roleDisp.innerText = `(${p.target_role || p.headline || 'Candidato'})`;
+          if (nameDisp) nameDisp.innerText = 'Invitado';
+          if (roleDisp) roleDisp.innerText = '(Sin iniciar sesión)';
+          document.getElementById('profName').innerText = 'Modo Invitado';
+          document.getElementById('profHeadline').innerText = 'Inicia sesión o regístrate para ver y editar tu perfil';
+          document.getElementById('profLocation').innerText = 'Sin sesión activa';
+          document.getElementById('profSummary').innerText = 'Crea tu cuenta gratuita para personalizar tu hoja de vida ATS con tus propias habilidades y experiencia.';
+          document.getElementById('profSkills').innerHTML = '<span class="text-xs text-slate-400 italic">Inicia sesión para cargar tus habilidades</span>';
+          document.getElementById('profCerts').innerHTML = '<li class="text-xs text-slate-400 italic">Inicia sesión para ver certificaciones</li>';
+          return;
         }
-        document.getElementById('profName').innerText = p.name;
-        document.getElementById('profHeadline').innerText = p.headline;
-        document.getElementById('profLocation').innerText = `${p.location || (p.city + ', ' + p.country)} | ${p.phone} | ${p.email}`;
+
+        const url = `/api/stats/profile?user_id=${currentUserId}`;
+        const res = await fetch(url);
+        const p = await res.json();
+        
+        const nameDisp = document.getElementById('candidateNameDisplay');
+        const roleDisp = document.getElementById('candidateRoleDisplay');
+        if (nameDisp) nameDisp.innerText = p.name || 'Mi Perfil';
+        if (roleDisp) roleDisp.innerText = `(${p.target_role || p.headline || 'Candidato'})`;
+
+        document.getElementById('profName').innerText = p.name || 'Mi Perfil';
+        document.getElementById('profHeadline').innerText = p.headline || p.target_role || 'Candidato';
+        const contactParts = [p.location || (p.city ? `${p.city}, ${p.country || 'Colombia'}` : ''), p.phone, p.email].filter(Boolean);
+        document.getElementById('profLocation').innerText = contactParts.join(' | ') || 'Colombia';
         document.getElementById('profSummary').innerText = p.summary || '';
 
         // Populate search preferences if available
@@ -1527,14 +1575,21 @@
         // Skills
         const skillsContainer = document.getElementById('profSkills');
         let allSkills = [];
-        for (const cat in p.technical_skills) {
-          allSkills = allSkills.concat(p.technical_skills[cat]);
+        if (p.technical_skills && typeof p.technical_skills === 'object') {
+          for (const cat in p.technical_skills) {
+            allSkills = allSkills.concat(p.technical_skills[cat]);
+          }
         }
-        skillsContainer.innerHTML = allSkills.map(s => `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200">${s}</span>`).join('');
+        skillsContainer.innerHTML = allSkills.length > 0 
+          ? allSkills.map(s => `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200">${s}</span>`).join('')
+          : '<span class="text-xs text-slate-400 italic">No hay habilidades registradas aún.</span>';
 
         // Certs
         const certsContainer = document.getElementById('profCerts');
-        certsContainer.innerHTML = p.certifications.map(c => `<li>&bull; <b>${c.title}</b> — <span class="text-slate-500">${c.issuer} (${c.date})</span></li>`).join('');
+        const certs = p.certifications || [];
+        certsContainer.innerHTML = certs.length > 0 
+          ? certs.map(c => `<li>&bull; <b>${c.title}</b> — <span class="text-slate-500">${c.issuer} (${c.date})</span></li>`).join('')
+          : '<li class="text-xs text-slate-400 italic">No hay certificaciones registradas aún.</li>';
       } catch (e) {
         console.error('Error profile:', e);
       }
@@ -2022,19 +2077,23 @@
       document.getElementById('clModalTitle').innerText = position || 'Candidatura';
       document.getElementById('clModalCompany').innerText = company || 'Empresa';
       
-      const subject = `Postulación: ${position || 'Técnico de Soporte TI'} - Julian David Diaz Medina`;
+      const candidateName = (currentUser?.user_metadata?.full_name) || (currentUserId ? document.getElementById('candidateNameDisplay')?.innerText : '') || 'Candidato';
+      const subject = `Postulación: ${position || 'Vacante'} - ${candidateName}`;
       document.getElementById('clModalSubject').value = subject;
       
+      const candidateEmail = currentUser?.email || '';
+      const candidatePhone = (currentUserId && document.getElementById('mProfPhone')?.value) || '';
+      const candidateCity = (currentUserId && document.getElementById('mProfCity')?.value) || 'Colombia';
+
       const letterText = coverLetter || `Estimado equipo de Selección de ${company || 'la Empresa'},\n\n` +
-        `Les escribo para presentar formalmente mi postulación a la vacante de ${position || 'Soporte TI / Técnico de Sistemas'}. ` +
-        `Soy Técnico en Sistemas Teleinformáticos egresado del SENA, con sólida formación práctica en soporte técnico de hardware y software, ` +
-        `administración de redes LAN/WLAN, configuración de puestos de trabajo Windows/Linux y atención a usuarios.\n\n` +
-        `Cuento con disponibilidad inmediata para trabajar tanto de forma remota como presencial. Quedo a su disposición para coordinar una entrevista.\n\n` +
+        `Les escribo para presentar formalmente mi postulación a la vacante de ${position || 'la vacante'}. ` +
+        `Cuento con sólida experiencia práctica, competencias técnicas alineadas a los requerimientos del cargo y total compromiso profesional.\n\n` +
+        `Cuento con disponibilidad inmediata para trabajar. Quedo a su disposición para coordinar una entrevista.\n\n` +
         `Atentamente,\n` +
-        `Julian David Diaz Medina\n` +
-        `Teléfono: +57 320 684 1270\n` +
-        `Email: maestrecs92@gmail.com\n` +
-        `Valledupar, Cesar, Colombia`;
+        `${candidateName}\n` +
+        (candidatePhone ? `Teléfono: ${candidatePhone}\n` : '') +
+        (candidateEmail ? `Email: ${candidateEmail}\n` : '') +
+        (candidateCity ? `${candidateCity}\n` : '');
       document.getElementById('clModalText').value = letterText;
       
       const cvLinkEl = document.getElementById('clModalCvLink');
