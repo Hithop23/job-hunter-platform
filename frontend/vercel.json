@@ -1,0 +1,20 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "https://job-hunter-platform-4ik7.onrender.com/api/$1"
+    },
+    {
+      "source": "/screenshots/(.*)",
+      "destination": "https://job-hunter-platform-4ik7.onrender.com/screenshots/$1"
+    },
+    {
+      "source": "/cv_downloads/(.*)",
+      "destination": "https://job-hunter-platform-4ik7.onrender.com/cv_downloads/$1"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
