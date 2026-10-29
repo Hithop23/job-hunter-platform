@@ -1,0 +1,175 @@
+{
+  "name": "Julian David Diaz Medina",
+  "headline": "IT Support Technician | Systems & Network Support | Help Desk Junior",
+  "location": "Valledupar, Colombia (Worldwide Remote Available • Timezone: UTC-5)",
+  "phone": "+57 320 684 1270",
+  "email": "maestrecs92@gmail.com",
+  "linkedin": "https://www.linkedin.com/in/julian-diaz-soporte-ti",
+  "summary": "IT & Systems Support Technician with hands-on corporate IT support experience. Proven expertise in diagnosing and troubleshooting hardware and software issues, installing and configuring Windows and Linux operating systems, managing network peripherals and printers, performing preventive and corrective maintenance, and delivering both on-site and remote technical assistance (AnyDesk, TeamViewer). Complementary training in Endpoint Security (Cisco), Exploratory Data Analysis with Python, blockchain fundamentals, and generative AI. Strong interpersonal, communication, and user-facing problem-solving skills. English proficiency: B2 (Professional Working).",
+  "target_roles": [
+    "IT Support Technician",
+    "Systems Technician",
+    "IT Support Analyst",
+    "Help Desk Analyst",
+    "Service Desk Specialist",
+    "Technical Support Specialist",
+    "On-Site Field Support Technician",
+    "Desktop Support Technician",
+    "Junior Infrastructure Technician",
+    "Junior Systems Administrator",
+    "Junior Application Support",
+    "Junior NOC Technician"
+  ],
+  "technical_skills": {
+    "it_support_helpdesk": [
+      "Hardware and software troubleshooting & diagnostics",
+      "Customer and end-user technical support",
+      "Remote & on-site technical support",
+      "Help Desk & Service Desk operations",
+      "Ticket lifecycle & incident management",
+      "Technical documentation, knowledge base & SOPs"
+    ],
+    "operating_systems": [
+      "Windows 10 / Windows 11 Enterprise",
+      "Linux / Ubuntu Desktop & Server",
+      "OS deployment, installation & configuration",
+      "Disk cloning, formatting & data backup (Clonezilla)"
+    ],
+    "hardware_peripherals": [
+      "Preventive & corrective PC hardware maintenance",
+      "Local & network printer setup and troubleshooting",
+      "Barcode scanners, POS terminals & peripheral configuration",
+      "Desktop & laptop assembly, upgrades & component diagnostics",
+      "RAM, SSD replacement & internal component repairs"
+    ],
+    "networking": [
+      "LAN, Wi-Fi & TCP/IP connectivity setup",
+      "Network troubleshooting tools (ping, tracert, ipconfig, DNS)",
+      "Structured cabling & RJ45 crimping standards",
+      "Router, switch & network peripheral basic configuration"
+    ],
+    "remote_tools_office": [
+      "AnyDesk",
+      "TeamViewer",
+      "Microsoft Office 365 / Excel",
+      "Google Workspace",
+      "Hardware diagnostic & benchmarking utilities"
+    ],
+    "programming_automation": [
+      "Python for exploratory data analysis (Pandas, NumPy)",
+      "Basic automation & maintenance scripting",
+      "Java Object-Oriented Programming fundamentals"
+    ],
+    "cybersecurity": [
+      "Cisco Endpoint Security certified",
+      "Workstation hardening & endpoint protection best practices",
+      "Antivirus deployment & malware remediation"
+    ]
+  },
+  "soft_skills": [
+    "Analytical troubleshooting & problem solving",
+    "Active listening & user empathy",
+    "Clear technical communication (Bilingual: Spanish Native, English B2)",
+    "Team collaboration in distributed environments",
+    "Fast learner with strong adaptability to new tooling",
+    "Attention to detail and methodical documentation"
+  ],
+  "experience": [
+    {
+      "role": "IT Systems Support Technician / SENA Apprentice",
+      "company": "Negocios e Inversiones SINGS S.A.S.",
+      "period": "Feb 2026 - Sep 2026",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Full-time Enterprise Internship / Practical Stage",
+      "achievements": [
+        "Delivered proactive on-site and remote technical support to corporate end-users, successfully diagnosing and resolving hardware, software, and connectivity issues.",
+        "Deployed and standardized Windows and Linux operating systems across workstations, ensuring proper driver integration, network printer setup, and peripheral compliance.",
+        "Performed preventive and corrective maintenance on over 100 enterprise computers and laptops, logging diagnostic reports and asset tracking.",
+        "Authored step-by-step technical documentation, service logs, and user guides to streamline internal incident resolution and team continuity.",
+        "Resolved over 400 technical support tickets and configured over 400 network peripherals with a consistently high user satisfaction rating."
+      ]
+    },
+    {
+      "role": "Computer Repair & Maintenance Technician",
+      "company": "Margarita S.A.S.",
+      "period": "2022 - 2024",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Technical / Operational",
+      "achievements": [
+        "Assembled, tested, upgraded, and repaired desktop computers and laptops, performing component-level hardware diagnostics.",
+        "Managed user data backups and cloud storage migration to prevent data loss during operating system upgrades.",
+        "Developed custom batch and automation scripts to accelerate repetitive workstation setup and software optimization tasks."
+      ]
+    },
+    {
+      "role": "Customer Service & Administrative Cashier",
+      "company": "Bombazo de las Promociones RZ",
+      "period": "2020 - 2022; 2024 - 2025",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Administrative & Customer Service",
+      "achievements": [
+        "Provided front-line customer assistance, operating point-of-sale (POS) systems and electronic billing software.",
+        "Managed spreadsheet reporting, inventory reconciliation, and document archiving supporting daily business operations."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Associate Degree in Teleinformatics Systems (Técnico en Sistemas Teleinformáticos)",
+      "institution": "Servicio Nacional de Aprendizaje (SENA)",
+      "location": "Regional Cesar, Colombia",
+      "period": "2025 - 2026",
+      "status": "Graduated / Titulado",
+      "focus": "Computer networks, hardware maintenance, end-user technical support, operating systems administration, and technical documentation."
+    },
+    {
+      "degree": "High School Diploma (Bachiller Académico)",
+      "institution": "Instituto Colombiano para la Evaluación de la Educación (ICFES)",
+      "location": "Colombia",
+      "period": "2025",
+      "status": "Completed"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "Endpoint Security",
+      "issuer": "Cisco",
+      "date": "Aug 2025"
+    },
+    {
+      "title": "Generative AI: Prompt Engineering Basics",
+      "issuer": "IBM",
+      "date": "Nov 2025"
+    },
+    {
+      "title": "Developing Interpersonal Skills",
+      "issuer": "IBM",
+      "date": "Nov 2025"
+    },
+    {
+      "title": "Exploratory Data Analysis in Python",
+      "issuer": "SENA (48 hours)",
+      "date": "Apr 2025"
+    },
+    {
+      "title": "Blockchain: Smart Contracts",
+      "issuer": "SENA (48 hours)",
+      "date": "May 2025"
+    },
+    {
+      "title": "Human Resource Administration",
+      "issuer": "SENA (40 hours)",
+      "date": "Nov 2024"
+    }
+  ],
+  "languages": [
+    {
+      "language": "Spanish",
+      "level": "Native"
+    },
+    {
+      "language": "English",
+      "level": "B2 (Professional Working Proficiency)"
+    }
+  ]
+}

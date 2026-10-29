@@ -1,0 +1,212 @@
+{
+  "name": "Julian David Diaz Medina",
+  "first_name": "Julian David",
+  "last_name": "Diaz Medina",
+  "document_type": "CC",
+  "document_number": "1081795939",
+  "cedula": "1081795939",
+  "portal_credentials": {
+    "email": "maestrecs92@gmail.com",
+    "password": "Jul14n2006@23H",
+    "username": "maestrecs92",
+    "computrabajo": {
+      "email": "maestrecs92@gmail.com",
+      "password": "Jul14n2006@23H"
+    },
+    "elempleo": {
+      "email": "maestrecs92@gmail.com",
+      "password": "Jul14n2006@23H"
+    }
+  },
+  "headline": "Técnico en Sistemas Teleinformáticos | Soporte TI",
+  "location": "Cualquier Ciudad / Remoto, Nacional, Remoto",
+  "search_preferences": {
+    "country": "Remoto",
+    "region": "Nacional",
+    "city": "Cualquier Ciudad / Remoto",
+    "remote": true,
+    "willing_to_relocate": true,
+    "keywords": "soporte TI sistemas help desk"
+  },
+  "salary_preferences": {
+    "min_salary": 2000000.0,
+    "desired_salary": 2500000.0,
+    "currency": "COP",
+    "allow_negotiable": true
+  },
+  "phone": "+57 320 684 1270",
+  "email": "maestrecs92@gmail.com",
+  "linkedin": "https://www.linkedin.com/in/julian-diaz-soporte-ti",
+  "summary": "Técnico en Sistemas Teleinformáticos con experiencia práctica en soporte TI en entorno corporativo. Experiencia en diagnóstico y solución de fallas de hardware y software, instalación y configuración de Windows y Linux, impresoras y periféricos, mantenimiento preventivo y correctivo, soporte presencial y remoto, y documentación técnica. Formación complementaria en seguridad de endpoints, análisis de datos con Python, blockchain, IA generativa y habilidades interpersonales.",
+  "target_roles": [
+    "Técnico de Soporte TI",
+    "Técnico de Sistemas",
+    "Analista de Soporte TI",
+    "Analista de Mesa de Ayuda",
+    "Help Desk",
+    "Service Desk",
+    "Soporte Técnico",
+    "Soporte en Sitio",
+    "Field Support",
+    "Desktop Support",
+    "Técnico de Infraestructura",
+    "Analista de Infraestructura Junior",
+    "Soporte de Aplicaciones Junior",
+    "NOC Junior",
+    "Administrador de Sistemas Junior"
+  ],
+  "technical_skills": {
+    "soporte_ti": [
+      "Diagnóstico de hardware y software",
+      "Atención a usuarios",
+      "Soporte remoto y presencial",
+      "Mesa de ayuda / Help Desk",
+      "Gestión de tickets e incidencias",
+      "Documentación técnica y manuales de procedimientos"
+    ],
+    "sistemas_operativos": [
+      "Windows 10 / Windows 11",
+      "Linux / Ubuntu",
+      "Instalación y configuración de sistemas operativos",
+      "Formateo y clonación de discos"
+    ],
+    "hardware_perifericos": [
+      "Mantenimiento preventivo y correctivo",
+      "Configuración de impresoras locales y de red",
+      "Configuración de escáneres y periféricos",
+      "Ensamblaje y reparación de computadores y laptops",
+      "Diagnóstico de componentes y sustitución de piezas"
+    ],
+    "redes": [
+      "Conectividad LAN y Wi-Fi",
+      "Diagnóstico básico de red (ping, tracert, ipconfig, DNS)",
+      "Cableado estructurado y ponchado básico RJ45",
+      "Configuración de routers, switches y periféricos de red"
+    ],
+    "herramientas_remotas_ofimatica": [
+      "AnyDesk",
+      "TeamViewer",
+      "Microsoft Excel",
+      "Microsoft Office / Office 365",
+      "Google Workspace",
+      "Herramientas de diagnóstico de hardware"
+    ],
+    "datos_programacion": [
+      "Python para análisis exploratorio de datos (Pandas, Numpy)",
+      "Fundamentos de Programación Orientada a Objetos en Java",
+      "Automatizaciones básicas de scripts"
+    ],
+    "ciberseguridad": [
+      "Seguridad de endpoints (Cisco)",
+      "Buenas prácticas de protección de equipos e información",
+      "Antivirus y remediación de malware"
+    ]
+  },
+  "soft_skills": [
+    "Resolución de problemas",
+    "Trabajo en equipo",
+    "Comunicación asertiva",
+    "Adaptabilidad",
+    "Aprendizaje rápido",
+    "Organización",
+    "Atención al usuario y empatía"
+  ],
+  "experience": [
+    {
+      "role": "Técnico en Sistemas Teleinformáticos / Aprendiz SENA",
+      "company": "Negocios e Inversiones SINGS S.A.S.",
+      "period": "Feb 2026 - Sep 2026",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Etapa Productiva / Práctica Corporativa",
+      "achievements": [
+        "Brindó soporte técnico presencial y remoto a usuarios corporativos, ejecutando diagnóstico y solución de fallas de hardware y software.",
+        "Instaló y configuró sistemas operativos Windows y Linux, garantizando estandarización y correcta configuración de impresoras y periféricos.",
+        "Realizó mantenimiento preventivo y correctivo de más de 100 equipos de cómputo, clasificación de equipos ingresados y seguimiento de incidencias.",
+        "Documentó procedimientos, bitácoras de servicio y reportes técnicos para facilitar la trazabilidad y la continuidad operativa.",
+        "Atendió y resolvió más de 400 incidencias técnicas y configuró más de 400 dispositivos periféricos con alto índice de satisfacción del usuario."
+      ]
+    },
+    {
+      "role": "Técnico de Reparación en Cómputo",
+      "company": "Margarita S.A.S.",
+      "period": "2022 - 2024",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Técnico / Operativo",
+      "achievements": [
+        "Ensamblaje, mantenimiento y reparación de computadores de escritorio y portátiles, con diagnóstico preciso a nivel de componentes.",
+        "Gestión de almacenamiento en la nube y configuración de copias de seguridad de datos críticos para usuarios.",
+        "Desarrollo de automatizaciones y scripts básicos para agilizar tareas repetitivas de instalación y optimización de software."
+      ]
+    },
+    {
+      "role": "Atención al Cliente / Cajero Administrativo",
+      "company": "Bombazo de las Promociones RZ",
+      "period": "2020 - 2022; 2024 - 2025",
+      "location": "Valledupar, Cesar, Colombia",
+      "type": "Administrativo / Atención al cliente",
+      "achievements": [
+        "Atención personalizada a clientes, gestión de caja, conciliación diaria y manejo de software de facturación electrónica.",
+        "Organización sistemática de archivos, elaboración de reportes en hojas de cálculo y soporte operativo en procesos administrativos."
+      ]
+    }
+  ],
+  "education": [
+    {
+      "degree": "Técnico en Sistemas Teleinformáticos",
+      "institution": "Servicio Nacional de Aprendizaje (SENA)",
+      "location": "Regional Cesar, Colombia",
+      "period": "2025 - 2026",
+      "status": "Titulado",
+      "focus": "Redes y telecomunicaciones, mantenimiento de equipos de cómputo, soporte técnico a usuarios, sistemas operativos y documentación técnica."
+    },
+    {
+      "degree": "Bachiller Académico",
+      "institution": "Instituto Colombiano para la Evaluación de la Educación (ICFES) - Validación",
+      "location": "Colombia",
+      "period": "2025",
+      "status": "Completado"
+    }
+  ],
+  "certifications": [
+    {
+      "title": "Endpoint Security",
+      "issuer": "Cisco",
+      "date": "Ago 2025"
+    },
+    {
+      "title": "Generative AI: Prompt Engineering Basics",
+      "issuer": "IBM",
+      "date": "Nov 2025"
+    },
+    {
+      "title": "Developing Interpersonal Skills",
+      "issuer": "IBM",
+      "date": "Nov 2025"
+    },
+    {
+      "title": "Análisis Exploratorio de Datos en Python",
+      "issuer": "SENA (48 horas)",
+      "date": "Abr 2025"
+    },
+    {
+      "title": "Blockchain: Contratos Inteligentes",
+      "issuer": "SENA (48 horas)",
+      "date": "May 2025"
+    },
+    {
+      "title": "Administración de Recursos Humanos",
+      "issuer": "SENA (40 horas)",
+      "date": "Nov 2024"
+    }
+  ],
+  "languages": [
+    {
+      "language": "Español",
+      "level": "Nativo"
+    },
+    {
+      "language": "Inglés",
+      "level": "B2"
+    }
+  ]
+}

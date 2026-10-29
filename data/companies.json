@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Bancolombia",
+    "careers_url": "https://empleo.grupobancolombia.com/",
+    "ats": "SuccessFactors",
+    "domain": "grupobancolombia.com",
+    "enabled": true,
+    "tags": ["banca", "finanzas", "gran empresa", "sistemas", "soporte ti"]
+  },
+  {
+    "name": "Ecopetrol",
+    "careers_url": "https://jobs.ecopetrol.com.co/",
+    "ats": "Custom",
+    "domain": "ecopetrol.com.co",
+    "enabled": true,
+    "tags": ["energía", "petróleo", "gran empresa"]
+  },
+  {
+    "name": "Grupo Nutresa",
+    "careers_url": "https://gruponutresa.com/talento/",
+    "ats": "Workday",
+    "domain": "gruponutresa.com",
+    "enabled": true,
+    "tags": ["alimentos", "multinacional", "gran empresa"]
+  },
+  {
+    "name": "Claro Colombia (Comcel)",
+    "careers_url": "https://www.claro.com.co/personas/trabaja-con-nosotros/",
+    "ats": "Custom",
+    "domain": "claro.com.co",
+    "enabled": true,
+    "tags": ["telecomunicaciones", "soporte ti", "redes"]
+  },
+  {
+    "name": "Tigo Colombia",
+    "careers_url": "https://www.tigo.com.co/trabaja-con-nosotros",
+    "ats": "Workday",
+    "domain": "tigo.com.co",
+    "enabled": true,
+    "tags": ["telecomunicaciones", "soporte ti"]
+  },
+  {
+    "name": "Movistar Colombia (Telefónica)",
+    "careers_url": "https://jobs.telefonica.com/",
+    "ats": "Custom",
+    "domain": "telefonica.com",
+    "enabled": true,
+    "tags": ["telecomunicaciones", "infraestructura"]
+  },
+  {
+    "name": "Carvajal",
+    "careers_url": "https://www.carvajal.com/trabaja-con-nosotros/",
+    "ats": "Custom",
+    "domain": "carvajal.com",
+    "enabled": true,
+    "tags": ["tecnología", "servicios", "gran empresa"]
+  },
+  {
+    "name": "Sonda Colombia",
+    "careers_url": "https://www.sonda.com/trabaja-con-nosotros",
+    "ats": "Custom",
+    "domain": "sonda.com",
+    "enabled": true,
+    "tags": ["servicios ti", "mesa de ayuda", "field support"]
+  },
+  {
+    "name": "Stefanini Colombia",
+    "careers_url": "https://jobs.stefanini.com/latam/",
+    "ats": "Workday",
+    "domain": "stefanini.com",
+    "enabled": true,
+    "tags": ["servicios ti", "help desk", "soporte en sitio"]
+  },
+  {
+    "name": "Choucair Testing",
+    "careers_url": "https://www.choucairtesting.com/trabaje-con-nosotros/",
+    "ats": "Greenhouse",
+    "domain": "choucairtesting.com",
+    "enabled": true,
+    "tags": ["tecnología", "software", "qa", "soporte"]
+  },
+  {
+    "name": "Mercado Libre Colombia",
+    "careers_url": "https://careers-meli.mercadolibre.com/",
+    "ats": "Greenhouse",
+    "domain": "mercadolibre.com",
+    "enabled": true,
+    "tags": ["e-commerce", "tecnología", "infraestructura"]
+  },
+  {
+    "name": "Globant Colombia",
+    "careers_url": "https://www.globant.com/careers",
+    "ats": "Workday",
+    "domain": "globant.com",
+    "enabled": true,
+    "tags": ["tecnología", "it services", "junior"]
+  },
+  {
+    "name": "Sofka Technologies",
+    "careers_url": "https://www.sofka.com.co/trabaja-con-nosotros/",
+    "ats": "Lever",
+    "domain": "sofka.com.co",
+    "enabled": true,
+    "tags": ["software", "tecnología", "soporte"]
+  },
+  {
+    "name": "Celsia",
+    "careers_url": "https://www.celsia.com/es/trabaja-con-nosotros/",
+    "ats": "Workday",
+    "domain": "celsia.com",
+    "enabled": true,
+    "tags": ["energía", "infraestructura", "tecnología"]
+  },
+  {
+    "name": "Colsubsidio",
+    "careers_url": "https://www.colsubsidio.com/trabaja-con-nosotros",
+    "ats": "Custom",
+    "domain": "colsubsidio.com",
+    "enabled": true,
+    "tags": ["servicios", "salud", "soporte ti"]
+  }
+]

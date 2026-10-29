@@ -1,0 +1,516 @@
+{
+  "target_roles": [
+    "Técnico de Soporte TI",
+    "Técnico de Sistemas",
+    "Analista de Soporte TI",
+    "Analista de Mesa de Ayuda",
+    "Help Desk",
+    "Service Desk",
+    "Soporte Técnico",
+    "Soporte en Sitio",
+    "Field Support",
+    "Desktop Support",
+    "Técnico de Infraestructura",
+    "Analista de Infraestructura Junior",
+    "Soporte de Aplicaciones Junior",
+    "NOC Junior",
+    "Administrador de Sistemas Junior"
+  ],
+  "seniority_exclusions": [
+    "senior",
+    "lead",
+    "manager",
+    "director",
+    "jefe",
+    "gerente",
+    "subdirector",
+    "supervisor",
+    "coordinador",
+    "arquitecto"
+  ],
+  "partial_title_terms": [
+    "soporte",
+    "sistemas",
+    "tecnico",
+    "mesa de ayuda",
+    "help desk",
+    "service desk",
+    "infraestructura",
+    "noc",
+    "desktop",
+    "field",
+    "informatica",
+    "ti "
+  ],
+  "skill_taxonomy": [
+    {
+      "name": "soporte_tecnico",
+      "aliases": [
+        "soporte técnico",
+        "soporte ti",
+        "soporte presencial",
+        "asistencia técnica",
+        "technical support",
+        "soporte nivel 1",
+        "nivel 1",
+        "soporte l1",
+        "primera línea",
+        "atención de incidencias",
+        "atencion de incidencias",
+        "gestión de incidencias",
+        "gestion de incidencias",
+        "atención de tickets",
+        "tickets"
+      ],
+      "profile": true
+    },
+    {
+      "name": "mesa_de_ayuda",
+      "aliases": [
+        "mesa de ayuda",
+        "mesa de servicio",
+        "help desk",
+        "helpdesk",
+        "service desk",
+        "service center",
+        "centro de servicio",
+        "seguimiento de incidencias"
+      ],
+      "profile": true
+    },
+    {
+      "name": "windows",
+      "aliases": [
+        "windows",
+        "windows 10",
+        "windows 11",
+        "microsoft windows",
+        "sistema operativo windows",
+        "sistemas operativos windows",
+        "instalación de windows",
+        "instalacion de windows"
+      ],
+      "profile": true
+    },
+    {
+      "name": "linux",
+      "aliases": [
+        "linux",
+        "ubuntu",
+        "gnu/linux"
+      ],
+      "profile": true
+    },
+    {
+      "name": "instalacion_so",
+      "aliases": [
+        "instalación de sistemas operativos",
+        "instalacion de sistemas operativos",
+        "configuración de sistemas operativos",
+        "configuracion de sistemas operativos",
+        "instalación de software",
+        "instalacion de software",
+        "instalación y configuración"
+      ],
+      "profile": true
+    },
+    {
+      "name": "hardware",
+      "aliases": [
+        "hardware",
+        "ensamblaje",
+        "reparación de computadores",
+        "reparacion de computadores",
+        "mantenimiento preventivo",
+        "mantenimiento correctivo",
+        "mantenimiento de equipos",
+        "mantenimiento de computadores",
+        "equipo de cómputo",
+        "equipo de computo",
+        "computadores",
+        "diagnóstico de fallas",
+        "diagnostico de fallas"
+      ],
+      "profile": true
+    },
+    {
+      "name": "impresoras_perifericos",
+      "aliases": [
+        "impresoras",
+        "impresora",
+        "periféricos",
+        "perifericos",
+        "escáner",
+        "escaner",
+        "printers",
+        "plotter",
+        "multifuncional"
+      ],
+      "profile": true
+    },
+    {
+      "name": "soporte_remoto",
+      "aliases": [
+        "soporte remoto",
+        "asistencia remota",
+        "remote support",
+        "anydesk",
+        "teamviewer",
+        "herramientas de acceso remoto",
+        "acceso remoto"
+      ],
+      "profile": true
+    },
+    {
+      "name": "redes_basicas",
+      "aliases": [
+        "redes",
+        "networking",
+        "conectividad",
+        "tcp/ip",
+        "lan",
+        "wifi",
+        "diagnóstico de red",
+        "diagnostico de red",
+        "configuración de red",
+        "configuracion de red",
+        "punto de red",
+        "enrutadores",
+        "switch"
+      ],
+      "profile": true
+    },
+    {
+      "name": "documentacion_tecnica",
+      "aliases": [
+        "documentación técnica",
+        "documentacion tecnica",
+        "documentación de procedimientos",
+        "documentacion de procedimientos",
+        "reportes técnicos",
+        "reportes tecnicos",
+        "documentación de incidencias",
+        "documentacion de incidencias"
+      ],
+      "profile": true
+    },
+    {
+      "name": "python",
+      "aliases": [
+        "python",
+        "análisis exploratorio de datos",
+        "analisis exploratorio de datos"
+      ],
+      "profile": true
+    },
+    {
+      "name": "excel",
+      "aliases": [
+        "excel",
+        "microsoft excel",
+        "hojas de cálculo",
+        "hojas de calculo",
+        "microsoft office"
+      ],
+      "profile": true
+    },
+    {
+      "name": "ciberseguridad_basica",
+      "aliases": [
+        "ciberseguridad",
+        "seguridad de endpoints",
+        "endpoint security",
+        "seguridad informática",
+        "seguridad informatica",
+        "seguridad de la información",
+        "seguridad de la informacion",
+        "buenas prácticas de seguridad"
+      ],
+      "profile": true
+    },
+    {
+      "name": "atencion_cliente",
+      "aliases": [
+        "atención al cliente",
+        "atencion al cliente",
+        "atención al usuario",
+        "atencion al usuario",
+        "trato con usuarios",
+        "customer service",
+        "atención presencial"
+      ],
+      "profile": true
+    },
+    {
+      "name": "facturacion_electronica",
+      "aliases": [
+        "facturación electrónica",
+        "facturacion electronica"
+      ],
+      "profile": true
+    },
+    {
+      "name": "java_poo",
+      "aliases": [
+        "java",
+        "programación orientada a objetos",
+        "programacion orientada a objetos"
+      ],
+      "profile": true
+    },
+    {
+      "name": "ia_generativa",
+      "aliases": [
+        "ia generativa",
+        "inteligencia artificial generativa",
+        "prompt engineering"
+      ],
+      "profile": true
+    },
+    {
+      "name": "active_directory",
+      "aliases": [
+        "active directory",
+        "directorios activos",
+        "azure ad",
+        "entra"
+      ],
+      "profile": false
+    },
+    {
+      "name": "virtualizacion",
+      "aliases": [
+        "virtualización",
+        "virtualizacion",
+        "vmware",
+        "hyper-v",
+        "hipervisor",
+        "máquinas virtuales",
+        "maquinas virtuales"
+      ],
+      "profile": false
+    },
+    {
+      "name": "windows_server",
+      "aliases": [
+        "windows server",
+        "administración de windows server",
+        "administracion de windows server"
+      ],
+      "profile": false
+    },
+    {
+      "name": "sql_bases_de_datos",
+      "aliases": [
+        "sql",
+        "mysql",
+        "postgresql",
+        "sql server",
+        "base de datos",
+        "bases de datos"
+      ],
+      "profile": false
+    },
+    {
+      "name": "cloud",
+      "aliases": [
+        "azure",
+        "aws",
+        "gcp",
+        "cloud",
+        "office 365",
+        "microsoft 365",
+        "nube"
+      ],
+      "profile": false
+    },
+    {
+      "name": "itsm_herramientas",
+      "aliases": [
+        "itil",
+        "itsm",
+        "servicenow",
+        "service now",
+        "jira service",
+        "glpi",
+        "freshdesk",
+        "zendesk"
+      ],
+      "profile": false
+    },
+    {
+      "name": "redes_avanzadas",
+      "aliases": [
+        "ccna",
+        "ccnp",
+        "routing",
+        "conmutación",
+        "conmutacion",
+        "vlan",
+        "ospf",
+        "bgp",
+        "firewall",
+        "firewalls"
+      ],
+      "profile": false
+    },
+    {
+      "name": "linux_admin",
+      "aliases": [
+        "administración de linux",
+        "administracion de linux",
+        "bash",
+        "shell scripting",
+        "servidores linux"
+      ],
+      "profile": false
+    },
+    {
+      "name": "backups",
+      "aliases": [
+        "copias de seguridad",
+        "backup",
+        "backups",
+        "respaldos"
+      ],
+      "profile": false
+    },
+    {
+      "name": "telefonia",
+      "aliases": [
+        "telefonía ip",
+        "telefonia ip",
+        "centrales telefónicas",
+        "centrales telefonicas",
+        "voip",
+        "elastix",
+        "asterisk"
+      ],
+      "profile": false
+    },
+    {
+      "name": "cctv",
+      "aliases": [
+        "cctv",
+        "cámaras de seguridad",
+        "camaras de seguridad",
+        "videovigilancia"
+      ],
+      "profile": false
+    }
+  ],
+  "certification_taxonomy": [
+    {
+      "name": "ccna",
+      "aliases": [
+        "ccna"
+      ],
+      "held": false
+    },
+    {
+      "name": "ccnp",
+      "aliases": [
+        "ccnp"
+      ],
+      "held": false
+    },
+    {
+      "name": "itil_foundation",
+      "aliases": [
+        "itil"
+      ],
+      "held": false
+    },
+    {
+      "name": "comptia_a",
+      "aliases": [
+        "comptia a+",
+        "comptia"
+      ],
+      "held": false
+    },
+    {
+      "name": "microsoft_azure_cert",
+      "aliases": [
+        "az-900",
+        "az-104",
+        "mcsa"
+      ],
+      "held": false
+    },
+    {
+      "name": "endpoint_security_cisco",
+      "aliases": [
+        "endpoint security"
+      ],
+      "held": true
+    },
+    {
+      "name": "python_eda_sena",
+      "aliases": [
+        "análisis exploratorio de datos en python",
+        "analisis exploratorio de datos en python"
+      ],
+      "held": true
+    }
+  ],
+  "education_terms": {
+    "bachiller": [
+      "bachiller",
+      "bachillerato",
+      "media técnica",
+      "media tecnica"
+    ],
+    "tecnico": [
+      "técnico en",
+      "tecnico en",
+      "técnica en",
+      "tecnica en",
+      "formación técnica",
+      "formacion tecnica",
+      "nivel técnico",
+      "nivel tecnico",
+      "técnico superior",
+      "tecnico superior"
+    ],
+    "tecnologo": [
+      "tecnólogo",
+      "tecnologo",
+      "tecnóloga",
+      "tecnologa",
+      "tecnológica en",
+      "tecnologica en"
+    ],
+    "profesional": [
+      "título profesional",
+      "titulo profesional",
+      "profesional en",
+      "ingenier",
+      "universitari",
+      "especialización",
+      "especializacion",
+      "maestría",
+      "maestria",
+      "posgrado",
+      "formación profesional",
+      "formacion profesional"
+    ]
+  },
+  "english_levels": {
+    "a1": 1,
+    "a2": 1,
+    "básico": 1,
+    "basico": 1,
+    "b1": 2,
+    "intermedio": 2,
+    "intermediate": 2,
+    "b2": 3,
+    "c1": 4,
+    "avanzado": 4,
+    "advanced": 4,
+    "c2": 5,
+    "fluido": 5,
+    "fluent": 5,
+    "nativo": 5
+  }
+}

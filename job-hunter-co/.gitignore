@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.env
+data/applications.db
+data/browser_profile/
+data/screenshots/
+logs/
+cv/variants/*
+!cv/variants/.gitkeep
+tools/
+node_modules/
+frontend/dist/

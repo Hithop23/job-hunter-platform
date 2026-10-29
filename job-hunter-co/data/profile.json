@@ -1,0 +1,183 @@
+{
+  "name": "Julian David Diaz Medina",
+  "headline": "Técnico en Sistemas Teleinformáticos | Soporte TI",
+  "location": "Valledupar, Cesar, Colombia",
+  "city": "Valledupar",
+  "department": "Cesar",
+  "country": "Colombia",
+  "contact": {
+    "phone": "320 684 1270",
+    "email": "maestrecs92@gmail.com",
+    "linkedin": "https://www.linkedin.com/in/julian-diaz-soporte-ti"
+  },
+  "professional_summary": "Técnico en Sistemas Teleinformáticos con experiencia práctica en soporte TI en entorno corporativo. Experiencia en diagnóstico y solución de fallas de hardware y software, instalación y configuración de Windows y Linux, impresoras y periféricos, mantenimiento preventivo y correctivo, soporte presencial y remoto, y documentación técnica. Formación complementaria en seguridad de endpoints, análisis de datos con Python, blockchain, IA generativa y habilidades interpersonales.",
+  "education_level": "técnico",
+  "experience_years_it": 2.5,
+  "target_roles": [
+    "Técnico de Soporte TI",
+    "Técnico de Sistemas",
+    "Analista de Soporte TI",
+    "Analista de Mesa de Ayuda",
+    "Help Desk",
+    "Service Desk",
+    "Soporte Técnico",
+    "Soporte en Sitio",
+    "Field Support",
+    "Desktop Support",
+    "Técnico de Infraestructura",
+    "Analista de Infraestructura Junior",
+    "Soporte de Aplicaciones Junior",
+    "NOC Junior",
+    "Administrador de Sistemas Junior"
+  ],
+  "education": [
+    {
+      "degree": "Técnico en Sistemas Teleinformáticos",
+      "institution": "Servicio Nacional de Aprendizaje (SENA)",
+      "dates": "2025 - 2026",
+      "location": "Regional Cesar",
+      "details": "Formación en redes y telecomunicaciones, mantenimiento de equipos de cómputo, operación de herramientas informáticas y digitales, soporte técnico y documentación de actividades."
+    },
+    {
+      "degree": "Bachiller Académico (Validación ICFES)",
+      "institution": "Instituto Colombiano para la Evaluación de la Educación (ICFES)",
+      "dates": "2025",
+      "location": "Colombia",
+      "details": ""
+    }
+  ],
+  "certifications": [
+    {
+      "name": "Endpoint Security",
+      "issuer": "Cisco",
+      "date": "Ago 2025",
+      "hours": null
+    },
+    {
+      "name": "Generative AI: Prompt Engineering Basics",
+      "issuer": "IBM",
+      "date": "Nov 2025",
+      "hours": null
+    },
+    {
+      "name": "Developing Interpersonal Skills",
+      "issuer": "IBM",
+      "date": "Nov 2025",
+      "hours": null
+    },
+    {
+      "name": "Análisis Exploratorio de Datos en Python",
+      "issuer": "SENA",
+      "date": "Abr 2025",
+      "hours": 48
+    },
+    {
+      "name": "Blockchain: Contratos Inteligentes",
+      "issuer": "SENA",
+      "date": "May 2025",
+      "hours": 48
+    },
+    {
+      "name": "Administración de Recursos Humanos",
+      "issuer": "SENA",
+      "date": "Nov 2024",
+      "hours": 40
+    }
+  ],
+  "experience": [
+    {
+      "role": "Técnico en Sistemas Teleinformáticos / Aprendiz SENA",
+      "company": "Negocios e Inversiones SINGS S.A.S.",
+      "dates": "Feb 2026 - Sep 2026",
+      "location": "Valledupar, Cesar",
+      "bullets": [
+        "Brindé soporte técnico presencial y remoto a usuarios y realicé diagnóstico y solución de fallas de hardware y software.",
+        "Instalé y configuré sistemas operativos Windows y Linux y apoyé la configuración de impresoras y periféricos.",
+        "Realicé mantenimiento preventivo y correctivo de equipos de cómputo, clasificación de equipos ingresados y seguimiento de incidencias.",
+        "Documenté procedimientos, acciones realizadas y reportes técnicos para facilitar el seguimiento y la continuidad del soporte.",
+        "Atendí y resolví más de 400 incidencias técnicas y configuré más de 400 dispositivos periféricos."
+      ]
+    },
+    {
+      "role": "Reparación en cómputo",
+      "company": "Margarita S.A.S.",
+      "dates": "2022 - 2024",
+      "location": "Valledupar, Cesar",
+      "bullets": [
+        "Ensamblaje y reparación de computadores y manejo de componentes de hardware.",
+        "Apoyo en almacenamiento en la nube y desarrollo de automatizaciones básicas para tareas de software."
+      ]
+    },
+    {
+      "role": "Atención al cliente / Cajero administrativo",
+      "company": "Bombazo de las Promociones RZ",
+      "dates": "2020 - 2022; 2024 - 2025",
+      "location": "Valledupar, Cesar",
+      "bullets": [
+        "Atención al cliente, gestión de caja, ventas y pagos, y manejo de facturación electrónica.",
+        "Organización de archivos, elaboración de reportes y apoyo en procesos administrativos y de cobranza."
+      ]
+    }
+  ],
+  "skills": {
+    "soporte_ti": [
+      "Diagnóstico de hardware y software",
+      "Atención a usuarios",
+      "Soporte remoto y presencial",
+      "Documentación técnica"
+    ],
+    "sistemas": [
+      "Windows",
+      "Linux/Ubuntu",
+      "Instalación y configuración de sistemas operativos"
+    ],
+    "hardware_y_perifericos": [
+      "Mantenimiento preventivo y correctivo",
+      "Impresoras",
+      "Configuración de periféricos",
+      "Ensamblaje de computadores"
+    ],
+    "redes": [
+      "Conectividad",
+      "Diagnóstico básico de red",
+      "Configuración de equipos y periféricos de red"
+    ],
+    "herramientas": [
+      "AnyDesk",
+      "TeamViewer",
+      "Excel",
+      "Herramientas de diagnóstico"
+    ],
+    "datos_y_programacion": [
+      "Python para análisis exploratorio de datos",
+      "Fundamentos de programación orientada a objetos en Java"
+    ],
+    "ciberseguridad": [
+      "Fundamentos de seguridad de endpoints",
+      "Buenas prácticas de protección de equipos e información"
+    ]
+  },
+  "languages": [
+    {
+      "language": "Español",
+      "level": "Nativo"
+    },
+    {
+      "language": "Inglés",
+      "level": "B2"
+    }
+  ],
+  "soft_skills": [
+    "Resolución de problemas",
+    "Trabajo en equipo",
+    "Comunicación",
+    "Adaptabilidad",
+    "Aprendizaje rápido",
+    "Organización",
+    "Atención al usuario"
+  ],
+  "achieved_metrics": [
+    "Atendí y resolví más de 400 incidencias técnicas",
+    "Configuré más de 400 dispositivos periféricos"
+  ]
+}

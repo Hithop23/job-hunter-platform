@@ -1,0 +1,4 @@
+{
+  "_instrucciones": "Empresas objetivo (Módulo 8). Cada entrada: name, careers_url (página oficial de careers o URL del ATS), ats (workday|greenhouse|lever|ashby|custom), board (token público del tablero, para greenhouse/lever/ashby), enabled. IMPORTANTE: no inventes URLs; verifica la página oficial de careers de cada empresa antes de habilitar. El adapter validará la fuente en vivo y fallará con gracia si la URL no responde.",
+  "companies": []
+}
