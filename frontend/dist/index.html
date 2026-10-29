@@ -1,0 +1,2135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JOB-HUNTER-CO | Panel de Postulación Laboral</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Supabase JS Client (Auth & Realtime) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .badge-alta { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+    .badge-revision { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+    .badge-excluido { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+    .badge-enviada { background-color: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; }
+    .badge-entrevista { background-color: #fef9c3; color: #a16207; border: 1px solid #fde047; }
+    /* AUTOPILOT mode: buttons go green/bold to signal real submissions */
+    body.autopilot-mode .autopilot-btn {
+      background-color: #dcfce7 !important;
+      border-color: #22c55e !important;
+      color: #15803d !important;
+      font-weight: 700 !important;
+      box-shadow: 0 0 0 2px rgba(34,197,94,0.3);
+    }
+    body.autopilot-mode #btnScan {
+      background-color: #16a34a !important;
+    }
+    body.autopilot-mode #scanMode {
+      border-color: #22c55e !important;
+      outline: 2px solid rgba(34,197,94,0.5);
+    }
+    .autopilot-mode-indicator {
+      display: none;
+    }
+    body.autopilot-mode .autopilot-mode-indicator {
+      display: inline-flex;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-black text-xl tracking-wider">
+          JH
+        </div>
+        <div>
+          <h1 class="text-lg font-bold flex items-center gap-2">
+            JOB-HUNTER-CO <span class="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-500/30">SaaS Multi-Usuario</span>
+          </h1>
+          <p class="text-xs text-slate-400">Candidato: <span id="candidateNameDisplay" class="text-white font-medium">Julian David Diaz Medina</span> <span id="candidateRoleDisplay" class="text-slate-400">(Técnico en Sistemas Teleinformáticos)</span></p>
+        </div>
+      </div>
+
+      <!-- Action bar controls -->
+      <div class="flex flex-wrap items-center gap-2 text-sm">
+        <select id="scanMode" class="bg-slate-800 border border-slate-700 text-slate-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-emerald-500 text-xs">
+          <option value="SCAN">Modo: SCAN (Solo Búsqueda)</option>
+          <option value="PREPARE" selected>Modo: PREPARE (Búsqueda + CV ATS)</option>
+          <option value="AUTOPILOT">🚀 Modo: AUTOPILOT (Envío Real)</option>
+        </select>
+        <!-- Shown only in AUTOPILOT mode -->
+        <span class="autopilot-mode-indicator items-center gap-1.5 bg-emerald-500 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg animate-pulse">
+          🚀 AUTOPILOT ACTIVO — Botones ENVÍAN al portal
+        </span>
+
+        <button onclick="openGeneralSession('https://www.linkedin.com/login')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-sm" title="Abre una ventana de navegador para iniciar sesión en tu cuenta. Tus credenciales quedarán recordadas para postularte sin bloqueos.">
+          <i data-lucide="key-round" class="w-3.5 h-3.5"></i>
+          <span>Iniciar Sesión LinkedIn</span>
+        </button>
+
+        <button onclick="triggerScan()" id="btnScan" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition">
+          <i data-lucide="search" class="w-3.5 h-3.5"></i>
+          <span>Escanear Fuentes</span>
+        </button>
+
+        <a href="/api/applications/export/csv" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Exportar CSV</span>
+        </a>
+
+        <!-- Supabase Auth / Multi-tenant Profile Controls -->
+        <div id="authContainer" class="flex items-center gap-1.5 border-l border-slate-700 pl-2">
+          <!-- Button when Logged Out -->
+          <button id="btnOpenAuth" onclick="openAuthModal()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition shadow-sm">
+            <i data-lucide="user-plus" class="w-3.5 h-3.5"></i>
+            <span>Iniciar Sesión / Registro</span>
+          </button>
+          
+          <!-- Buttons when Logged In -->
+          <div id="userLoggedInGroup" class="hidden flex items-center gap-1.5">
+            <button onclick="openProfileModal()" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-500/40 px-3 py-1.5 rounded-lg font-medium text-xs flex items-center gap-1.5 transition" title="Configurar tu perfil y datos para la hoja de vida ATS">
+              <i data-lucide="user-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+              <span id="userProfileBtnLabel">Mi Perfil ATS</span>
+            </button>
+            <button onclick="handleSignOut()" class="bg-rose-950/60 hover:bg-rose-900 text-rose-300 border border-rose-800/50 px-2.5 py-1.5 rounded-lg text-xs flex items-center gap-1 transition" title="Cerrar Sesión">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-6">
+
+    <!-- Human In The Loop Alert Banner (Conditional) -->
+    <div id="hilBanner" class="hidden bg-amber-500/10 border-2 border-amber-500/30 rounded-xl p-4 flex items-center justify-between text-amber-900 shadow-sm animate-pulse">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-amber-500 text-white rounded-lg">
+          <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-sm text-amber-950">SE REQUIERE INTERVENCIÓN HUMANA (Human-in-the-loop)</h2>
+          <p class="text-xs text-amber-800" id="hilBannerText">Hay candidaturas pausadas por detección de CAPTCHA, 2FA o validación de requisitos.</p>
+        </div>
+      </div>
+      <button onclick="openTab('tab-hil')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition flex items-center gap-1.5">
+        <span>Revisar Cola (<span id="hilCount">0</span>)</span>
+        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+      </button>
+    </div>
+
+    <!-- Metric KPI Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">Total Encontradas</p>
+        <p class="text-2xl font-bold text-slate-800 mt-1" id="statTotalJobs">0</p>
+        <span class="text-[10px] text-slate-400">Todas las fuentes</span>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">Compatibles (≥60%)</p>
+        <p class="text-2xl font-bold text-sky-600 mt-1" id="statCompatible">0</p>
+        <span class="text-[10px] text-sky-500 font-medium">Revisión o prioridad</span>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">Alta Prioridad (≥75%)</p>
+        <p class="text-2xl font-bold text-emerald-600 mt-1" id="statHighPriority">0</p>
+        <span class="text-[10px] text-emerald-500 font-medium">Match idóneo</span>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">CVs ATS Preparados</p>
+        <p class="text-2xl font-bold text-purple-600 mt-1" id="statCvsPrepared">0</p>
+        <span class="text-[10px] text-purple-500 font-medium">PDF personalizado</span>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">Postuladas</p>
+        <p class="text-2xl font-bold text-slate-700 mt-1" id="statSubmitted">0</p>
+        <span class="text-[10px] text-slate-400">Cuota máx: 50/día</span>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+        <p class="text-xs font-medium text-slate-500">Entrevistas / Tasa</p>
+        <p class="text-2xl font-bold text-amber-600 mt-1" id="statInterviews">0</p>
+        <span class="text-[10px] text-amber-500 font-medium" id="statRate">0% conv.</span>
+      </div>
+    </div>
+
+    <!-- Geographic Search Configuration Card -->
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100">
+            <i data-lucide="map-pin" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wide flex items-center gap-2">
+              <span>Configuración Geográfica de Búsqueda</span>
+              <span class="text-[10px] font-normal normal-case px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">País, Región y Ciudad</span>
+            </h3>
+            <p class="text-[11px] text-slate-500">Personaliza en qué ubicaciones el agente busca y evalúa las vacantes de empleo.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="saveLocationPreferences()" id="btnSaveLoc" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-xs">
+            <i data-lucide="save" class="w-3.5 h-3.5"></i>
+            <span>Guardar Configuración</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Presets -->
+      <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
+        <span class="text-[11px] font-semibold text-slate-500">Accesos Rápidos:</span>
+        <button type="button" onclick="setPresetLocation('remoto')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition flex items-center gap-1 shadow-2xs">
+          🌐 100% Remoto (Prioritario)
+        </button>
+        <button type="button" onclick="setPresetLocation('valledupar')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 transition flex items-center gap-1 shadow-2xs">
+          📍 Valledupar, Cesar
+        </button>
+        <button type="button" onclick="setPresetLocation('bogota')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 transition flex items-center gap-1 shadow-2xs">
+          🏢 Bogotá D.C.
+        </button>
+        <button type="button" onclick="setPresetLocation('nacional')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100 transition flex items-center gap-1 shadow-2xs">
+          🇨🇴 Toda Colombia
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs pt-1">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">País</label>
+          <select id="cfgCountry" onchange="onCountryOrRegionChanged()" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-700">
+            <option value="Remoto" selected>100% Remoto 🌐</option>
+            <option value="Colombia">Colombia 🇨🇴</option>
+            <option value="Internacional">Internacional 🌎</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Departamento / Región</label>
+          <select id="cfgRegion" onchange="onCountryOrRegionChanged()" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-700">
+            <option value="Nacional" selected>Toda Colombia (Nacional)</option>
+            <option value="Cesar">Cesar</option>
+            <option value="Bogotá D.C.">Bogotá D.C. / Cundinamarca</option>
+            <option value="Antioquia">Antioquia</option>
+            <option value="Atlántico">Atlántico</option>
+            <option value="Santander">Santander</option>
+            <option value="Valle del Cauca">Valle del Cauca</option>
+            <option value="Bolívar">Bolívar</option>
+            <option value="Magdalena">Magdalena</option>
+            <option value="Córdoba">Córdoba</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Ciudad / Municipio</label>
+          <select id="cfgCity" onchange="handleCityDropdownChange(this.value)" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
+            <option value="Cualquier Ciudad / Remoto" selected>Cualquier Ciudad (100% Remoto)</option>
+            <option value="Nacional">Nivel Nacional (Todas las ciudades)</option>
+            <option value="Valledupar">Valledupar</option>
+            <option value="Bogotá">Bogotá D.C.</option>
+            <option value="Medellín">Medellín</option>
+            <option value="Barranquilla">Barranquilla</option>
+            <option value="Cali">Cali</option>
+            <option value="Bucaramanga">Bucaramanga</option>
+            <option value="Cartagena">Cartagena</option>
+            <option value="Santa Marta">Santa Marta</option>
+            <option value="__custom__">Otra ciudad (escribir personalizada)...</option>
+          </select>
+          <input id="cfgCustomCity" type="text" placeholder="Escribe tu municipio..." class="hidden mt-1 w-full border border-slate-200 rounded-lg px-2.5 py-1 bg-white text-xs font-medium text-slate-800 focus:border-emerald-500 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Salario Mínimo (COP)</label>
+          <input id="cfgMinSalary" type="number" step="50000" value="1500000" placeholder="Ej. 1500000" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Cargos / Tecnologías</label>
+          <input id="cfgKeywords" type="text" value="soporte TI sistemas help desk" placeholder="Ej. soporte TI, help desk" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
+        </div>
+
+        <div class="flex items-center gap-2 pt-4 sm:pt-6">
+          <input id="cfgRemote" type="checkbox" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+          <label for="cfgRemote" class="font-semibold text-slate-700 select-none cursor-pointer">
+            Incluir 100% Remotas
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="border-b border-slate-200 flex space-x-6 text-sm font-medium">
+      <button onclick="openTab('tab-applications')" id="btn-tab-applications" class="tab-btn pb-3 border-b-2 border-emerald-600 text-emerald-600 font-semibold flex items-center gap-2">
+        <i data-lucide="briefcase" class="w-4 h-4"></i>
+        <span>Vacantes & Candidaturas</span>
+      </button>
+      <button onclick="openTab('tab-hil')" id="btn-tab-hil" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
+        <i data-lucide="user-check" class="w-4 h-4"></i>
+        <span>Revisión Humana</span>
+        <span id="tabHilBadge" class="hidden ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white">0</span>
+      </button>
+      <button onclick="openTab('tab-sources')" id="btn-tab-sources" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
+        <i data-lucide="building-2" class="w-4 h-4"></i>
+        <span>Fuentes & Empresas CO</span>
+      </button>
+      <button onclick="openTab('tab-profile')" id="btn-tab-profile" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
+        <i data-lucide="id-card" class="w-4 h-4"></i>
+        <span>Perfil Verificado</span>
+      </button>
+    </div>
+
+    <!-- TAB 1: APPLICATIONS & TRACKING -->
+    <div id="tab-applications" class="tab-content space-y-4">
+      <!-- Filter controls -->
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="font-semibold text-slate-600">Filtros:</label>
+          <select id="filterSource" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
+            <option value="">Todas las Fuentes</option>
+            <option value="sena">SENA (APE)</option>
+            <option value="spe">Servicio Público de Empleo (SPE)</option>
+            <option value="cnsc">CNSC / SIMO (Empleo Público)</option>
+            <option value="company_direct">Grandes Empresas CO</option>
+            <option value="computrabajo">Computrabajo CO</option>
+            <option value="indeed">Indeed CO</option>
+            <option value="linkedin">LinkedIn</option>
+          </select>
+          <select id="filterStatus" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
+            <option value="">Todos los Estados</option>
+            <option value="READY">READY (Listo para aplicar)</option>
+            <option value="REVIEW">REVIEW (En revisión)</option>
+            <option value="SUBMITTED">SUBMITTED (Postulada)</option>
+            <option value="INTERVIEW">INTERVIEW (Entrevista)</option>
+            <option value="CONFIRMATION_REQUIRED">CONFIRMATION_REQUIRED</option>
+          </select>
+          <select id="filterScore" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
+            <option value="">Cualquier Score</option>
+            <option value="75">≥ 75 (Alta Prioridad)</option>
+            <option value="60">≥ 60 (Relevantes)</option>
+          </select>
+          <select id="filterRemote" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none font-medium">
+            <option value="">Todas las Modalidades</option>
+            <option value="remote">Solo 100% Remoto 🌐</option>
+            <option value="onsite">Presencial / Híbrido 🏢</option>
+          </select>
+          <select id="filterSalary" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none font-medium">
+            <option value="">Todos los Salarios</option>
+            <option value="specified">Con Salario Publicado 💰</option>
+            <option value="1500000">≥ $1.500.000 COP</option>
+            <option value="2000000">≥ $2.000.000 COP</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="text-slate-400">
+            Mostrando <span id="appsCount" class="font-semibold text-slate-700">0</span> postulaciones
+          </div>
+          <button onclick="triggerBatchApply()" id="btnBatchApply" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition" title="Aplica automáticamente en lote a las 5 mejores vacantes compatibles">
+            <i data-lucide="zap" class="w-3.5 h-3.5"></i>
+            <span>Postular en Lote (Autopilot)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Applications Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100/75 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <tr>
+                <th class="py-3 px-4">Score</th>
+                <th class="py-3 px-4">Empresa</th>
+                <th class="py-3 px-4">Cargo & Modalidad</th>
+                <th class="py-3 px-4">Salario Ofrecido</th>
+                <th class="py-3 px-4">Fuente</th>
+                <th class="py-3 px-4">Estado</th>
+                <th class="py-3 px-4">CV ATS</th>
+                <th class="py-3 px-4 text-right">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="applicationsTableBody" class="divide-y divide-slate-100">
+              <tr>
+                <td colspan="7" class="py-8 text-center text-slate-400">Cargando vacantes y postulaciones...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: HUMAN IN THE LOOP (HIL) QUEUE -->
+    <div id="tab-hil" class="tab-content hidden space-y-4">
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900">
+        <h3 class="font-bold text-sm mb-1 flex items-center gap-1.5">
+          <i data-lucide="shield-alert" class="w-4 h-4 text-amber-600"></i>
+          Seguridad Ética & Control Humano
+        </h3>
+        <p>El sistema se detiene rigurosamente cuando un portal exige CAPTCHA, doble autenticación (2FA), preguntas salariales complejas o pruebas técnicas. Revisa las capturas abajo para aprobar o descartar la postulación.</p>
+      </div>
+
+      <div id="hilCardsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Cards loaded dynamically -->
+      </div>
+    </div>
+
+    <!-- TAB 3: SOURCES & COMPANIES -->
+    <div id="tab-sources" class="tab-content hidden space-y-4">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
+          <i data-lucide="building" class="w-5 h-5 text-emerald-600"></i>
+          Directorio de Fuentes y Portales Corporativos Prioritarios
+        </h3>
+        <p class="text-xs text-slate-600">JOB-HUNTER-CO supervisa continuamente vacantes en el Servicio Público de Empleo (SPE), la Agencia Pública de Empleo SENA, Convocatorias CNSC/SIMO de nivel técnico, y las mayores empresas de telecomunicaciones, banca e infraestructura TI en Colombia.</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2" id="companiesGrid">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CANDIDATE PROFILE -->
+    <div id="tab-profile" class="tab-content hidden space-y-4">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
+        <div class="flex items-start justify-between">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900" id="profName">Julian David Diaz Medina</h2>
+            <p class="text-sm text-emerald-600 font-semibold" id="profHeadline">Técnico en Sistemas Teleinformáticos | Soporte TI</p>
+            <p class="text-xs text-slate-500 mt-1" id="profLocation">Valledupar, Cesar, Colombia</p>
+          </div>
+          <span class="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full border border-emerald-200">
+            Perfil 100% Auténtico
+          </span>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Resumen Profesional</h3>
+          <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100" id="profSummary"></p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Competencias Técnicas Clave</h3>
+            <div id="profSkills" class="flex flex-wrap gap-1.5"></div>
+          </div>
+          <div>
+            <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Certificaciones Oficiales</h3>
+            <ul id="profCerts" class="text-xs space-y-1 text-slate-700"></ul>
+          </div>
+        </div>
+
+        <div class="border-t border-slate-100 pt-4">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Preferencias Salariales & Modalidad</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-slate-500 block">Salario Mínimo Aceptable:</span>
+              <span class="font-bold text-slate-800 text-sm" id="profMinSalary">$1.500.000 COP</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Salario Deseado / Objetivo:</span>
+              <span class="font-bold text-emerald-700 text-sm" id="profDesiredSalary">$2.200.000 COP</span>
+            </div>
+            <div>
+              <span class="text-slate-500 block">Modalidad Prioritaria:</span>
+              <span class="font-bold text-purple-700 text-sm">🌐 100% Remoto & Híbrido</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  <!-- Modal de Progreso Autopilot en Tiempo Real -->
+  <div id="autopilotModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-start justify-between border-b border-slate-800">
+        <div class="flex items-start gap-3">
+          <div class="p-2.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl mt-0.5">
+            <i data-lucide="bot" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <h3 class="font-bold text-base text-white">Progreso de Postulación Autopilot</h3>
+              <span id="modalStatusBadge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30">
+                Iniciando...
+              </span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">
+              <span id="modalJobTitle" class="font-semibold text-white">Cargo TI</span> &bull; <span id="modalCompany" class="text-slate-300">Empresa</span>
+            </p>
+          </div>
+        </div>
+        <button onclick="closeAutopilotModal()" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition" title="Cerrar ventana">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
+        
+        <!-- Animated Progress Bar -->
+        <div class="space-y-2">
+          <div class="flex justify-between items-center text-[11px] font-medium text-slate-500">
+            <span id="modalProgressText" class="flex items-center gap-1.5 font-semibold text-slate-700">
+              <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
+              <span>Iniciando agente de navegación autónomo...</span>
+            </span>
+            <span id="modalProgressPercent" class="font-bold text-emerald-600 font-mono">15%</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
+            <div id="modalProgressBar" class="bg-gradient-to-r from-emerald-500 to-sky-500 h-2.5 rounded-full transition-all duration-500" style="width: 15%"></div>
+          </div>
+        </div>
+
+        <!-- Live Step Timeline Cards -->
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
+            <span class="flex items-center gap-1.5">
+              <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i>
+              Detalle del Proceso Paso a Paso
+            </span>
+            <span class="text-[10px] text-slate-400 font-normal">Supervisión en vivo</span>
+          </h4>
+          <div id="modalStepsList" class="space-y-2.5">
+            <!-- Dynamic steps rendered here -->
+          </div>
+        </div>
+
+        <!-- Live Screenshot Box (if captured) -->
+        <div id="modalScreenshotBox" class="hidden border border-slate-200 rounded-xl p-3.5 bg-white space-y-2 shadow-xs">
+          <div class="flex items-center justify-between">
+            <span class="font-semibold text-slate-800 text-[11px] flex items-center gap-1.5">
+              <i data-lucide="camera" class="w-3.5 h-3.5 text-slate-500"></i>
+              Captura del Formulario en Vivo
+            </span>
+            <a id="modalScreenshotLink" href="#" target="_blank" class="text-[11px] text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1">
+              <span>Abrir imagen completa</span>
+              <i data-lucide="external-link" class="w-3 h-3"></i>
+            </a>
+          </div>
+          <div class="rounded-lg overflow-hidden border border-slate-200 bg-slate-100 max-h-56 overflow-y-auto">
+            <img id="modalScreenshotImg" src="" alt="Captura del portal" class="w-full object-cover object-top hover:object-contain transition-all">
+          </div>
+        </div>
+
+        <!-- Human Intervention Alert / Action Box (Conditional) -->
+        <div id="modalHilActions" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-4 space-y-3 shadow-xs">
+          <div class="flex items-start gap-2.5 text-amber-900">
+            <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+            <div>
+              <h5 class="font-bold text-xs" id="modalHilTitle">Pausa Ética: Intervención Humana Requerida</h5>
+              <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed" id="modalHilDescription">
+                El portal ha solicitado inicio de sesión o resolución de seguridad. Puedes abrir la ventana visible con un solo clic.
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 pt-1">
+            <button id="modalBtnOpenBrowser" onclick="openGeneralSession()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="monitor" class="w-3.5 h-3.5"></i>
+              <span>Abrir Navegador en Pantalla</span>
+            </button>
+            <button id="modalBtnRetry" onclick="" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              <span>Reintentar Postulación</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between">
+        <p class="text-[11px] text-slate-500" id="modalFooterNote">
+          JOB-HUNTER-CO cumple estrictamente con el principio de veracidad ética.
+        </p>
+        <button id="modalFooterCloseBtn" onclick="closeAutopilotModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-4 py-1.5 rounded-lg text-xs transition">
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Modal de Carta de Presentación y Contacto Directo -->
+  <div id="coverLetterModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
+      <div class="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
+        <div class="flex items-center gap-2.5">
+          <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
+            <i data-lucide="mail" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white" id="clModalTitle">Carta de Presentación & Contacto</h3>
+            <p class="text-[11px] text-slate-400" id="clModalCompany">Empresa</p>
+          </div>
+        </div>
+        <button onclick="closeCoverLetterModal()" class="text-slate-400 hover:text-white p-1 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Asunto de correo recomendado:</label>
+          <div class="flex items-center gap-2">
+            <input id="clModalSubject" type="text" readonly class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800">
+            <button onclick="copySubject()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-semibold shrink-0" title="Copiar asunto">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-slate-600 mb-1">Carta de presentación personalizada:</label>
+          <textarea id="clModalText" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-[11px] leading-relaxed text-slate-800 focus:outline-none" readonly></textarea>
+        </div>
+
+        <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-start gap-2 text-indigo-900">
+          <i data-lucide="sparkles" class="w-4 h-4 text-indigo-600 shrink-0 mt-0.5"></i>
+          <p class="text-[11px] leading-relaxed">
+            Puedes enviar esta carta personalizada y adjuntar tu CV ATS directamente al correo de talento humano de la empresa o por LinkedIn InMail para conseguir entrevistas directas sin intermediarios.
+          </p>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+        <a id="clModalCvLink" href="#" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
+          <i data-lucide="download" class="w-3.5 h-3.5"></i>
+          <span>Descargar CV ATS (PDF)</span>
+        </a>
+
+        <div class="flex items-center gap-2">
+          <button onclick="copyLetterText()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
+            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+            <span>Copiar Carta</span>
+          </button>
+          <a id="clModalMailtoBtn" href="#" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3.5 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition shadow-xs">
+            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+            <span>Abrir en Mi Correo</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Autenticación Supabase (Login & Sign Up) -->
+  <div id="authModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="bg-emerald-500 text-slate-900 p-1.5 rounded-lg font-black text-sm">JH</div>
+          <div>
+            <h3 class="font-bold text-sm text-white" id="authModalTitle">Acceso a JOB-HUNTER SaaS</h3>
+            <p class="text-xs text-slate-400">Postulaciones y Hojas de Vida ATS independientes</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Auth Tabs -->
+      <div class="flex border-b border-slate-200 text-xs font-semibold">
+        <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50">Iniciar Sesión</button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800">Crear Cuenta Nueva</button>
+      </div>
+
+      <!-- Auth Form -->
+      <form id="authForm" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4 text-xs">
+        <div id="authNameField" class="hidden space-y-1">
+          <label class="font-semibold text-slate-700">Nombre Completo:</label>
+          <input type="text" id="authFullName" placeholder="Ej: Carlos Gómez Morales" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-semibold text-slate-700">Correo Electrónico:</label>
+          <input type="email" id="authEmail" required placeholder="tu@correo.com" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div class="space-y-1">
+          <label class="font-semibold text-slate-700">Contraseña:</label>
+          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <div id="authFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed"></div>
+
+        <button type="submit" id="btnAuthSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span id="btnAuthSubmitText">Entrar a Mi Panel</span>
+        </button>
+
+        <p class="text-[11px] text-slate-400 text-center">Protegido por Supabase Auth & Row Level Security (RLS).</p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Configuración de Perfil ATS Personal -->
+  <div id="profileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
+      <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <div class="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+            <i data-lucide="user" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-white">Mi Perfil Profesional & ATS</h3>
+            <p class="text-[11px] text-slate-400">Tus hojas de vida personalizadas se generarán con estos datos</p>
+          </div>
+        </div>
+        <button onclick="closeProfileModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <form id="profileForm" onsubmit="handleSaveProfile(event)" class="p-6 space-y-4 text-xs overflow-y-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Nombre Completo:</label>
+            <input type="text" id="mProfName" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Teléfono / WhatsApp:</label>
+            <input type="text" id="mProfPhone" placeholder="+57 300 000 0000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Ciudad:</label>
+            <input type="text" id="mProfCity" value="Valledupar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Departamento / Región:</label>
+            <input type="text" id="mProfDepartment" value="Cesar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Cargo Objetivo (Titular):</label>
+            <input type="text" id="mProfTargetRole" placeholder="Ej: Técnico de Soporte TI / Sistemas" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Nivel de Inglés:</label>
+            <select id="mProfEnglish" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+              <option value="A1">A1 - Principiante</option>
+              <option value="A2">A2 - Básico</option>
+              <option value="B1">B1 - Intermedio</option>
+              <option value="B2" selected>B2 - Intermedio Alto (Profesional)</option>
+              <option value="C1">C1 - Avanzado / Fluido</option>
+              <option value="C2">C2 - Nativo / Bilingüe</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Salario Mínimo Esperado (COP):</label>
+            <input type="number" id="mProfSalaryMin" step="100000" value="2500000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div class="flex items-center gap-2 pt-5">
+            <input type="checkbox" id="mProfRemoteOnly" checked class="w-4 h-4 text-emerald-600 rounded">
+            <label for="mProfRemoteOnly" class="text-slate-700 font-medium">Priorizar ofertas 100% remotas</label>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700">Habilidades Técnicas Clave (separadas por coma):</label>
+          <input type="text" id="mProfSkills" placeholder="Soporte Técnico, Windows Server, Linux, Redes TCP/IP, Active Directory, Python" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+        </div>
+
+        <div>
+          <label class="font-semibold text-slate-700">Resumen Profesional (Extracto ATS):</label>
+          <textarea id="mProfSummary" rows="3" placeholder="Técnico apasionado por el soporte de sistemas, redes e infraestructura..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800"></textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-4 py-2 rounded-lg transition">Cancelar</button>
+          <button type="submit" id="btnSaveProfile" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            <span>Guardar y Actualizar ATS</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-4 right-4 bg-slate-900 text-white px-4 py-2.5 rounded-lg shadow-xl text-xs flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 z-50">
+    <i data-lucide="info" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toastMsg">Mensaje</span>
+  </div>
+
+  <script>
+    // Supabase Auth & Multi-Tenant State
+    const SUPABASE_URL = 'https://kocenqwglnryhvmliwxh.supabase.co';
+    const SUPABASE_ANON = 'sb_publishable_FCYl1Bvfk3lP51xLXd-Lvw_H3xrEROL';
+    let sbClient = null;
+    let currentUser = null;
+    let currentUserId = null;
+
+    if (window.supabase) {
+      sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    }
+
+    function openAuthModal() {
+      document.getElementById('authModal').classList.remove('hidden');
+      document.getElementById('authFeedback').classList.add('hidden');
+      lucide.createIcons();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.add('hidden');
+    }
+
+    let authTabMode = 'login';
+    function switchAuthTab(mode) {
+      authTabMode = mode;
+      const tabLogin = document.getElementById('authTabLogin');
+      const tabReg = document.getElementById('authTabRegister');
+      const nameField = document.getElementById('authNameField');
+      const submitText = document.getElementById('btnAuthSubmitText');
+      const feedback = document.getElementById('authFeedback');
+      feedback.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
+        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
+        nameField.classList.add('hidden');
+        submitText.innerText = 'Entrar a Mi Panel';
+      } else {
+        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
+        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
+        nameField.classList.remove('hidden');
+        submitText.innerText = 'Registrarme y Configurar Perfil';
+      }
+    }
+
+    async function handleAuthSubmit(e) {
+      e.preventDefault();
+      if (!sbClient) return showToast('Supabase Client no inicializado.');
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const fullName = document.getElementById('authFullName').value.trim();
+      const feedback = document.getElementById('authFeedback');
+      const btn = document.getElementById('btnAuthSubmit');
+      
+      feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-slate-100 text-slate-700';
+      feedback.innerText = 'Procesando...';
+      feedback.classList.remove('hidden');
+      btn.disabled = true;
+
+      try {
+        if (authTabMode === 'login') {
+          const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
+          feedback.innerText = '¡Inicio de sesión exitoso! Cargando tus datos...';
+          closeAuthModal();
+          await checkAuth();
+          showToast('Sesión iniciada correctamente.');
+        } else {
+          const { data, error } = await sbClient.auth.signUp({
+            email,
+            password,
+            options: { data: { full_name: fullName || 'Candidato' } }
+          });
+          if (error) throw error;
+          
+          if (data?.user) {
+            await fetch('/api/stats/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                user_id: data.user.id,
+                email: email,
+                full_name: fullName || 'Candidato',
+                target_role: 'Técnico de Soporte TI / Sistemas'
+              })
+            });
+          }
+          feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
+          feedback.innerText = '¡Cuenta creada! Revisa tu correo o inicia sesión para ingresar.';
+          showToast('¡Cuenta creada con éxito!');
+          setTimeout(() => {
+            switchAuthTab('login');
+          }, 1500);
+        }
+      } catch (err) {
+        feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-rose-100 text-rose-800 font-medium';
+        feedback.innerText = 'Error: ' + (err.message || 'No se pudo completar');
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function handleSignOut() {
+      if (sbClient) {
+        await sbClient.auth.signOut();
+      }
+      currentUser = null;
+      currentUserId = null;
+      updateAuthUI(null);
+      loadStats();
+      loadApplications();
+      loadProfile();
+      showToast('Has cerrado sesión.');
+    }
+
+    async function checkAuth() {
+      if (!sbClient) return;
+      const { data: { session } } = await sbClient.auth.getSession();
+      if (session?.user) {
+        currentUser = session.user;
+        currentUserId = session.user.id;
+        updateAuthUI(currentUser);
+      } else {
+        currentUser = null;
+        currentUserId = null;
+        updateAuthUI(null);
+      }
+      loadStats();
+      loadApplications();
+      loadProfile();
+    }
+
+    function updateAuthUI(user) {
+      const btnOpenAuth = document.getElementById('btnOpenAuth');
+      const userGroup = document.getElementById('userLoggedInGroup');
+      const nameDisp = document.getElementById('candidateNameDisplay');
+      const roleDisp = document.getElementById('candidateRoleDisplay');
+      const badgeLabel = document.getElementById('userProfileBtnLabel');
+
+      if (user) {
+        if (btnOpenAuth) btnOpenAuth.classList.add('hidden');
+        if (userGroup) userGroup.classList.remove('hidden');
+        const displayName = user.user_metadata?.full_name || user.email.split('@')[0];
+        if (nameDisp) nameDisp.innerText = displayName;
+        if (roleDisp) roleDisp.innerText = `(${user.email})`;
+        if (badgeLabel) badgeLabel.innerText = displayName.split(' ')[0] || 'Mi Perfil';
+      } else {
+        if (btnOpenAuth) btnOpenAuth.classList.remove('hidden');
+        if (userGroup) userGroup.classList.add('hidden');
+        if (nameDisp) nameDisp.innerText = 'Julian David Diaz Medina';
+        if (roleDisp) roleDisp.innerText = '(Técnico en Sistemas Teleinformáticos)';
+      }
+      lucide.createIcons();
+    }
+
+    function openProfileModal() {
+      document.getElementById('profileModal').classList.remove('hidden');
+      loadProfileToModal();
+      lucide.createIcons();
+    }
+
+    function closeProfileModal() {
+      document.getElementById('profileModal').classList.add('hidden');
+    }
+
+    async function loadProfileToModal() {
+      const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
+      try {
+        const res = await fetch(url);
+        const p = await res.json();
+        document.getElementById('mProfName').value = p.name || '';
+        document.getElementById('mProfPhone').value = p.phone || '';
+        document.getElementById('mProfCity').value = p.city || 'Valledupar';
+        document.getElementById('mProfDepartment').value = p.department || 'Cesar';
+        document.getElementById('mProfTargetRole').value = p.target_role || '';
+        if (p.english_level) document.getElementById('mProfEnglish').value = p.english_level;
+        document.getElementById('mProfSalaryMin').value = p.salary_min_cop || 2500000;
+        document.getElementById('mProfRemoteOnly').checked = p.remote_only !== false;
+        
+        // Skills
+        let skillsStr = '';
+        if (p.technical_skills) {
+          if (typeof p.technical_skills === 'object') {
+            const all = Object.values(p.technical_skills).flat();
+            skillsStr = all.join(', ');
+          } else {
+            skillsStr = p.technical_skills;
+          }
+        }
+        document.getElementById('mProfSkills').value = skillsStr;
+        document.getElementById('mProfSummary').value = p.summary || '';
+      } catch (e) {
+        console.error('Error cargando perfil en modal:', e);
+      }
+    }
+
+    async function handleSaveProfile(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveProfile');
+      const original = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Guardando...</span>`;
+      lucide.createIcons();
+
+      const skillsInput = document.getElementById('mProfSkills').value;
+      const skillsArray = skillsInput.split(',').map(s => s.trim()).filter(Boolean);
+
+      const payload = {
+        user_id: currentUserId || 'guest',
+        email: currentUser?.email || 'maestrecs92@gmail.com',
+        full_name: document.getElementById('mProfName').value.trim(),
+        phone: document.getElementById('mProfPhone').value.trim(),
+        city: document.getElementById('mProfCity').value.trim(),
+        department: document.getElementById('mProfDepartment').value.trim(),
+        target_role: document.getElementById('mProfTargetRole').value.trim(),
+        headline: document.getElementById('mProfTargetRole').value.trim() + ' | Bilingüe ' + document.getElementById('mProfEnglish').value,
+        english_level: document.getElementById('mProfEnglish').value,
+        salary_min_cop: parseInt(document.getElementById('mProfSalaryMin').value) || 2500000,
+        remote_only: document.getElementById('mProfRemoteOnly').checked,
+        summary: document.getElementById('mProfSummary').value.trim(),
+        technical_skills: {
+          "destacadas": skillsArray
+        }
+      };
+
+      try {
+        const res = await fetch('/api/stats/profile', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        showToast('✅ ' + (data.message || 'Perfil guardado correctamente.'));
+        closeProfileModal();
+        loadProfile();
+        loadStats();
+      } catch (err) {
+        showToast('Error guardando perfil: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = original;
+        lucide.createIcons();
+      }
+    }
+
+    // Tab switching
+    function openTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('border-emerald-600', 'text-emerald-600', 'font-semibold');
+        el.classList.add('border-transparent', 'text-slate-500');
+      });
+      document.getElementById(tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('btn-' + tabId);
+      if (activeBtn) {
+        activeBtn.classList.remove('border-transparent', 'text-slate-500');
+        activeBtn.classList.add('border-emerald-600', 'text-emerald-600', 'font-semibold');
+      }
+      lucide.createIcons();
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').innerText = msg;
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    // Fetch Dashboard Stats
+    async function loadStats() {
+      try {
+        const url = currentUserId ? `/api/stats/dashboard?user_id=${currentUserId}` : '/api/stats/dashboard';
+        const res = await fetch(url);
+        const data = await res.json();
+        document.getElementById('statTotalJobs').innerText = data.total_jobs_found || 0;
+        document.getElementById('statCompatible').innerText = data.compatible_jobs || 0;
+        document.getElementById('statHighPriority').innerText = data.high_priority_jobs || 0;
+        document.getElementById('statCvsPrepared').innerText = data.cvs_prepared || 0;
+        document.getElementById('statSubmitted').innerText = data.submitted_applications || 0;
+        document.getElementById('statInterviews').innerText = data.interviews_scheduled || 0;
+        document.getElementById('statRate').innerText = `${data.response_rate_percent || 0}% conv.`;
+
+        // Check HIL count
+        const hilCount = data.pending_human_interventions || 0;
+        const banner = document.getElementById('hilBanner');
+        const badge = document.getElementById('tabHilBadge');
+        if (hilCount > 0) {
+          banner.classList.remove('hidden');
+          badge.classList.remove('hidden');
+          document.getElementById('hilCount').innerText = hilCount;
+          badge.innerText = hilCount;
+        } else {
+          banner.classList.add('hidden');
+          badge.classList.add('hidden');
+        }
+      } catch (e) {
+        console.error('Error stats:', e);
+      }
+    }
+
+    // Fetch Applications
+    async function loadApplications() {
+      const source = document.getElementById('filterSource').value;
+      const status = document.getElementById('filterStatus').value;
+      const minScore = document.getElementById('filterScore').value;
+      const filterRemote = document.getElementById('filterRemote')?.value || '';
+      const filterSalary = document.getElementById('filterSalary')?.value || '';
+
+      let url = '/api/applications/?limit=100';
+      if (currentUserId) url += `&user_id=${currentUserId}`;
+      if (source) url += `&source=${source}`;
+      if (status) url += `&status=${status}`;
+      if (minScore) url += `&min_score=${minScore}`;
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        const tbody = document.getElementById('applicationsTableBody');
+        
+        let apps = data.applications || [];
+
+        // Filter Remote
+        if (filterRemote === 'remote') {
+          apps = apps.filter(a => {
+            const text = `${a.position} ${a.location || ''}`.toLowerCase();
+            return text.includes('remoto') || text.includes('teletrabajo') || text.includes('home office') || text.includes('virtual');
+          });
+        } else if (filterRemote === 'onsite') {
+          apps = apps.filter(a => {
+            const text = `${a.position} ${a.location || ''}`.toLowerCase();
+            return !(text.includes('remoto') || text.includes('teletrabajo') || text.includes('home office') || text.includes('virtual'));
+          });
+        }
+
+        // Filter Salary
+        if (filterSalary === 'specified') {
+          apps = apps.filter(a => a.salary && !a.salary.toLowerCase().includes('convenir') && !a.salary.toLowerCase().includes('confidencial') && !a.salary.toLowerCase().includes('no especificado'));
+        } else if (filterSalary === '1500000') {
+          apps = apps.filter(a => {
+            const nums = (a.salary || '').match(/\d[\d.,']*\d|\d+/g);
+            if (!nums) return false;
+            const cleanDigits = nums.map(n => parseFloat(n.replace(/\D/g, ''))).filter(v => v >= 100000);
+            return cleanDigits.length > 0 && Math.max(...cleanDigits) >= 1500000;
+          });
+        } else if (filterSalary === '2000000') {
+          apps = apps.filter(a => {
+            const nums = (a.salary || '').match(/\d[\d.,']*\d|\d+/g);
+            if (!nums) return false;
+            const cleanDigits = nums.map(n => parseFloat(n.replace(/\D/g, ''))).filter(v => v >= 100000);
+            return cleanDigits.length > 0 && Math.max(...cleanDigits) >= 2000000;
+          });
+        }
+
+        document.getElementById('appsCount').innerText = apps.length;
+
+        if (apps.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No hay vacantes registradas con los filtros seleccionados.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = apps.map(a => {
+          let badgeClass = 'badge-revision';
+          if (a.match_score >= 75 && !a.does_not_meet_required_requirement) badgeClass = 'badge-alta';
+          else if (a.does_not_meet_required_requirement) badgeClass = 'badge-excluido';
+          else if (a.status === 'SUBMITTED') badgeClass = 'badge-enviada';
+          else if (a.status === 'INTERVIEW') badgeClass = 'badge-entrevista';
+
+          let cvLabel = 'PDF ATS';
+          let cvFlag = '📄';
+          if (a.cv_path) {
+            const lowerPath = a.cv_path.toLowerCase();
+            if (lowerPath.includes('-en-')) {
+              cvLabel = 'ATS (EN)';
+              cvFlag = '🇺🇸';
+            } else if (lowerPath.includes('-es-')) {
+              cvLabel = 'ATS (ES)';
+              cvFlag = '🇨🇴';
+            }
+          }
+
+          const cvBtn = a.cv_path 
+            ? `<div class="inline-flex items-center gap-1">
+                 <a href="/cv_downloads/${a.cv_path.split(/[\\\\/]/).pop()}" target="_blank" class="text-purple-700 hover:text-purple-900 font-semibold inline-flex items-center gap-1 text-[11px] bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 rounded shadow-xs" title="Ver CV ATS Personalizado (${cvLabel})">
+                   <span>${cvFlag}</span> <span>${cvLabel}</span>
+                 </a>
+                 <button onclick="prepareCv('${a.job_id}', '${a.cv_path.toLowerCase().includes('-en-') ? 'es' : 'en'}')" class="text-[10px] text-slate-400 hover:text-purple-700 px-1 py-0.5 rounded hover:bg-slate-100" title="Cambiar idioma del CV (EN / ES)">🔄</button>
+               </div>`
+            : `<button onclick="prepareCv('${a.job_id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100">Generar CV</button>`;
+
+          const locText = `${a.position} ${a.location || ''}`.toLowerCase();
+          const isRemote = locText.includes('remoto') || locText.includes('teletrabajo') || locText.includes('home office') || locText.includes('virtual');
+          const remoteBadge = isRemote 
+            ? `<span class="bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded text-[10px] border border-purple-200 inline-flex items-center gap-1 ml-1.5">🌐 100% Remoto</span>` 
+            : `<span class="text-slate-400 text-[10px] ml-1">📍 ${a.location || 'Presencial'}</span>`;
+
+          const salaryText = a.salary || 'A convenir';
+          const hasSalaryNumber = /\d{6,}/.test(salaryText.replace(/\D/g, ''));
+          const salaryBadge = hasSalaryNumber 
+            ? `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">💰 ${salaryText}</span>` 
+            : `<span class="bg-slate-50 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[11px]">💰 ${salaryText}</span>`;
+
+          const dateBadge = a.publication_date 
+            ? `<div class="text-[10px] text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-1 font-mono">⏱️ ${a.publication_date}</div>` 
+            : '';
+
+          return `
+            <tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3 px-4 font-bold">
+                <span class="px-2 py-0.5 rounded-full text-xs ${badgeClass}">
+                  ${a.match_score}%
+                </span>
+              </td>
+              <td class="py-3 px-4 font-semibold text-slate-800">${a.company}</td>
+              <td class="py-3 px-4">
+                <div class="font-medium text-slate-900 flex flex-wrap items-center">
+                  <span>${a.position}</span>
+                  ${remoteBadge}
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">${a.does_not_meet_required_requirement ? '<span class="text-rose-600 font-semibold">Excluido: Requisito obligatorio no cumplido</span>' : 'Afinidad junior comprobada'}</div>
+              </td>
+              <td class="py-3 px-4 whitespace-nowrap">
+                ${salaryBadge}
+                ${dateBadge}
+              </td>
+              <td class="py-3 px-4 uppercase text-[11px] font-medium text-slate-500">${a.source}</td>
+              <td class="py-3 px-4">
+                <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${badgeClass}">
+                  ${a.status}
+                </span>
+              </td>
+              <td class="py-3 px-4">${cvBtn}</td>
+              <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
+                <a href="${a.url}" target="_blank" class="text-slate-500 hover:text-slate-800 p-1 rounded inline-block" title="Ver Oferta">
+                  <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                </a>
+                <button onclick="applyApp('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', false)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded text-[11px] transition inline-flex items-center gap-1 shadow-xs" title="Enviar postulación real directamente con Autopilot">
+                  <i data-lucide="send" class="w-3 h-3"></i>
+                  <span>Postular</span>
+                </button>
+                <button onclick="openCoverLetterModal('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', '${escapeJsArg(a.cover_letter || '')}', '${escapeJsArg(a.cv_path || '')}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-1 rounded text-[11px] font-medium transition inline-flex items-center gap-1" title="Ver Carta de Presentación y Contacto Directo para Entrevista">
+                  <i data-lucide="mail" class="w-3 h-3"></i>
+                  <span>Contacto</span>
+                </button>
+                <button onclick="applyApp('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', true)" class="text-slate-400 hover:text-slate-600 p-1 rounded inline-block" title="Simulación previa (Dry-Run)">
+                  <i data-lucide="search" class="w-3.5 h-3.5"></i>
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (e) {
+        console.error('Error applications:', e);
+      }
+    }
+
+    // Fetch HIL items
+    async function loadHIL() {
+      try {
+        const res = await fetch('/api/hil/pending');
+        const data = await res.json();
+        const container = document.getElementById('hilCardsContainer');
+        if (!data.items || data.items.length === 0) {
+          container.innerHTML = `<div class="col-span-2 text-center py-12 text-slate-400">No hay intervenciones humanas pendientes en este momento. El sistema está operando con normalidad.</div>`;
+          return;
+        }
+
+        container.innerHTML = data.items.map(item => {
+          let badgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+          let badgeLabel = item.reason;
+          if (item.reason === 'INICIAR_SESION') {
+            badgeColor = 'bg-sky-100 text-sky-800 border-sky-300';
+            badgeLabel = '🔑 Inicio de Sesión Requerido';
+          } else if (item.reason === 'CAPTCHA') {
+            badgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+            badgeLabel = '🛡️ Control CAPTCHA / Anti-bot';
+          } else if (item.reason === '2FA') {
+            badgeColor = 'bg-purple-100 text-purple-800 border-purple-300';
+            badgeLabel = '📱 Doble Autenticación (2FA)';
+          } else if (item.reason === 'POSTULACION_EXTERNA') {
+            badgeColor = 'bg-indigo-100 text-indigo-800 border-indigo-300';
+            badgeLabel = '🌐 Postulación en Portal del Empleador';
+          } else if (item.reason === 'FORMULARIO_NO_RECONOCIDO') {
+            badgeColor = 'bg-slate-100 text-slate-800 border-slate-300';
+            badgeLabel = '📝 Apertura en Pantalla Requerida';
+          }
+
+          return `
+          <div class="bg-white border-2 border-amber-300 rounded-xl p-4 shadow-sm space-y-3">
+            <div class="flex items-start justify-between">
+              <div>
+                <span class="px-2.5 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${badgeLabel}</span>
+                <h4 class="font-bold text-sm text-slate-800 mt-1.5">${item.position}</h4>
+                <p class="text-xs text-slate-500">${item.company}</p>
+              </div>
+              <button onclick="openInteractiveBrowser('${item.id}', '${escapeJsArg(item.url)}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
+                <i data-lucide="monitor" class="w-3 h-3"></i>
+                <span>Navegador del Sistema</span>
+              </button>
+            </div>
+
+            <p class="text-xs text-slate-700 bg-amber-50/70 p-2.5 rounded border border-amber-100 leading-relaxed">${item.question_prompt || 'Intervención requerida para completar el formulario.'}</p>
+
+            ${item.screenshot_path ? `
+              <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-100">
+                <img src="/screenshots/${item.screenshot_path.split(/[\\\\/]/).pop()}" alt="Captura del formulario" class="w-full max-h-52 object-cover object-top hover:max-h-none transition-all duration-300 cursor-zoom-in">
+              </div>
+            ` : ''}
+
+            <div class="bg-slate-50 p-2 rounded border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-700 whitespace-nowrap">Código OTP / Acceso:</span>
+              <input type="text" id="otp-input-${item.id}" placeholder="Pega el código de tu correo aquí" class="flex-1 text-xs border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+              <button onclick="openInteractiveBrowser('${item.id}', '${escapeJsArg(item.url)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+                <span>Abrir y Completar en Pantalla</span>
+              </button>
+              <div class="flex items-center gap-2">
+                <button onclick="resolveHIL('${item.id}', 'DO_NOT_APPLY')" class="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                  Descartar
+                </button>
+                <button onclick="resolveHILAndRetry('${item.id}', '${item.application_id}', '${escapeJsArg(item.company)}', '${escapeJsArg(item.position)}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+                  <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                  <span>Continuar Postulación</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+        }).join('');
+
+        lucide.createIcons();
+      } catch (e) {
+        console.error('Error HIL:', e);
+      }
+    }
+
+    // Cascading location and presets
+    const CITIES_BY_REGION = {
+      "Nacional": [
+        "Cualquier Ciudad / Remoto",
+        "Nivel Nacional (Todas las ciudades)",
+        "Bogotá",
+        "Medellín",
+        "Cali",
+        "Barranquilla",
+        "Valledupar",
+        "Bucaramanga",
+        "Cartagena",
+        "Pereira",
+        "Manizales",
+        "Cúcuta",
+        "Santa Marta",
+        "__custom__"
+      ],
+      "Cesar": [
+        "Valledupar",
+        "Aguachica",
+        "Agustín Codazzi",
+        "Todo el Cesar",
+        "__custom__"
+      ],
+      "Bogotá D.C.": [
+        "Bogotá",
+        "Soacha / Alrededores",
+        "__custom__"
+      ],
+      "Antioquia": [
+        "Medellín",
+        "Envigado",
+        "Bello",
+        "Rionegro / Oriente",
+        "Todo Antioquia",
+        "__custom__"
+      ],
+      "Atlántico": [
+        "Barranquilla",
+        "Soledad",
+        "Todo el Atlántico",
+        "__custom__"
+      ],
+      "Santander": [
+        "Bucaramanga",
+        "Floridablanca",
+        "Barrancabermeja",
+        "__custom__"
+      ],
+      "Valle del Cauca": [
+        "Cali",
+        "Palmira",
+        "Buenaventura",
+        "__custom__"
+      ],
+      "Bolívar": [
+        "Cartagena",
+        "Magangué",
+        "__custom__"
+      ],
+      "Magdalena": [
+        "Santa Marta",
+        "Ciénaga",
+        "__custom__"
+      ],
+      "Córdoba": [
+        "Montería",
+        "Cereté",
+        "__custom__"
+      ]
+    };
+
+    function onCountryOrRegionChanged() {
+      const country = document.getElementById('cfgCountry').value;
+      const region = document.getElementById('cfgRegion').value;
+      const citySelect = document.getElementById('cfgCity');
+      const customInput = document.getElementById('cfgCustomCity');
+
+      customInput.classList.add('hidden');
+      citySelect.innerHTML = '';
+
+      if (country === 'Remoto') {
+        const opt1 = new Option("Cualquier Ciudad (100% Remoto)", "Cualquier Ciudad / Remoto");
+        const opt2 = new Option("Remoto Nacional (Colombia)", "Remoto Nacional");
+        const opt3 = new Option("Remoto Internacional", "Remoto Internacional");
+        citySelect.add(opt1);
+        citySelect.add(opt2);
+        citySelect.add(opt3);
+        document.getElementById('cfgRemote').checked = true;
+        return;
+      }
+
+      const list = CITIES_BY_REGION[region] || CITIES_BY_REGION["Nacional"];
+      list.forEach(c => {
+        if (c === '__custom__') {
+          citySelect.add(new Option("Otra ciudad (escribir personalizada)...", "__custom__"));
+        } else {
+          citySelect.add(new Option(c, c));
+        }
+      });
+    }
+
+    function handleCityDropdownChange(val) {
+      const customInput = document.getElementById('cfgCustomCity');
+      if (val === '__custom__') {
+        customInput.classList.remove('hidden');
+        customInput.focus();
+      } else {
+        customInput.classList.add('hidden');
+      }
+    }
+
+    function getSelectedCity() {
+      const citySelect = document.getElementById('cfgCity');
+      if (citySelect.value === '__custom__') {
+        return document.getElementById('cfgCustomCity').value.trim() || 'Nivel Nacional';
+      }
+      return citySelect.value;
+    }
+
+    function setPresetLocation(preset) {
+      const c = document.getElementById('cfgCountry');
+      const r = document.getElementById('cfgRegion');
+      const rem = document.getElementById('cfgRemote');
+
+      if (preset === 'remoto') {
+        c.value = 'Remoto';
+        r.value = 'Nacional';
+        rem.checked = true;
+        onCountryOrRegionChanged();
+        document.getElementById('cfgCity').value = 'Cualquier Ciudad / Remoto';
+        showToast('Preset aplicado: 🌐 100% Remoto (Nacional)');
+      } else if (preset === 'valledupar') {
+        c.value = 'Colombia';
+        r.value = 'Cesar';
+        rem.checked = true;
+        onCountryOrRegionChanged();
+        document.getElementById('cfgCity').value = 'Valledupar';
+        showToast('Preset aplicado: 📍 Valledupar, Cesar');
+      } else if (preset === 'bogota') {
+        c.value = 'Colombia';
+        r.value = 'Bogotá D.C.';
+        rem.checked = true;
+        onCountryOrRegionChanged();
+        document.getElementById('cfgCity').value = 'Bogotá';
+        showToast('Preset aplicado: 🏢 Bogotá D.C.');
+      } else if (preset === 'nacional') {
+        c.value = 'Colombia';
+        r.value = 'Nacional';
+        rem.checked = true;
+        onCountryOrRegionChanged();
+        document.getElementById('cfgCity').value = 'Nivel Nacional (Todas las ciudades)';
+        showToast('Preset aplicado: 🇨🇴 Toda Colombia');
+      }
+    }
+
+    // Fetch Profile & Location Preferences
+    async function loadProfile() {
+      try {
+        const url = currentUserId ? `/api/stats/profile?user_id=${currentUserId}` : '/api/stats/profile';
+        const res = await fetch(url);
+        const p = await res.json();
+        if (p.name) {
+          const nameDisp = document.getElementById('candidateNameDisplay');
+          const roleDisp = document.getElementById('candidateRoleDisplay');
+          if (nameDisp) nameDisp.innerText = p.name;
+          if (roleDisp) roleDisp.innerText = `(${p.target_role || p.headline || 'Candidato'})`;
+        }
+        document.getElementById('profName').innerText = p.name;
+        document.getElementById('profHeadline').innerText = p.headline;
+        document.getElementById('profLocation').innerText = `${p.location || (p.city + ', ' + p.country)} | ${p.phone} | ${p.email}`;
+        document.getElementById('profSummary').innerText = p.summary || '';
+
+        // Populate search preferences if available
+        if (p.search_preferences) {
+          const sp = p.search_preferences;
+          if (sp.country && document.getElementById('cfgCountry')) document.getElementById('cfgCountry').value = sp.country;
+          if (sp.region && document.getElementById('cfgRegion')) document.getElementById('cfgRegion').value = sp.region;
+          
+          onCountryOrRegionChanged();
+
+          if (sp.city && document.getElementById('cfgCity')) {
+            const citySelect = document.getElementById('cfgCity');
+            let found = false;
+            for (let opt of citySelect.options) {
+              if (opt.value.toLowerCase() === sp.city.toLowerCase()) {
+                citySelect.value = opt.value;
+                found = true;
+                break;
+              }
+            }
+            if (!found && sp.city) {
+              citySelect.value = '__custom__';
+              document.getElementById('cfgCustomCity').classList.remove('hidden');
+              document.getElementById('cfgCustomCity').value = sp.city;
+            }
+          }
+
+          if (sp.keywords && document.getElementById('cfgKeywords')) document.getElementById('cfgKeywords').value = sp.keywords;
+          if (sp.remote !== undefined && document.getElementById('cfgRemote')) document.getElementById('cfgRemote').checked = sp.remote;
+        }
+
+        if (p.salary_preferences) {
+          if (document.getElementById('cfgMinSalary')) {
+            document.getElementById('cfgMinSalary').value = p.salary_preferences.min_salary || 1500000;
+          }
+          if (document.getElementById('profMinSalary')) {
+            document.getElementById('profMinSalary').innerText = `$${(p.salary_preferences.min_salary || 1500000).toLocaleString()} COP`;
+          }
+          if (document.getElementById('profDesiredSalary')) {
+            document.getElementById('profDesiredSalary').innerText = `$${(p.salary_preferences.desired_salary || 2200000).toLocaleString()} COP`;
+          }
+        }
+
+        // Skills
+        const skillsContainer = document.getElementById('profSkills');
+        let allSkills = [];
+        for (const cat in p.technical_skills) {
+          allSkills = allSkills.concat(p.technical_skills[cat]);
+        }
+        skillsContainer.innerHTML = allSkills.map(s => `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200">${s}</span>`).join('');
+
+        // Certs
+        const certsContainer = document.getElementById('profCerts');
+        certsContainer.innerHTML = p.certifications.map(c => `<li>&bull; <b>${c.title}</b> — <span class="text-slate-500">${c.issuer} (${c.date})</span></li>`).join('');
+      } catch (e) {
+        console.error('Error profile:', e);
+      }
+    }
+
+    // Save Location Preferences
+    async function saveLocationPreferences() {
+      const btn = document.getElementById('btnSaveLoc');
+      if (btn) btn.disabled = true;
+      showToast('Guardando configuración de búsqueda...');
+
+      const city = getSelectedCity();
+      const minSalary = parseFloat(document.getElementById('cfgMinSalary').value) || 1500000;
+      const payload = {
+        country: document.getElementById('cfgCountry').value,
+        region: document.getElementById('cfgRegion').value,
+        city: city,
+        remote: document.getElementById('cfgRemote').checked,
+        keywords: document.getElementById('cfgKeywords').value,
+        min_salary: minSalary,
+        desired_salary: minSalary >= 2000000 ? minSalary + 500000 : 2200000,
+        willing_to_relocate: true
+      };
+
+      try {
+        const res = await fetch('/api/stats/preferences', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          showToast(`Configuración guardada: ${payload.city}, ${payload.country} (Salario mín: $${minSalary.toLocaleString()} COP)`);
+          await loadProfile();
+        } else {
+          showToast('Error al guardar preferencias.');
+        }
+      } catch (e) {
+        showToast('Error de conexión al guardar preferencias: ' + e.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    // Trigger Scan with Dynamic Location
+    async function triggerScan() {
+      const mode = document.getElementById('scanMode').value;
+      const country = document.getElementById('cfgCountry').value;
+      const region = document.getElementById('cfgRegion').value;
+      const city = getSelectedCity();
+      const remote = document.getElementById('cfgRemote').checked;
+      const query = document.getElementById('cfgKeywords').value;
+
+      const btn = document.getElementById('btnScan');
+      btn.disabled = true;
+      btn.classList.add('opacity-50');
+      const originalBtnHtml = btn.innerHTML;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Buscando en 7 portales...</span>`;
+      lucide.createIcons();
+
+      const targetLoc = city || region || country;
+      showToast(`Escaneando vacantes activas en ${targetLoc}...`);
+
+      try {
+        const params = new URLSearchParams({
+          mode: mode,
+          country: country,
+          region: region,
+          city: city,
+          remote: remote ? 'true' : 'false',
+          query: query,
+          location: targetLoc
+        });
+        if (currentUserId) params.append('user_id', currentUserId);
+
+        const res = await fetch(`/api/jobs/scan?${params.toString()}`, { method: 'POST' });
+        const data = await res.json();
+        
+        await loadStats();
+        await loadApplications();
+        await loadHIL();
+
+        if (res.ok) {
+          showToast(`¡Búsqueda finalizada! ${data.total_discovered} vacantes analizadas para ${targetLoc}.`);
+        } else {
+          showToast(data.detail || 'Aviso al consultar portales de empleo.');
+        }
+      } catch (e) {
+        showToast('Error de conexión al escanear: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50');
+        btn.innerHTML = originalBtnHtml;
+        lucide.createIcons();
+      }
+    }
+
+    // Prepare CV
+    async function prepareCv(jobId, lang = null) {
+      const msg = lang ? `Generando CV ATS en ${lang === 'en' ? 'Inglés 🇺🇸' : 'Español 🇨🇴'}...` : 'Generando CV ATS específico...';
+      showToast(msg);
+      try {
+        const url = lang ? `/api/applications/prepare/${jobId}?language=${lang}` : `/api/applications/prepare/${jobId}`;
+        const res = await fetch(url, { method: 'POST' });
+        const data = await res.json();
+        const flag = data.language === 'en' ? '🇺🇸 Inglés' : '🇨🇴 Español';
+        showToast(`CV ATS y carta adaptados en ${flag}.`);
+        loadStats();
+        loadApplications();
+      } catch (e) {
+        showToast('Error generando CV ATS.');
+      }
+    }
+
+    let currentAutopilotAppId = null;
+    let currentAutopilotCompany = "";
+    let currentAutopilotPosition = "";
+    let autopilotTimer = null;
+
+    function escapeJsArg(str) {
+      if (!str) return "";
+      return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    function closeAutopilotModal() {
+      if (autopilotTimer) {
+        clearInterval(autopilotTimer);
+        autopilotTimer = null;
+      }
+      document.getElementById('autopilotModal').classList.add('hidden');
+    }
+
+    function openAutopilotModal(title, company, appId) {
+      currentAutopilotAppId = appId;
+      currentAutopilotCompany = company || 'Empresa';
+      currentAutopilotPosition = title || 'Cargo TI';
+
+      if (autopilotTimer) clearInterval(autopilotTimer);
+
+      document.getElementById('autopilotModal').classList.remove('hidden');
+      document.getElementById('modalJobTitle').innerText = currentAutopilotPosition;
+      document.getElementById('modalCompany').innerText = currentAutopilotCompany;
+      
+      const badge = document.getElementById('modalStatusBadge');
+      badge.innerText = 'En ejecución...';
+      badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30 animate-pulse';
+      
+      document.getElementById('modalProgressText').innerHTML = `
+        <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
+        <span>Iniciando agente de navegación autónomo...</span>
+      `;
+      document.getElementById('modalProgressPercent').innerText = '15%';
+      document.getElementById('modalProgressBar').style.width = '15%';
+      document.getElementById('modalScreenshotBox').classList.add('hidden');
+      document.getElementById('modalHilActions').classList.add('hidden');
+
+      const stepsList = document.getElementById('modalStepsList');
+      stepsList.innerHTML = `
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
+          <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
+          <div class="flex-1">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-slate-800 text-xs">1. Entorno de Navegación</span>
+              <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
+            </div>
+            <p class="text-slate-500 text-[11px] mt-0.5">Cargando contexto Chromium con perfil persistente y modo seguro...</p>
+          </div>
+        </div>
+      `;
+      lucide.createIcons();
+
+      let tick = 0;
+      autopilotTimer = setInterval(() => {
+        tick++;
+        if (tick === 2) {
+          document.getElementById('modalProgressBar').style.width = '40%';
+          document.getElementById('modalProgressPercent').innerText = '40%';
+          document.getElementById('modalProgressText').innerHTML = `
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
+            <span>Conectando con el portal de la vacante...</span>
+          `;
+          stepsList.innerHTML += `
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
+              <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-800 text-xs">2. Acceso a la Vacante</span>
+                  <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
+                </div>
+                <p class="text-slate-500 text-[11px] mt-0.5">Estableciendo conexión y esperando carga del DOM del portal...</p>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        } else if (tick === 4) {
+          document.getElementById('modalProgressBar').style.width = '65%';
+          document.getElementById('modalProgressPercent').innerText = '65%';
+          document.getElementById('modalProgressText').innerHTML = `
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
+            <span>Verificando sesión, seguridad y protecciones...</span>
+          `;
+          stepsList.innerHTML += `
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
+              <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-800 text-xs">3. Verificación de Seguridad y Sesión</span>
+                  <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
+                </div>
+                <p class="text-slate-500 text-[11px] mt-0.5">Comprobando login, desafíos anti-bot y preguntas críticas...</p>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        } else if (tick === 7) {
+          document.getElementById('modalProgressBar').style.width = '85%';
+          document.getElementById('modalProgressPercent').innerText = '85%';
+          document.getElementById('modalProgressText').innerHTML = `
+            <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
+            <span>Mapeando formulario y adaptando CV ATS...</span>
+          `;
+          stepsList.innerHTML += `
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
+              <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between">
+                  <span class="font-semibold text-slate-800 text-xs">4. Mapeo y Diligenciamiento</span>
+                  <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
+                </div>
+                <p class="text-slate-500 text-[11px] mt-0.5">Extrayendo campos y vinculando información auténtica del candidato...</p>
+              </div>
+            </div>
+          `;
+          lucide.createIcons();
+        }
+      }, 900);
+    }
+
+    function renderRealAutopilotSteps(steps, status, reason, screenshot, externalUrl) {
+      if (autopilotTimer) {
+        clearInterval(autopilotTimer);
+        autopilotTimer = null;
+      }
+
+      document.getElementById('modalProgressBar').style.width = '100%';
+      document.getElementById('modalProgressPercent').innerText = '100%';
+
+      const stepsList = document.getElementById('modalStepsList');
+      if (steps && steps.length > 0) {
+        stepsList.innerHTML = steps.map(s => {
+          let icon = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>';
+          let cardBg = 'bg-white border-slate-200';
+          let badge = '<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Completado</span>';
+          
+          if (s.status === 'warning') {
+            icon = '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-500"></i>';
+            cardBg = 'bg-amber-50/60 border-amber-200';
+            badge = '<span class="text-[10px] font-semibold text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300">Aviso / Pausa</span>';
+          } else if (s.status === 'failed') {
+            icon = '<i data-lucide="x-circle" class="w-4 h-4 text-rose-500"></i>';
+            cardBg = 'bg-rose-50/60 border-rose-200';
+            badge = '<span class="text-[10px] font-semibold text-rose-800 bg-rose-100 px-2 py-0.5 rounded border border-rose-300">Error</span>';
+          } else if (s.status === 'in_progress') {
+            icon = '<i data-lucide="loader-2" class="w-4 h-4 text-sky-600 animate-spin"></i>';
+            badge = '<span class="text-[10px] font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>';
+          }
+
+          return `
+            <div class="flex items-start gap-3 p-3 rounded-lg ${cardBg} border shadow-xs">
+              <div class="mt-0.5 shrink-0">${icon}</div>
+              <div class="flex-1">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="font-semibold text-slate-800 text-xs">${s.name}</span>
+                  <div class="flex items-center gap-1.5">
+                    ${badge}
+                    <span class="text-[10px] text-slate-400 font-mono">${s.time || ''}</span>
+                  </div>
+                </div>
+                <p class="text-slate-600 text-[11px] mt-1 leading-relaxed">${s.detail}</p>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const badge = document.getElementById('modalStatusBadge');
+      const progText = document.getElementById('modalProgressText');
+      const hilActions = document.getElementById('modalHilActions');
+
+      if (status === 'CONFIRMATION_REQUIRED') {
+        badge.innerText = 'Pausa de Seguridad / Revisión';
+        badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30';
+        progText.innerHTML = `
+          <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-amber-500"></i>
+          <span class="text-amber-700 font-semibold">Pausado por seguridad: Intervención requerida</span>
+        `;
+
+        hilActions.classList.remove('hidden');
+        document.getElementById('modalHilTitle').innerText = 'Pausa Ética: Intervención Humana Requerida';
+        document.getElementById('modalHilDescription').innerText = reason || 'El portal solicita inicio de sesión, resolución de CAPTCHA o confirmación salarial.';
+        const targetOpenUrl = externalUrl ? externalUrl : 'https://www.linkedin.com/login';
+        document.getElementById('modalBtnOpenBrowser').setAttribute('onclick', `openGeneralSession('${escapeJsArg(targetOpenUrl)}')`);
+        document.getElementById('modalBtnRetry').innerHTML = `<i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i><span>Reintentar Postulación</span>`;
+        document.getElementById('modalBtnRetry').setAttribute('onclick', `applyApp('${currentAutopilotAppId}', '${escapeJsArg(currentAutopilotCompany)}', '${escapeJsArg(currentAutopilotPosition)}', false)`);
+      } else if (status === 'READY') {
+        badge.innerText = 'Listo para Envío (Preparado)';
+        badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+        progText.innerHTML = `
+          <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+          <span class="text-emerald-700 font-semibold">Formulario validado y datos precargados con éxito</span>
+        `;
+        hilActions.classList.remove('hidden');
+        document.getElementById('modalHilTitle').innerText = 'Confirmación de Envío Real';
+        document.getElementById('modalHilDescription').innerText = 'Los datos y la hoja de vida ATS han sido validados en el portal. Haz clic en "Confirmar y Enviar Candidatura Real" para enviar definitivamente la postulación.';
+        document.getElementById('modalBtnOpenBrowser').setAttribute('onclick', `openGeneralSession('${escapeJsArg(externalUrl || '')}')`);
+        document.getElementById('modalBtnRetry').innerHTML = `<i data-lucide="send" class="w-3.5 h-3.5"></i><span>Confirmar y Enviar Candidatura Real</span>`;
+        document.getElementById('modalBtnRetry').setAttribute('onclick', `applyApp('${currentAutopilotAppId}', '${escapeJsArg(currentAutopilotCompany)}', '${escapeJsArg(currentAutopilotPosition)}', false)`);
+      } else if (status === 'SUBMITTED') {
+        badge.innerText = 'Postulación Enviada';
+        badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-400/30';
+        progText.innerHTML = `
+          <i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-purple-600"></i>
+          <span class="text-purple-700 font-semibold">Postulación enviada exitosamente</span>
+        `;
+      } else if (status === 'FAILED') {
+        badge.innerText = 'Fallido';
+        badge.className = 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/30';
+        progText.innerHTML = `
+          <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-500"></i>
+          <span class="text-rose-700 font-semibold">${reason || 'Ocurrió un error al interactuar con el portal'}</span>
+        `;
+      }
+
+      // Screenshot
+      const scBox = document.getElementById('modalScreenshotBox');
+      if (screenshot) {
+        const filename = screenshot.split(/[\\/]/).pop();
+        const scUrl = `/screenshots/${filename}`;
+        document.getElementById('modalScreenshotImg').src = scUrl;
+        document.getElementById('modalScreenshotLink').href = scUrl;
+        scBox.classList.remove('hidden');
+      } else {
+        scBox.classList.add('hidden');
+      }
+
+      lucide.createIcons();
+    }
+
+    // Autopilot Apply
+    async function applyApp(appId, company, position, dryRun = null, verificationCode = null) {
+      // Si dryRun no se especifica explícitamente, leer del selector de modo
+      if (dryRun === null) {
+        const mode = document.getElementById('scanMode').value;
+        dryRun = (mode !== 'AUTOPILOT');
+      }
+      const modeLabel = dryRun ? '🔍 Simulación (Dry-Run)' : '🚀 ENVÍO REAL';
+      openAutopilotModal(position || 'Candidatura TI', company || 'Portal Laboral', appId);
+      
+      // Update modal badge to show real mode
+      const badge = document.getElementById('modalStatusBadge');
+      if (badge) {
+        badge.textContent = dryRun ? 'Preparando...' : 'Enviando al portal...';
+        badge.className = dryRun
+          ? 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-400/30'
+          : 'text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30';
+      }
+      const footerNote = document.getElementById('modalFooterNote');
+      if (footerNote) {
+        footerNote.textContent = dryRun
+          ? '🔍 Modo Simulación: No se enviará ningún formulario.'
+          : '🚀 Modo AUTOPILOT: Postulación real — todos los datos son verídicos.';
+      }
+
+      showToast(dryRun ? `Iniciando simulación (${modeLabel})...` : `🚀 Enviando postulación real a ${company || 'portal'}...`);
+      
+      try {
+        const queryUrl = `/api/applications/apply/${appId}?dry_run=${dryRun}${verificationCode ? '&verification_code=' + encodeURIComponent(verificationCode) : ''}`;
+        const res = await fetch(queryUrl, { method: 'POST' });
+        let data;
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          data = await res.json();
+        } else {
+          const rawText = await res.text();
+          data = { steps: [], status: 'FAILED', detail: rawText || `Error HTTP ${res.status}` };
+        }
+        
+        if (res.ok) {
+          renderRealAutopilotSteps(data.steps, data.status, data.reason || data.message, data.screenshot, data.external_url);
+          showToast(data.message || 'Proceso autopilot finalizado.');
+        } else {
+          if (autopilotTimer) clearInterval(autopilotTimer);
+          renderRealAutopilotSteps(data.steps || [], 'FAILED', data.detail || 'Error en el servidor', null, null);
+          showToast(data.detail || 'Error en el servidor al ejecutar autopilot.');
+        }
+        loadStats();
+        loadApplications();
+        loadHIL();
+      } catch (e) {
+        if (autopilotTimer) clearInterval(autopilotTimer);
+        renderRealAutopilotSteps([], 'FAILED', 'Error de red al conectar con el servidor: ' + e.message, null);
+        showToast('Error de comunicación con el agente.');
+      }
+    }
+
+    // Resolve HIL
+    async function resolveHIL(reviewId, action) {
+      try {
+        await fetch(`/api/hil/${reviewId}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: action })
+        });
+        showToast('Decisión registrada con éxito.');
+        loadStats();
+        loadApplications();
+        loadHIL();
+      } catch (e) {
+        showToast('Error al resolver la revisión.');
+      }
+    }
+
+    // Open General Session in Browser
+    async function openGeneralSession(url = "https://www.linkedin.com/login") {
+      showToast("Abriendo navegador visible en tu pantalla...");
+      try {
+        // 1. Immediately open tab directly in user's browser
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        // 2. Also notify backend system launcher
+        const res = await fetch('/api/hil/open-session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url: url })
+        });
+        const data = await res.json();
+        showToast(data.message || "Navegador abierto en pantalla.");
+      } catch (e) {
+        showToast("Ventana abierta en navegador.");
+      }
+    }
+
+    // Open Interactive Browser for specific review
+    async function openInteractiveBrowser(reviewId, url = "") {
+      showToast("Abriendo vacante en tu pantalla...");
+      try {
+        // 1. If URL is known, immediately open in user's browser
+        if (url) {
+          window.open(url, '_blank', 'noopener,noreferrer');
+        }
+        // 2. Call backend HIL endpoint
+        const res = await fetch(`/api/hil/${reviewId}/open-browser`, { method: 'POST' });
+        const data = await res.json();
+        // If URL wasn't provided initially, open whatever the backend returned
+        if (!url && data.url) {
+          window.open(data.url, '_blank', 'noopener,noreferrer');
+        }
+        showToast(data.message || "Navegador interactivo abierto.");
+      } catch (e) {
+        showToast("Ventana abierta en pantalla.");
+      }
+    }
+
+    // Resolve HIL and Re-run Autopilot
+    async function resolveHILAndRetry(reviewId, applicationId, company, position) {
+      showToast("Reanudando postulación...");
+      const otpInput = document.getElementById(`otp-input-${reviewId}`);
+      const userInput = otpInput ? otpInput.value.trim() : null;
+      try {
+        await fetch(`/api/hil/${reviewId}/action`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'APPROVED', user_input: userInput })
+        });
+        // After resolving HIL, send for real with verification code if provided
+        await applyApp(applicationId, company, position, false, userInput);
+      } catch (e) {
+        showToast("Error reanudando postulación.");
+      }
+    }
+
+    // Modal de Carta de Presentación y Contacto Directo
+    function openCoverLetterModal(appId, company, position, coverLetter, cvPath) {
+      document.getElementById('coverLetterModal').classList.remove('hidden');
+      document.getElementById('clModalTitle').innerText = position || 'Candidatura';
+      document.getElementById('clModalCompany').innerText = company || 'Empresa';
+      
+      const subject = `Postulación: ${position || 'Técnico de Soporte TI'} - Julian David Diaz Medina`;
+      document.getElementById('clModalSubject').value = subject;
+      
+      const letterText = coverLetter || `Estimado equipo de Selección de ${company || 'la Empresa'},\n\n` +
+        `Les escribo para presentar formalmente mi postulación a la vacante de ${position || 'Soporte TI / Técnico de Sistemas'}. ` +
+        `Soy Técnico en Sistemas Teleinformáticos egresado del SENA, con sólida formación práctica en soporte técnico de hardware y software, ` +
+        `administración de redes LAN/WLAN, configuración de puestos de trabajo Windows/Linux y atención a usuarios.\n\n` +
+        `Cuento con disponibilidad inmediata para trabajar tanto de forma remota como presencial. Quedo a su disposición para coordinar una entrevista.\n\n` +
+        `Atentamente,\n` +
+        `Julian David Diaz Medina\n` +
+        `Teléfono: +57 320 684 1270\n` +
+        `Email: maestrecs92@gmail.com\n` +
+        `Valledupar, Cesar, Colombia`;
+      document.getElementById('clModalText').value = letterText;
+      
+      const cvLinkEl = document.getElementById('clModalCvLink');
+      if (cvPath) {
+        const filename = cvPath.split(/[\\/]/).pop();
+        cvLinkEl.href = `/cv_downloads/${filename}`;
+        cvLinkEl.classList.remove('opacity-50', 'pointer-events-none');
+        cvLinkEl.title = `Descargar ${filename}`;
+      } else {
+        cvLinkEl.href = '#';
+        cvLinkEl.classList.add('opacity-50', 'pointer-events-none');
+        cvLinkEl.title = 'Primero genera el CV ATS para esta vacante';
+      }
+      
+      const mailtoBtn = document.getElementById('clModalMailtoBtn');
+      const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(letterText)}`;
+      mailtoBtn.href = mailtoUrl;
+      
+      lucide.createIcons();
+    }
+
+    function closeCoverLetterModal() {
+      document.getElementById('coverLetterModal').classList.add('hidden');
+    }
+
+    function copySubject() {
+      const input = document.getElementById('clModalSubject');
+      navigator.clipboard.writeText(input.value);
+      showToast('Asunto copiado al portapapeles');
+    }
+
+    function copyLetterText() {
+      const textarea = document.getElementById('clModalText');
+      navigator.clipboard.writeText(textarea.value);
+      showToast('Carta de presentación copiada al portapapeles');
+    }
+
+    async function triggerBatchApply() {
+      const btn = document.getElementById('btnBatchApply');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Postulando en lote...</span>`;
+      lucide.createIcons();
+      showToast('🚀 Iniciando postulación automática en lote para las mejores vacantes...');
+      
+      try {
+        const res = await fetch('/api/applications/apply-batch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ max_applications: 5, dry_run: false })
+        });
+        const data = await res.json();
+        if (data.status === 'SUCCESS' || data.processed > 0) {
+          showToast(`✅ Proceso finalizado: ${data.submitted || 0} enviadas, ${data.hil_required || 0} requieren tu sesión.`);
+        } else {
+          showToast(data.message || 'No se encontraron vacantes preparadas para postular.');
+        }
+        loadStats();
+        loadApplications();
+        loadHIL();
+      } catch (e) {
+        showToast('Error ejecutando postulación en lote: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+        lucide.createIcons();
+      }
+    }
+
+    // Init
+    window.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      checkAuth();
+      loadStats();
+      loadApplications();
+      loadHIL();
+      loadProfile();
+
+      // Sync body class with scanMode selector for visual feedback
+      const scanModeEl = document.getElementById('scanMode');
+      function updateModeVisual() {
+        const isAutopilot = scanModeEl.value === 'AUTOPILOT';
+        document.body.classList.toggle('autopilot-mode', isAutopilot);
+      }
+      if (scanModeEl) {
+        scanModeEl.addEventListener('change', updateModeVisual);
+        updateModeVisual(); // Initial sync
+      }
+
+      // Auto refresh every 20 seconds
+      setInterval(() => {
+        loadStats();
+        loadHIL();
+      }, 20000);
+    });
+  </script>
+</body>
+</html>
