@@ -11,6 +11,7 @@ from app.api.routes_jobs import router as jobs_router
 from app.api.routes_applications import router as apps_router
 from app.api.routes_hil import router as hil_router
 from app.api.routes_stats import router as stats_router
+from app.api.routes_cv import router as cv_router
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SCREENSHOTS_DIR = BASE_DIR / "logs" / "screenshots"
@@ -46,6 +47,7 @@ app.include_router(jobs_router)
 app.include_router(apps_router)
 app.include_router(hil_router)
 app.include_router(stats_router)
+app.include_router(cv_router)
 
 # Mount static asset dirs
 app.mount("/screenshots", StaticFiles(directory=str(SCREENSHOTS_DIR)), name="screenshots")

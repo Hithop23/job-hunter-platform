@@ -179,8 +179,24 @@ async def run_discovery_task(
     }
 
 
+async def _async_discovery_runner(mode, query, location, country, region, remote, user_id):
+    from app.storage.database import SessionLocal
+    import logging
+    log = logging.getLogger("JOB_HUNTER_SCAN")
+    db = SessionLocal()
+    try:
+        await run_discovery_task(
+            db, mode, query, location, country, region, remote, user_id=user_id
+        )
+    except Exception as e:
+        log.error(f"Error en escaneo en segundo plano: {e}", exc_info=True)
+    finally:
+        db.close()
+
+
 @router.post("/scan")
 async def trigger_scan(
+    background_tasks: BackgroundTasks,
     mode: str = Query("SCAN", description="Modes: SCAN, PREPARE, AUTOPILOT"),
     query: Optional[str] = Query(None, description="Cargos o tecnologías a buscar"),
     country: Optional[str] = Query(None, description="País"),
@@ -189,6 +205,7 @@ async def trigger_scan(
     remote: Optional[bool] = Query(None, description="Incluir vacantes remotas"),
     location: Optional[str] = Query(None, description="Ubicación consolidada"),
     user_id: Optional[str] = Query(None, description="ID del usuario en Supabase"),
+    is_async: bool = Query(True, description="Ejecutar en segundo plano para evitar timeouts de red"),
     db: Session = Depends(get_db)
 ):
     """
@@ -226,6 +243,25 @@ async def trigger_scan(
     final_remote = remote if remote is not None else prefs.get("remote", True)
     final_query = query or prefs.get("keywords") or "soporte TI sistemas"
     final_location = location or final_city or final_region or final_country
+
+    if is_async:
+        background_tasks.add_task(
+            _async_discovery_runner,
+            mode,
+            final_query,
+            final_location,
+            final_country,
+            final_region,
+            final_remote,
+            user_id
+        )
+        return {
+            "status": "started",
+            "mode": mode,
+            "query": final_query,
+            "location": final_location,
+            "message": f"Búsqueda activa iniciada en 10 portales para {final_location}. Las vacantes se irán actualizando automáticamente."
+        }
 
     result = await run_discovery_task(
         db,

@@ -38,7 +38,7 @@ COPY requirements.txt .
 # Install Python packages (including PostgreSQL drivers: psycopg2 and psycopg v3)
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir psycopg2-binary "psycopg[binary]" uvicorn fastapi supabase python-multipart
+    && pip install --no-cache-dir psycopg2-binary "psycopg[binary]" uvicorn fastapi supabase python-multipart python-docx
 
 # Install Playwright browser binaries
 RUN playwright install chromium

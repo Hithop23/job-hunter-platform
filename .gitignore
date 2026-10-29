@@ -29,6 +29,7 @@ data/candidates/
 
 # Generated CV variants
 cv/variants/*.pdf
+cv/variants/*.docx
 cv/master_cv.pdf
 Julian_David_Diaz_Medina_Hoja_de_Vida_ATS.pdf
 
