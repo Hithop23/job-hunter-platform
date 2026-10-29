@@ -1,0 +1,4 @@
+/api/*  https://job-hunter-platform-4ik7.onrender.com/api/:splat  200
+/screenshots/*  https://job-hunter-platform-4ik7.onrender.com/screenshots/:splat  200
+/cv_downloads/*  https://job-hunter-platform-4ik7.onrender.com/cv_downloads/:splat  200
+/*  /index.html  200
