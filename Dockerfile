@@ -35,9 +35,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Copy dependency specifications
 COPY requirements.txt .
 
-# Install Python packages
-RUN pip install --no-cache-dir -r requirements.txt \
-    && pip install --no-cache-dir uvicorn fastapi supabase python-multipart
+# Install Python packages (including PostgreSQL drivers: psycopg2 and psycopg v3)
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir psycopg2-binary "psycopg[binary]" uvicorn fastapi supabase python-multipart
 
 # Install Playwright browser binaries
 RUN playwright install chromium
@@ -50,6 +51,12 @@ COPY app/ ./app/
 COPY data/ ./data/
 COPY run.py .
 
+# Expose server port
 EXPOSE 8000
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:8000/api/stats/dashboard || exit 1
+
+# Start the FastAPI application server
 CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
