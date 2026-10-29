@@ -18,6 +18,17 @@ if raw_db_url and raw_db_url.strip():
     if raw_db_url.startswith("postgres://"):
         raw_db_url = raw_db_url.replace("postgres://", "postgresql://", 1)
     
+    # Auto-sanitize accidental double colons in user:password (common copy-paste typo)
+    if "://" in raw_db_url:
+        scheme, rest = raw_db_url.split("://", 1)
+        if "::" in rest:
+            rest = rest.replace("::", ":", 1)
+        # Ensure sslmode=require for Supabase pooler connections
+        if "supabase" in rest and "sslmode=" not in rest:
+            sep = "&" if "?" in rest else "?"
+            rest = f"{rest}{sep}sslmode=require"
+        raw_db_url = f"{scheme}://{rest}"
+
     engine = create_engine(
         raw_db_url,
         pool_pre_ping=True,
