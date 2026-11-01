@@ -527,7 +527,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
               <div class="sm:col-span-2 lg:col-span-1">
                 <label class="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
-                <input type="text" id="bldName" required placeholder="Ej: Julian David Diaz Medina" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
+                <input type="text" id="bldName" required placeholder="Ej: Carlos Gómez Morales" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico *</label>
@@ -535,7 +535,7 @@
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
-                <input type="tel" id="bldPhone" required placeholder="+57 320 684 1270" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
+                <input type="tel" id="bldPhone" required placeholder="+57 300 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
                 <label class="block font-semibold text-slate-700 mb-1">Ciudad *</label>
@@ -719,24 +719,47 @@
             </div>
 
             <!-- Panel de Configuración de IA (Groq) -->
-            <div class="bg-gradient-to-r from-purple-50 via-indigo-50 to-emerald-50 p-5 rounded-2xl border border-purple-200/80 space-y-3">
-              <div class="flex flex-wrap items-center justify-between gap-2">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black text-xs shadow-sm">
-                    AI
+            <div class="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-5 sm:p-6 rounded-2xl border border-indigo-500/30 shadow-lg space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-indigo-500 flex items-center justify-center font-black text-sm text-white shadow-md">
+                    <i data-lucide="cpu" class="w-5 h-5"></i>
                   </div>
                   <div>
-                    <h5 class="font-bold text-xs text-purple-950">Motor de Inteligencia Artificial Groq (LPU Ultra-Fast)</h5>
-                    <p class="text-[11px] text-purple-700">Modelo: <b>openai/gpt-oss-120b</b> &bull; Optimización ATS en tiempo real (~2 seg)</p>
+                    <div class="flex items-center gap-2">
+                      <h5 class="font-bold text-sm text-white">Motor de IA Activo: Groq LPU Cloud</h5>
+                      <span class="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> En Línea (~1.8s)
+                      </span>
+                    </div>
+                    <p class="text-xs text-indigo-200 mt-0.5">Inferencia de Lenguaje en Hardware LPU (120 Mil Millones de Parámetros)</p>
                   </div>
                 </div>
-                <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                  Clave Activa Conectada
-                </span>
+
+                <div class="flex items-center gap-2">
+                  <label class="text-[11px] text-slate-300 font-medium">Modelo:</label>
+                  <select id="selectedAiModel" class="bg-slate-800 text-slate-100 border border-slate-700 rounded-lg px-2.5 py-1 text-xs focus:outline-none focus:border-indigo-400 font-semibold">
+                    <option value="openai/gpt-oss-120b" selected>GPT-OSS 120B (Recomendado ATS)</option>
+                    <option value="qwen/qwen3.8-27b">Qwen 3.8 27B (Alta precisión técnica)</option>
+                    <option value="openai/gpt-oss-20b">GPT-OSS 20B (Modo Rápido)</option>
+                  </select>
+                </div>
               </div>
-              <p class="text-[11px] text-slate-600 leading-relaxed">
-                Al presionar el botón de abajo, la IA tomará todas las respuestas del cuestionario, creará viñetas profesionales con logros cuantificables, optimizará las palabras clave para pasar el filtro de selección y generará al instante tus archivos en <b>PDF ATS</b> y <b>Word (.DOCX)</b>.
-              </p>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1 text-xs text-slate-300 border-t border-slate-800">
+                <div class="flex items-start gap-2 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <i data-lucide="sparkles" class="w-4 h-4 text-purple-400 shrink-0 mt-0.5"></i>
+                  <span><b>Resumen Ejecutivo:</b> Redacta un perfil persuasivo con orientación al logro y palabras clave.</span>
+                </div>
+                <div class="flex items-start gap-2 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"></i>
+                  <span><b>Fórmula ATS:</b> Convierte tareas cotidianas en viñetas: [Verbo] + [Herramienta] + [Impacto %].</span>
+                </div>
+                <div class="flex items-start gap-2 bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/60">
+                  <i data-lucide="layers" class="w-4 h-4 text-indigo-400 shrink-0 mt-0.5"></i>
+                  <span><b>Taxonomía de Habilidades:</b> Categoriza automáticamente tus herramientas técnicas y blandas.</span>
+                </div>
+              </div>
             </div>
 
             <!-- Cloudflare Turnstile Anti-Bot Protection for AI -->
@@ -1211,11 +1234,11 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
             <label class="font-semibold text-slate-700">Ciudad:</label>
-            <input type="text" id="mProfCity" value="Valledupar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+            <input type="text" id="mProfCity" placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
           <div>
             <label class="font-semibold text-slate-700">Departamento / Región:</label>
-            <input type="text" id="mProfDepartment" value="Cesar" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+            <input type="text" id="mProfDepartment" placeholder="Ej: Cundinamarca / Antioquia" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
         </div>
 
@@ -2865,8 +2888,8 @@
       document.getElementById('bldName').value = p.name || '';
       document.getElementById('bldEmail').value = p.email || '';
       document.getElementById('bldPhone').value = p.phone || '';
-      document.getElementById('bldCity').value = p.city || 'Valledupar';
-      document.getElementById('bldDepartment').value = p.department || 'Cesar';
+      document.getElementById('bldCity').value = p.city || '';
+      document.getElementById('bldDepartment').value = p.department || '';
       document.getElementById('bldRole').value = p.headline || p.target_role || '';
       document.getElementById('bldEnglish').value = p.english_level || 'B2';
       document.getElementById('bldLinkedin').value = p.linkedin || '';
@@ -2889,31 +2912,24 @@
     }
 
     function initBuilderDefaults() {
+      // Do not hardcode personal candidate data. Start clean with an empty editable row.
       const expContainer = document.getElementById('experienceRowsContainer');
-      if (expContainer.children.length === 0) {
+      if (expContainer && expContainer.children.length === 0) {
         addExperienceRow({
-          role: 'Técnico en Sistemas Teleinformáticos / Soporte TI',
-          company: 'Empresa de Servicios Corporativos',
-          period: '2024 - Presente',
-          location: 'Remoto / Valledupar',
-          achievements: ['Resolución de incidencias técnicas de hardware y software cumpliendo SLA.', 'Configuración de redes LAN/WLAN y administración de puestos de trabajo.']
+          role: '',
+          company: '',
+          period: '',
+          location: '',
+          achievements: []
         });
       }
       const eduContainer = document.getElementById('educationRowsContainer');
-      if (eduContainer.children.length === 0) {
+      if (eduContainer && eduContainer.children.length === 0) {
         addEducationRow({
-          degree: 'Técnico en Sistemas Teleinformáticos',
-          institution: 'Servicio Nacional de Aprendizaje (SENA)',
-          period: '2025 - 2026',
-          status: 'Titulado'
-        });
-      }
-      const certContainer = document.getElementById('certificationsRowsContainer');
-      if (certContainer.children.length === 0) {
-        addCertificationRow({
-          title: 'Endpoint Security',
-          issuer: 'Cisco Networking Academy',
-          date: '2025'
+          degree: '',
+          institution: '',
+          period: '',
+          status: ''
         });
       }
     }
@@ -2988,12 +3004,12 @@
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Ubicación</label>
-            <input type="text" class="exp-location w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.location || ''}" placeholder="Ej: Remoto / Valledupar">
+            <input type="text" class="exp-location w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.location || ''}" placeholder="Ej: Bogotá, Medellín o Remoto">
           </div>
         </div>
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Logros y Responsabilidades (un logro por línea)</label>
-          <textarea rows="2" class="exp-achievements w-full bg-white border border-slate-200 rounded p-2 text-slate-800" placeholder="Ej: Diagnóstico y mantenimiento preventivo de más de 80 equipos de cómputo.&#10;Atención de tickets en mesa de ayuda con índice de satisfacción del 98%.">${achStr}</textarea>
+          <textarea rows="2" class="exp-achievements w-full bg-white border border-slate-200 rounded p-2 text-slate-800" placeholder="Ej: Optimización de procesos operativos y reducción de tiempos de respuesta.&#10;Gestión y resolución de requerimientos con 98% de satisfacción.">${achStr}</textarea>
         </div>
       `;
       c.appendChild(div);
@@ -3008,8 +3024,8 @@
       div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="edu-degree bg-white border border-slate-200 rounded p-1.5" value="${edu.degree || ''}" placeholder="Título (ej: Técnico en Sistemas)">
-          <input type="text" class="edu-institution bg-white border border-slate-200 rounded p-1.5" value="${edu.institution || ''}" placeholder="Institución (ej: SENA)">
+          <input type="text" class="edu-degree bg-white border border-slate-200 rounded p-1.5" value="${edu.degree || ''}" placeholder="Título (ej: Ingeniería / Tecnología / Profesional)">
+          <input type="text" class="edu-institution bg-white border border-slate-200 rounded p-1.5" value="${edu.institution || ''}" placeholder="Institución (ej: Universidad / Instituto / SENA)">
         </div>
         <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -3027,8 +3043,8 @@
       div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="cert-title bg-white border border-slate-200 rounded p-1.5" value="${cert.title || ''}" placeholder="Certificación (ej: Cisco Endpoint)">
-          <input type="text" class="cert-issuer bg-white border border-slate-200 rounded p-1.5" value="${cert.issuer || ''}" placeholder="Emisor (ej: Cisco)">
+          <input type="text" class="cert-title bg-white border border-slate-200 rounded p-1.5" value="${cert.title || ''}" placeholder="Certificación (ej: AWS / Scrum / Excel Avanzado)">
+          <input type="text" class="cert-issuer bg-white border border-slate-200 rounded p-1.5" value="${cert.issuer || ''}" placeholder="Emisor (ej: Microsoft / Google / Cisco / SENA)">
         </div>
         <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -3048,11 +3064,11 @@
     }
 
     function autoGenerateSummary() {
-      const role = document.getElementById('bldRole').value.trim() || 'Técnico en Sistemas Teleinformáticos';
+      const role = document.getElementById('bldRole').value.trim() || 'Profesional';
       const city = document.getElementById('bldCity').value.trim() || 'Colombia';
-      const text = `${role} con sólida formación técnica y experiencia práctica en soporte técnico de hardware y software, configuración de redes LAN/WLAN y atención a usuarios. Destacada capacidad analítica para el diagnóstico de fallas, mantenimiento preventivo de equipos y administración de puestos de trabajo Windows y Linux. Orientado al cumplimiento de acuerdos de nivel de servicio (SLA) y a la satisfacción del usuario en ${city} o en modalidad 100% remota.`;
+      const text = `Profesional enfocado en ${role} con sólida formación y experiencia práctica en gestión operativa, resolución ágil de problemas y orientación al logro. Destacada capacidad analítica para optimizar procesos, trabajar en equipos multidisciplinarios y cumplir metas estratégicas en ${city} o en modalidad 100% remota.`;
       document.getElementById('bldSummary').value = text;
-      showToast('✨ Resumen profesional autocompletado con palabras clave de alta frecuencia.');
+      showToast('✨ Resumen profesional sugerido con palabras clave ATS.');
     }
 
     function getBuilderPayload() {
@@ -3157,7 +3173,9 @@
         btnGenerate.classList.add('opacity-50', 'cursor-not-allowed');
       }
 
-      showToast('🤖 Conectando con Inteligencia Artificial Groq (120B)...');
+      const selectedModel = document.getElementById('selectedAiModel')?.value || 'openai/gpt-oss-120b';
+      const selectedModelText = document.getElementById('selectedAiModel')?.selectedOptions[0]?.text || 'Groq 120B';
+      showToast(`🤖 Optimizando perfil ATS con IA (${selectedModelText})...`);
 
       try {
         const res = await fetch('/api/cv/ai-builder', {
@@ -3166,7 +3184,8 @@
           body: JSON.stringify({
             user_id: currentUserId || null,
             answers: answers,
-            turnstile_token: aiTurnstileToken || null
+            turnstile_token: aiTurnstileToken || null,
+            model_name: selectedModel
           })
         });
 

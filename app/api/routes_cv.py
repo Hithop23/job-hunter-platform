@@ -48,6 +48,7 @@ class AiQuestionnairePayload(BaseModel):
     answers: Dict[str, Any]
     groq_api_key: Optional[str] = None
     turnstile_token: Optional[str] = None
+    model_name: Optional[str] = None
 
 
 @router.post("/upload")
@@ -203,7 +204,8 @@ def ai_questionnaire_builder(payload: AiQuestionnairePayload, db: Session = Depe
 
     optimized = GroqAIEngine.transform_questionnaire_to_ats(
         answers=payload.answers,
-        custom_key=payload.groq_api_key
+        custom_key=payload.groq_api_key,
+        preferred_model=payload.model_name
     )
 
     clean_name = re.sub(r"[^\w]", "_", optimized.get("name", "Candidato")[:12].strip())

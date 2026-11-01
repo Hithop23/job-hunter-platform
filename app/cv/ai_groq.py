@@ -83,7 +83,8 @@ class GroqAIEngine:
     def transform_questionnaire_to_ats(
         cls,
         answers: Dict[str, Any],
-        custom_key: Optional[str] = None
+        custom_key: Optional[str] = None,
+        preferred_model: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Sends raw questionnaire answers to Groq LLM and retrieves structured ATS profile JSON.
@@ -95,7 +96,9 @@ class GroqAIEngine:
 
         user_content = json.dumps(answers, ensure_ascii=False, indent=2)
 
-        for model in cls.MODELS:
+        models_to_try = [preferred_model] + [m for m in cls.MODELS if m != preferred_model] if preferred_model else cls.MODELS
+
+        for model in models_to_try:
             try:
                 logger.info(f"Invoking Groq API with model {model}...")
                 req = urllib.request.Request(
