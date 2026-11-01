@@ -216,6 +216,46 @@ class UserProfile(Base):
     education_json = Column(Text, nullable=True)
     certifications_json = Column(Text, nullable=True)
     languages_json = Column(Text, nullable=True)
+
+    @property
+    def technical_skills(self):
+        return self.technical_skills_json
+
+    @technical_skills.setter
+    def technical_skills(self, value):
+        self.technical_skills_json = value
+
+    @property
+    def experience(self):
+        return self.experience_json
+
+    @experience.setter
+    def experience(self, value):
+        self.experience_json = value
+
+    @property
+    def education(self):
+        return self.education_json
+
+    @education.setter
+    def education(self, value):
+        self.education_json = value
+
+    @property
+    def certifications(self):
+        return self.certifications_json
+
+    @certifications.setter
+    def certifications(self, value):
+        self.certifications_json = value
+
+    @property
+    def languages(self):
+        return self.languages_json
+
+    @languages.setter
+    def languages(self, value):
+        self.languages_json = value
     
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc), nullable=False)

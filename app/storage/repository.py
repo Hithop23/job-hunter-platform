@@ -428,12 +428,21 @@ class Repository:
                 setattr(profile, field, profile_data[field])
 
         # Serialize JSON fields if dicts or lists
-        for json_field in ["technical_skills", "experience", "education", "certifications", "languages"]:
-            if json_field in profile_data and profile_data[json_field] is not None:
-                val = profile_data[json_field]
+        json_mappings = {
+            "technical_skills": "technical_skills_json",
+            "experience": "experience_json",
+            "education": "education_json",
+            "certifications": "certifications_json",
+            "languages": "languages_json"
+        }
+        for key, col in json_mappings.items():
+            val = profile_data.get(key)
+            if val is None:
+                val = profile_data.get(col)
+            if val is not None:
                 if not isinstance(val, str):
                     val = json.dumps(val, ensure_ascii=False)
-                setattr(profile, json_field, val)
+                setattr(profile, col, val)
 
         profile.updated_at = datetime.now(timezone.utc)
         self.db.commit()

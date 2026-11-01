@@ -96,9 +96,11 @@ def get_profile(user_id: Optional[str] = Query(None), db: Session = Depends(get_
                 "salary_min_cop": up.salary_min_cop or 2500000,
                 "salary_max_cop": up.salary_max_cop or 4000000,
                 "remote_only": up.remote_only,
-                "technical_skills": parse_json(up.technical_skills, {}),
-                "experience": parse_json(up.experience, []),
-                "education": parse_json(up.education, [])
+                "technical_skills": parse_json(getattr(up, "technical_skills_json", None) or getattr(up, "technical_skills", None), {}),
+                "experience": parse_json(getattr(up, "experience_json", None) or getattr(up, "experience", None), []),
+                "education": parse_json(getattr(up, "education_json", None) or getattr(up, "education", None), []),
+                "certifications": parse_json(getattr(up, "certifications_json", None) or getattr(up, "certifications", None), []),
+                "languages": parse_json(getattr(up, "languages_json", None) or getattr(up, "languages", None), [])
             }
 
     # Clean guest / non-authenticated profile template (NEVER leaks private candidate details)

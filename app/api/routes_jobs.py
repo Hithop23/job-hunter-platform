@@ -45,9 +45,12 @@ async def run_discovery_task(
         up = repo.get_user_profile(user_id)
         if up:
             try:
-                skills_data = json.loads(up.technical_skills) if up.technical_skills else {}
-                exp_data = json.loads(up.experience) if up.experience else []
-                edu_data = json.loads(up.education) if up.education else []
+                raw_sk = getattr(up, "technical_skills_json", None) or getattr(up, "technical_skills", None)
+                raw_ex = getattr(up, "experience_json", None) or getattr(up, "experience", None)
+                raw_ed = getattr(up, "education_json", None) or getattr(up, "education", None)
+                skills_data = json.loads(raw_sk) if raw_sk else {}
+                exp_data = json.loads(raw_ex) if raw_ex else []
+                edu_data = json.loads(raw_ed) if raw_ed else []
             except Exception:
                 skills_data, exp_data, edu_data = {}, [], []
             custom_profile = {
