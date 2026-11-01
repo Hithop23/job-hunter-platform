@@ -10,6 +10,8 @@
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Supabase JS Client (Auth & Realtime) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Cloudflare Turnstile CAPTCHA API -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -737,6 +739,20 @@
               </p>
             </div>
 
+            <!-- Cloudflare Turnstile Anti-Bot Protection for AI -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div class="flex items-center gap-2.5">
+                <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+                <div>
+                  <h6 class="font-bold text-xs text-slate-800">Verificación de Seguridad Anti-Bot</h6>
+                  <p class="text-[11px] text-slate-500">Protegido por Cloudflare Turnstile para verificar solicitudes legítimas.</p>
+                </div>
+              </div>
+              <div id="aiTurnstileContainer" class="flex justify-center min-h-[65px]"></div>
+            </div>
+
             <!-- Botones de Acción -->
             <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
               <button type="button" onclick="prevStep(4)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
@@ -1144,12 +1160,20 @@
 
         <div id="authFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed"></div>
 
+        <!-- Cloudflare Turnstile Container -->
+        <div class="space-y-1">
+          <div id="authTurnstileContainer" class="my-2 flex justify-center min-h-[65px]"></div>
+        </div>
+
         <button type="submit" id="btnAuthSubmit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 rounded-lg shadow-sm transition flex items-center justify-center gap-2">
           <i data-lucide="log-in" class="w-4 h-4"></i>
           <span id="btnAuthSubmitText">Entrar a Mi Panel</span>
         </button>
 
-        <p class="text-[11px] text-slate-400 text-center">Protegido por Supabase Auth & Row Level Security (RLS).</p>
+        <p class="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-500"></i>
+          <span>Protegido por Cloudflare Turnstile CAPTCHA & Supabase Auth</span>
+        </p>
       </form>
     </div>
   </div>
@@ -1259,6 +1283,81 @@
     let currentUser = null;
     let currentUserId = null;
 
+    // Cloudflare Turnstile CAPTCHA state
+    let cfSiteKey = '1x00000000000000000000AA';
+    let authTurnstileWidgetId = null;
+    let authTurnstileToken = null;
+    let aiTurnstileWidgetId = null;
+    let aiTurnstileToken = null;
+
+    async function fetchTurnstileConfig() {
+      try {
+        const res = await fetch('/api/security/turnstile/config');
+        if (res.ok) {
+          const cfg = await res.json();
+          if (cfg.site_key) cfSiteKey = cfg.site_key;
+        }
+      } catch (e) {
+        console.warn('Turnstile config fallback active');
+      }
+    }
+
+    function renderAuthTurnstile() {
+      const container = document.getElementById('authTurnstileContainer');
+      if (!container || !window.turnstile) return;
+      if (authTurnstileWidgetId !== null) {
+        try {
+          window.turnstile.reset(authTurnstileWidgetId);
+        } catch(e) {}
+      } else {
+        try {
+          authTurnstileWidgetId = window.turnstile.render('#authTurnstileContainer', {
+            sitekey: cfSiteKey,
+            theme: 'light',
+            callback: function(token) {
+              authTurnstileToken = token;
+            },
+            'expired-callback': function() {
+              authTurnstileToken = null;
+            },
+            'error-callback': function() {
+              authTurnstileToken = null;
+            }
+          });
+        } catch(e) {
+          console.warn('Turnstile render error:', e);
+        }
+      }
+    }
+
+    function renderAiTurnstile() {
+      const container = document.getElementById('aiTurnstileContainer');
+      if (!container || !window.turnstile) return;
+      if (aiTurnstileWidgetId !== null) {
+        try {
+          window.turnstile.reset(aiTurnstileWidgetId);
+        } catch(e) {}
+      } else {
+        try {
+          aiTurnstileWidgetId = window.turnstile.render('#aiTurnstileContainer', {
+            sitekey: cfSiteKey,
+            theme: 'light',
+            callback: function(token) {
+              aiTurnstileToken = token;
+            },
+            'expired-callback': function() {
+              aiTurnstileToken = null;
+            },
+            'error-callback': function() {
+              aiTurnstileToken = null;
+            }
+          });
+        } catch(e) {
+          console.warn('Turnstile AI render error:', e);
+        }
+      }
+    }
+
     if (window.supabase) {
       sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     }
@@ -1266,6 +1365,7 @@
     function openAuthModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authFeedback').classList.add('hidden');
+      setTimeout(renderAuthTurnstile, 150);
       lucide.createIcons();
     }
 
@@ -1294,6 +1394,7 @@
         nameField.classList.remove('hidden');
         submitText.innerText = 'Registrarme y Configurar Perfil';
       }
+      setTimeout(renderAuthTurnstile, 150);
     }
 
     async function handleAuthSubmit(e) {
@@ -1312,7 +1413,12 @@
 
       try {
         if (authTabMode === 'login') {
-          const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+          const authOptions = authTurnstileToken ? { captchaToken: authTurnstileToken } : {};
+          const { data, error } = await sbClient.auth.signInWithPassword({
+            email,
+            password,
+            options: authOptions
+          });
           if (error) throw error;
           feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
           feedback.innerText = '¡Inicio de sesión exitoso! Cargando tus datos...';
@@ -1320,13 +1426,17 @@
           await checkAuth();
           showToast('Sesión iniciada correctamente.');
         } else {
+          const signUpOptions = {
+            data: { full_name: fullName || 'Candidato' },
+            emailRedirectTo: window.location.origin
+          };
+          if (authTurnstileToken) {
+            signUpOptions.captchaToken = authTurnstileToken;
+          }
           const { data, error } = await sbClient.auth.signUp({
             email,
             password,
-            options: {
-              data: { full_name: fullName || 'Candidato' },
-              emailRedirectTo: window.location.origin
-            }
+            options: signUpOptions
           });
           if (error) throw error;
           
@@ -2831,6 +2941,9 @@
       if (progressBar) progressBar.style.width = `${(currentStep / 5) * 100}%`;
       const stepIndicator = document.getElementById('stepIndicator');
       if (stepIndicator) stepIndicator.textContent = `Paso ${currentStep} de 5`;
+      if (currentStep === 5) {
+        setTimeout(renderAiTurnstile, 150);
+      }
       lucide.createIcons();
     }
 
@@ -3052,7 +3165,8 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_id: currentUserId || null,
-            answers: answers
+            answers: answers,
+            turnstile_token: aiTurnstileToken || null
           })
         });
 
@@ -3176,6 +3290,7 @@
     // Init
     window.addEventListener('DOMContentLoaded', () => {
       lucide.createIcons();
+      fetchTurnstileConfig();
       checkAuth();
       loadStats();
       loadApplications();

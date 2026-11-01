@@ -11,6 +11,7 @@ from app.storage.database import get_db
 from app.storage.repository import Repository
 from app.cv.cv_transformer import CVTransformer
 from app.cv.ai_groq import GroqAIEngine
+from app.security.cloudflare_turnstile import verify_turnstile_token
 
 router = APIRouter(prefix="/api/cv", tags=["CV & ATS Generation"])
 
@@ -46,6 +47,7 @@ class AiQuestionnairePayload(BaseModel):
     user_id: Optional[str] = None
     answers: Dict[str, Any]
     groq_api_key: Optional[str] = None
+    turnstile_token: Optional[str] = None
 
 
 @router.post("/upload")
@@ -189,7 +191,16 @@ def ai_questionnaire_builder(payload: AiQuestionnairePayload, db: Session = Depe
     """
     Transforms questionnaire answers into an elite ATS-optimized profile using Groq LLM
     (llama/gpt-oss), generating ready-to-download ATS PDF and editable Word DOCX.
+    Protected optionally by Cloudflare Turnstile CAPTCHA.
     """
+    if payload.turnstile_token:
+        res_cf = verify_turnstile_token(payload.turnstile_token)
+        if not res_cf.get("success"):
+            raise HTTPException(
+                status_code=400,
+                detail="La verificación de seguridad de Cloudflare Turnstile no fue superada."
+            )
+
     optimized = GroqAIEngine.transform_questionnaire_to_ats(
         answers=payload.answers,
         custom_key=payload.groq_api_key
