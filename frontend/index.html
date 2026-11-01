@@ -12,87 +12,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <!-- Cloudflare Turnstile CAPTCHA API -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
-  <!-- Tailwind CSS with Stitch Synthetix Theme Config -->
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            obsidian: '#0B0F17',
-            surface: {
-              DEFAULT: '#111827',
-              1: '#111827',
-              2: '#1E293B',
-              highlight: '#334155'
-            },
-            emerald: {
-              DEFAULT: '#10B981',
-              400: '#34D399',
-              500: '#10B981',
-              600: '#059669'
-            }
-          },
-          fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            display: ['"Plus Jakarta Sans"', 'sans-serif']
-          }
-        }
-      }
-    };
-  </script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: #0B0F17;
-      color: #F8FAFC;
-    }
-    h1, h2, h3, h4, h5, h6, .font-display {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      letter-spacing: -0.02em;
-    }
-    /* Stitch Synthetix Badges */
-    .badge-alta {
-      background-color: rgba(16, 185, 129, 0.12) !important;
-      color: #34D399 !important;
-      border: 1px solid rgba(16, 185, 129, 0.35) !important;
-    }
-    .badge-revision {
-      background-color: rgba(56, 189, 248, 0.12) !important;
-      color: #38BDF8 !important;
-      border: 1px solid rgba(56, 189, 248, 0.3) !important;
-    }
-    .badge-excluido {
-      background-color: rgba(239, 68, 68, 0.12) !important;
-      color: #F87171 !important;
-      border: 1px solid rgba(239, 68, 68, 0.35) !important;
-    }
-    .badge-enviada {
-      background-color: rgba(168, 85, 247, 0.12) !important;
-      color: #C084FC !important;
-      border: 1px solid rgba(168, 85, 247, 0.3) !important;
-    }
-    .badge-entrevista {
-      background-color: rgba(245, 158, 11, 0.15) !important;
-      color: #FBBF24 !important;
-      border: 1px solid rgba(245, 158, 11, 0.35) !important;
-    }
-    /* Dark scrollbars */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-    ::-webkit-scrollbar-track {
-      background: #0B0F17;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #334155;
-      border-radius: 4px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #475569;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
     .badge-alta { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
     .badge-revision { background-color: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
     .badge-excluido { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
@@ -121,13 +43,13 @@
     }
   </style>
 </head>
-<body class="bg-[#0B0F17] text-slate-100 min-h-screen selection:bg-emerald-500/30 selection:text-emerald-200">
+<body class="bg-slate-50 text-slate-900 min-h-screen">
 
   <!-- Header -->
-  <header class="bg-[#0B0F17]/90 backdrop-blur-md text-white shadow-2xl border-b border-[#334155]/60 sticky top-0 z-40">
+  <header class="bg-slate-900 text-white shadow-md border-b border-slate-800 sticky top-0 z-40">
     <div class="max-w-7xl mx-auto px-4 py-3 sm:px-6 lg:px-8 flex flex-wrap items-center justify-between gap-4">
       <div class="flex items-center space-x-3">
-        <div class="bg-emerald-500 text-white p-2 rounded-lg font-black text-xl tracking-wider">
+        <div class="bg-emerald-500 text-slate-900 p-2 rounded-lg font-black text-xl tracking-wider">
           JH
         </div>
         <div>
@@ -146,7 +68,7 @@
           <option value="AUTOPILOT">🚀 Modo: AUTOPILOT (Envío Real)</option>
         </select>
         <!-- Shown only in AUTOPILOT mode -->
-        <span class="autopilot-mode-indicator items-center gap-1.5 bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-lg animate-pulse">
+        <span class="autopilot-mode-indicator items-center gap-1.5 bg-emerald-500 text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg animate-pulse">
           🚀 AUTOPILOT ACTIVO — Botones ENVÍAN al portal
         </span>
 
@@ -209,32 +131,32 @@
 
     <!-- Metric KPI Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">Total Encontradas</p>
-        <p class="text-2xl font-bold text-white mt-1 font-display" id="statTotalJobs">0</p>
+        <p class="text-2xl font-bold text-slate-800 mt-1" id="statTotalJobs">0</p>
         <span class="text-[10px] text-slate-400">Todas las fuentes</span>
       </div>
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">Compatibles (≥60%)</p>
         <p class="text-2xl font-bold text-sky-600 mt-1" id="statCompatible">0</p>
         <span class="text-[10px] text-sky-500 font-medium">Revisión o prioridad</span>
       </div>
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">Alta Prioridad (≥75%)</p>
         <p class="text-2xl font-bold text-emerald-600 mt-1" id="statHighPriority">0</p>
         <span class="text-[10px] text-emerald-500 font-medium">Match idóneo</span>
       </div>
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">CVs ATS Preparados</p>
         <p class="text-2xl font-bold text-purple-600 mt-1" id="statCvsPrepared">0</p>
         <span class="text-[10px] text-purple-500 font-medium">PDF personalizado</span>
       </div>
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">Postuladas</p>
-        <p class="text-2xl font-bold text-slate-200 mt-1 font-display" id="statSubmitted">0</p>
+        <p class="text-2xl font-bold text-slate-700 mt-1" id="statSubmitted">0</p>
         <span class="text-[10px] text-slate-400">Cuota máx: 50/día</span>
       </div>
-      <div class="bg-[#111827] rounded-xl p-4 shadow-lg border border-[#334155]/60 hover:border-emerald-500/40 transition duration-200">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
         <p class="text-xs font-medium text-slate-500">Entrevistas / Tasa</p>
         <p class="text-2xl font-bold text-amber-600 mt-1" id="statInterviews">0</p>
         <span class="text-[10px] text-amber-500 font-medium" id="statRate">0% conv.</span>
@@ -242,16 +164,16 @@
     </div>
 
     <!-- Geographic Search Configuration Card -->
-    <div class="bg-[#111827] rounded-xl p-5 shadow-lg border border-[#334155]/60 space-y-4">
-      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-[#334155]/60 pb-3">
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 space-y-3">
+      <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <div class="flex items-center gap-2.5">
           <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-100">
             <i data-lucide="map-pin" class="w-4 h-4"></i>
           </div>
           <div>
-            <h3 class="font-bold text-xs text-white uppercase tracking-wider font-display flex items-center gap-2">
+            <h3 class="font-bold text-xs text-slate-800 uppercase tracking-wide flex items-center gap-2">
               <span>Configuración Geográfica de Búsqueda</span>
-              <span class="text-[10px] font-normal normal-case px-2 py-0.5 rounded-full bg-[#1E293B] text-slate-600 border border-[#334155]/60">País, Región y Ciudad</span>
+              <span class="text-[10px] font-normal normal-case px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">País, Región y Ciudad</span>
             </h3>
             <p class="text-[11px] text-slate-500">Personaliza en qué ubicaciones el agente busca y evalúa las vacantes de empleo.</p>
           </div>
@@ -265,7 +187,7 @@
       </div>
 
       <!-- Quick Presets -->
-      <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-[#334155]/60">
+      <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-slate-100">
         <span class="text-[11px] font-semibold text-slate-500">Accesos Rápidos:</span>
         <button type="button" onclick="setPresetLocation('remoto')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 transition flex items-center gap-1 shadow-2xs">
           🌐 100% Remoto (Prioritario)
@@ -284,7 +206,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-3 text-xs pt-1">
         <div>
           <label class="block font-semibold text-slate-600 mb-1">País</label>
-          <select id="cfgCountry" onchange="onCountryOrRegionChanged()" class="w-full border border-[#334155]/60 rounded-lg px-2.5 py-1.5 bg-[#1E293B]/70 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-200">
+          <select id="cfgCountry" onchange="onCountryOrRegionChanged()" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-700">
             <option value="Remoto" selected>100% Remoto 🌐</option>
             <option value="Colombia">Colombia 🇨🇴</option>
             <option value="Internacional">Internacional 🌎</option>
@@ -293,7 +215,7 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Departamento / Región</label>
-          <select id="cfgRegion" onchange="onCountryOrRegionChanged()" class="w-full border border-[#334155]/60 rounded-lg px-2.5 py-1.5 bg-[#1E293B]/70 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-200">
+          <select id="cfgRegion" onchange="onCountryOrRegionChanged()" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-700">
             <option value="Nacional" selected>Toda Colombia (Nacional)</option>
             <option value="Cesar">Cesar</option>
             <option value="Bogotá D.C.">Bogotá D.C. / Cundinamarca</option>
@@ -309,7 +231,7 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Ciudad / Municipio</label>
-          <select id="cfgCity" onchange="handleCityDropdownChange(this.value)" class="w-full border border-[#334155]/60 rounded-lg px-2.5 py-1.5 bg-[#1E293B]/70 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-100">
+          <select id="cfgCity" onchange="handleCityDropdownChange(this.value)" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
             <option value="Cualquier Ciudad / Remoto" selected>Cualquier Ciudad (100% Remoto)</option>
             <option value="Nacional">Nivel Nacional (Todas las ciudades)</option>
             <option value="Valledupar">Valledupar</option>
@@ -322,22 +244,22 @@
             <option value="Santa Marta">Santa Marta</option>
             <option value="__custom__">Otra ciudad (escribir personalizada)...</option>
           </select>
-          <input id="cfgCustomCity" type="text" placeholder="Escribe tu municipio..." class="hidden mt-1 w-full border border-[#334155]/60 rounded-lg px-2.5 py-1 bg-white text-xs font-medium text-slate-100 focus:border-emerald-500 focus:outline-none">
+          <input id="cfgCustomCity" type="text" placeholder="Escribe tu municipio..." class="hidden mt-1 w-full border border-slate-200 rounded-lg px-2.5 py-1 bg-white text-xs font-medium text-slate-800 focus:border-emerald-500 focus:outline-none">
         </div>
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Salario Mínimo (COP)</label>
-          <input id="cfgMinSalary" type="number" step="50000" value="1500000" placeholder="Ej. 1500000" class="w-full border border-[#334155]/60 rounded-lg px-2.5 py-1.5 bg-[#1E293B]/70 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-100">
+          <input id="cfgMinSalary" type="number" step="50000" value="1500000" placeholder="Ej. 1500000" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
         </div>
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Cargos / Tecnologías</label>
-          <input id="cfgKeywords" type="text" value="soporte TI sistemas help desk" placeholder="Ej. soporte TI, help desk" class="w-full border border-[#334155]/60 rounded-lg px-2.5 py-1.5 bg-[#1E293B]/70 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-100">
+          <input id="cfgKeywords" type="text" value="soporte TI sistemas help desk" placeholder="Ej. soporte TI, help desk" class="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 bg-slate-50 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium text-slate-800">
         </div>
 
         <div class="flex items-center gap-2 pt-4 sm:pt-6">
-          <input id="cfgRemote" type="checkbox" checked class="w-4 h-4 text-emerald-600 rounded border-[#334155] focus:ring-emerald-500">
-          <label for="cfgRemote" class="font-semibold text-slate-200 select-none cursor-pointer">
+          <input id="cfgRemote" type="checkbox" checked class="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500">
+          <label for="cfgRemote" class="font-semibold text-slate-700 select-none cursor-pointer">
             Incluir 100% Remotas
           </label>
         </div>
@@ -345,26 +267,26 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="border-b border-[#334155]/60 flex flex-wrap gap-y-2 space-x-2 sm:space-x-6 text-sm font-medium">
+    <div class="border-b border-slate-200 flex flex-wrap gap-y-2 space-x-2 sm:space-x-6 text-sm font-medium">
       <button onclick="openTab('tab-applications')" id="btn-tab-applications" class="tab-btn pb-3 border-b-2 border-emerald-600 text-emerald-600 font-semibold flex items-center gap-2">
         <i data-lucide="briefcase" class="w-4 h-4"></i>
         <span>Vacantes & Candidaturas</span>
       </button>
-      <button onclick="openTab('tab-cv-builder')" id="btn-tab-cv-builder" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="openTab('tab-cv-builder')" id="btn-tab-cv-builder" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
         <i data-lucide="file-text" class="w-4 h-4 text-emerald-600"></i>
         <span>Creador & Optimizador ATS</span>
         <span class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500 text-white animate-pulse">NUEVO</span>
       </button>
-      <button onclick="openTab('tab-hil')" id="btn-tab-hil" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="openTab('tab-hil')" id="btn-tab-hil" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
         <i data-lucide="user-check" class="w-4 h-4"></i>
         <span>Revisión Humana</span>
         <span id="tabHilBadge" class="hidden ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-white">0</span>
       </button>
-      <button onclick="openTab('tab-sources')" id="btn-tab-sources" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="openTab('tab-sources')" id="btn-tab-sources" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
         <i data-lucide="building-2" class="w-4 h-4"></i>
         <span>Fuentes & Empresas CO</span>
       </button>
-      <button onclick="openTab('tab-profile')" id="btn-tab-profile" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-200 flex items-center gap-2">
+      <button onclick="openTab('tab-profile')" id="btn-tab-profile" class="tab-btn pb-3 border-b-2 border-transparent text-slate-500 hover:text-slate-700 flex items-center gap-2">
         <i data-lucide="id-card" class="w-4 h-4"></i>
         <span>Perfil Verificado</span>
       </button>
@@ -373,10 +295,10 @@
     <!-- TAB 1: APPLICATIONS & TRACKING -->
     <div id="tab-applications" class="tab-content space-y-4">
       <!-- Filter controls -->
-      <div class="bg-[#111827] p-4 rounded-xl border border-[#334155]/60 flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg">
+      <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
         <div class="flex flex-wrap items-center gap-3">
           <label class="font-semibold text-slate-600">Filtros:</label>
-          <select id="filterSource" onchange="loadApplications()" class="border border-[#334155]/60 rounded px-2.5 py-1 text-slate-200 focus:outline-none">
+          <select id="filterSource" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
             <option value="">Todas las Fuentes</option>
             <option value="sena">SENA (APE)</option>
             <option value="spe">Servicio Público de Empleo (SPE)</option>
@@ -386,7 +308,7 @@
             <option value="indeed">Indeed CO</option>
             <option value="linkedin">LinkedIn</option>
           </select>
-          <select id="filterStatus" onchange="loadApplications()" class="border border-[#334155]/60 rounded px-2.5 py-1 text-slate-200 focus:outline-none">
+          <select id="filterStatus" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
             <option value="">Todos los Estados</option>
             <option value="READY">READY (Listo para aplicar)</option>
             <option value="REVIEW">REVIEW (En revisión)</option>
@@ -394,17 +316,17 @@
             <option value="INTERVIEW">INTERVIEW (Entrevista)</option>
             <option value="CONFIRMATION_REQUIRED">CONFIRMATION_REQUIRED</option>
           </select>
-          <select id="filterScore" onchange="loadApplications()" class="border border-[#334155]/60 rounded px-2.5 py-1 text-slate-200 focus:outline-none">
+          <select id="filterScore" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none">
             <option value="">Cualquier Score</option>
             <option value="75">≥ 75 (Alta Prioridad)</option>
             <option value="60">≥ 60 (Relevantes)</option>
           </select>
-          <select id="filterRemote" onchange="loadApplications()" class="border border-[#334155]/60 rounded px-2.5 py-1 text-slate-200 focus:outline-none font-medium">
+          <select id="filterRemote" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none font-medium">
             <option value="">Todas las Modalidades</option>
             <option value="remote">Solo 100% Remoto 🌐</option>
             <option value="onsite">Presencial / Híbrido 🏢</option>
           </select>
-          <select id="filterSalary" onchange="loadApplications()" class="border border-[#334155]/60 rounded px-2.5 py-1 text-slate-200 focus:outline-none font-medium">
+          <select id="filterSalary" onchange="loadApplications()" class="border border-slate-200 rounded px-2.5 py-1 text-slate-700 focus:outline-none font-medium">
             <option value="">Todos los Salarios</option>
             <option value="specified">Con Salario Publicado 💰</option>
             <option value="1500000">≥ $1.500.000 COP</option>
@@ -413,7 +335,7 @@
         </div>
         <div class="flex items-center gap-2">
           <div class="text-slate-400">
-            Mostrando <span id="appsCount" class="font-semibold text-slate-200">0</span> postulaciones
+            Mostrando <span id="appsCount" class="font-semibold text-slate-700">0</span> postulaciones
           </div>
           <button onclick="triggerBatchApply()" id="btnBatchApply" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-xs transition" title="Aplica automáticamente en lote a las 5 mejores vacantes compatibles">
             <i data-lucide="zap" class="w-3.5 h-3.5"></i>
@@ -423,10 +345,10 @@
       </div>
 
       <!-- Applications Table -->
-      <div class="bg-white rounded-xl border border-[#334155]/60 shadow-sm overflow-hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-[#1E293B]/75 border-b border-[#334155]/60 text-slate-600 uppercase font-semibold">
+            <thead class="bg-slate-100/75 border-b border-slate-200 text-slate-600 uppercase font-semibold">
               <tr>
                 <th class="py-3 px-4">Score</th>
                 <th class="py-3 px-4">Empresa</th>
@@ -478,12 +400,12 @@
 
       <!-- SECCIÓN 1: SUBIR HOJA DE VIDA (PDF / WORD) -->
       <div id="cvUploadSection" class="space-y-6">
-        <div class="bg-white p-8 sm:p-10 rounded-2xl border-2 border-dashed border-[#334155] hover:border-emerald-500 transition text-center space-y-4 bg-[#1E293B]/70/50" id="dropZoneCv">
+        <div class="bg-white p-8 sm:p-10 rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 transition text-center space-y-4 bg-slate-50/50" id="dropZoneCv">
           <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-2xl flex items-center justify-center mx-auto shadow-xs">
             <i data-lucide="file-up" class="w-8 h-8"></i>
           </div>
           <div class="space-y-1">
-            <h3 class="text-base font-bold text-slate-100">Arrastra y suelta tu Hoja de Vida aquí</h3>
+            <h3 class="text-base font-bold text-slate-800">Arrastra y suelta tu Hoja de Vida aquí</h3>
             <p class="text-xs text-slate-500">Admite archivos en formato <b>PDF (.pdf)</b> o Microsoft Word <b>(.docx, .doc)</b> hasta 15 MB</p>
           </div>
           <div>
@@ -507,13 +429,13 @@
         </div>
 
         <!-- Resultados de la Extracción / Conversión -->
-        <div id="cvUploadResults" class="hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-emerald-500/30 shadow-xl space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#334155]/40 pb-4">
+        <div id="cvUploadResults" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-200">
                 ¡Transformación Completada!
               </span>
-              <h3 class="text-xl font-bold text-white mt-1" id="uploadResName">Candidato</h3>
+              <h3 class="text-xl font-bold text-slate-900 mt-1" id="uploadResName">Candidato</h3>
               <p class="text-xs text-slate-500" id="uploadResHeadline"></p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -525,7 +447,7 @@
                 <i data-lucide="file-text" class="w-4 h-4"></i>
                 <span>Descargar Word (.DOCX)</span>
               </a>
-              <button type="button" onclick="populateBuilderFromExtracted()" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+              <button type="button" onclick="populateBuilderFromExtracted()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
                 <i data-lucide="sliders" class="w-4 h-4"></i>
                 <span>Editar en el Creador</span>
               </button>
@@ -534,8 +456,8 @@
 
           <!-- Quick Preview Grid -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-            <div class="bg-[#1E293B]/70 p-4 rounded-xl border border-[#334155]/60 space-y-2 text-slate-200">
-              <h4 class="font-bold text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <h4 class="font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
                 <i data-lucide="user" class="w-3.5 h-3.5 text-emerald-600"></i>
                 Datos de Contacto Extraídos
               </h4>
@@ -544,8 +466,8 @@
               <p><b>Ubicación:</b> <span id="upResLocation" class="text-slate-600">-</span></p>
               <p><b>Nivel de Inglés:</b> <span id="upResEnglish" class="text-slate-600">-</span></p>
             </div>
-            <div class="bg-[#1E293B]/70 p-4 rounded-xl border border-[#334155]/60 space-y-2 text-slate-200">
-              <h4 class="font-bold text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+            <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2">
+              <h4 class="font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
                 <i data-lucide="check-square" class="w-3.5 h-3.5 text-emerald-600"></i>
                 Habilidades y Palabras Clave Detectadas
               </h4>
@@ -559,14 +481,14 @@
       <div id="cvBuilderSection" class="hidden space-y-6">
         
         <!-- Header del Cuestionario con Barra de Progreso -->
-        <div class="bg-[#111827] p-6 rounded-2xl border border-[#334155]/60 shadow-xl space-y-4">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
               <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-700 border border-purple-200">
                 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
                 <span>Cuestionario Guiado con Inteligencia Artificial (Groq 120B)</span>
               </span>
-              <h3 class="text-lg sm:text-xl font-bold text-white mt-2">Construye tu Perfil Profesional ATS</h3>
+              <h3 class="text-lg sm:text-xl font-bold text-slate-900 mt-2">Construye tu Perfil Profesional ATS</h3>
               <p class="text-xs text-slate-500">Responde con tus propias palabras. La IA redactará tus logros con verbos de acción y métricas para superar cualquier filtro corporativo.</p>
             </div>
             <div class="flex items-center gap-2">
@@ -575,17 +497,17 @@
           </div>
 
           <!-- Barra de Progreso Visual -->
-          <div class="w-full bg-[#1E293B] h-2.5 rounded-full overflow-hidden border border-[#334155]">
+          <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-200">
             <div id="qProgressBar" class="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-purple-600 rounded-full transition-all duration-300" style="width: 20%"></div>
           </div>
 
           <!-- Pasos Tabs Visuales -->
           <div class="grid grid-cols-5 gap-1 text-[11px] font-semibold text-center text-slate-500 pt-1">
-            <button type="button" onclick="goToStep(1)" id="tabStep1" class="py-1.5 rounded-lg text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 transition shadow-xs">1. Contacto</button>
-            <button type="button" onclick="goToStep(2)" id="tabStep2" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] border border-transparent transition">2. Objetivo</button>
-            <button type="button" onclick="goToStep(3)" id="tabStep3" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] border border-transparent transition">3. Experiencia</button>
-            <button type="button" onclick="goToStep(4)" id="tabStep4" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] border border-transparent transition">4. Educación</button>
-            <button type="button" onclick="goToStep(5)" id="tabStep5" class="py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-[#1E293B] border border-transparent transition">5. IA & ATS</button>
+            <button type="button" onclick="goToStep(1)" id="tabStep1" class="py-1 rounded-lg text-emerald-700 font-bold bg-emerald-50 border border-emerald-200">1. Contacto</button>
+            <button type="button" onclick="goToStep(2)" id="tabStep2" class="py-1 rounded-lg hover:bg-slate-100">2. Objetivo</button>
+            <button type="button" onclick="goToStep(3)" id="tabStep3" class="py-1 rounded-lg hover:bg-slate-100">3. Experiencia</button>
+            <button type="button" onclick="goToStep(4)" id="tabStep4" class="py-1 rounded-lg hover:bg-slate-100">4. Educación</button>
+            <button type="button" onclick="goToStep(5)" id="tabStep5" class="py-1 rounded-lg hover:bg-slate-100">5. IA & ATS</button>
           </div>
         </div>
 
@@ -593,9 +515,9 @@
         <form id="interactiveCvForm" onsubmit="event.preventDefault()" class="space-y-6">
 
           <!-- PASO 1: CONTACTO & DATOS PERSONALES -->
-          <div id="qStep1" class="q-step bg-[#111827] p-6 sm:p-8 rounded-2xl border border-[#334155]/60 shadow-xl space-y-6">
-            <div class="border-b border-[#334155]/40 pb-4">
-              <h4 class="text-base font-bold text-slate-100 flex items-center gap-2">
+          <div id="qStep1" class="q-step bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <i data-lucide="user-check" class="w-5 h-5 text-emerald-600"></i>
                 <span>¿Cómo te llamas y cómo pueden contactarte los reclutadores?</span>
               </h4>
@@ -604,28 +526,28 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
               <div class="sm:col-span-2 lg:col-span-1">
-                <label class="block font-semibold text-slate-200 mb-1">Nombre Completo *</label>
-                <input type="text" id="bldName" required placeholder="Ej: Carlos Gómez Morales" class="w-full bg-[#0B0F17] border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:bg-[#0B0F17] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder:text-slate-500">
+                <label class="block font-semibold text-slate-700 mb-1">Nombre Completo *</label>
+                <input type="text" id="bldName" required placeholder="Ej: Carlos Gómez Morales" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Correo Electrónico *</label>
-                <input type="email" id="bldEmail" required placeholder="correo@ejemplo.com" class="w-full bg-[#0B0F17] border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:bg-[#0B0F17] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder:text-slate-500">
+                <label class="block font-semibold text-slate-700 mb-1">Correo Electrónico *</label>
+                <input type="email" id="bldEmail" required placeholder="correo@ejemplo.com" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Teléfono / WhatsApp *</label>
-                <input type="tel" id="bldPhone" required placeholder="+57 300 123 4567" class="w-full bg-[#0B0F17] border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:bg-[#0B0F17] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder:text-slate-500">
+                <label class="block font-semibold text-slate-700 mb-1">Teléfono / WhatsApp *</label>
+                <input type="tel" id="bldPhone" required placeholder="+57 300 123 4567" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Ciudad *</label>
-                <input type="text" id="bldCity" required placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-2.5 text-slate-100 focus:bg-white focus:outline-none focus:border-emerald-500">
+                <label class="block font-semibold text-slate-700 mb-1">Ciudad *</label>
+                <input type="text" id="bldCity" required placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Departamento / País</label>
-                <input type="text" id="bldDepartment" placeholder="Colombia" class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-2.5 text-slate-100 focus:bg-white focus:outline-none focus:border-emerald-500">
+                <label class="block font-semibold text-slate-700 mb-1">Departamento / País</label>
+                <input type="text" id="bldDepartment" placeholder="Colombia" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Perfil de LinkedIn o Portafolio Web</label>
-                <input type="url" id="bldLinkedin" placeholder="https://linkedin.com/in/usuario" class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-2.5 text-slate-100 focus:bg-white focus:outline-none focus:border-emerald-500">
+                <label class="block font-semibold text-slate-700 mb-1">Perfil de LinkedIn o Portafolio Web</label>
+                <input type="url" id="bldLinkedin" placeholder="https://linkedin.com/in/usuario" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500">
               </div>
             </div>
 
@@ -638,9 +560,9 @@
           </div>
 
           <!-- PASO 2: ROL OBJETIVO & BIO INFORMAL -->
-          <div id="qStep2" class="q-step hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-[#334155]/60 shadow-xl space-y-6">
-            <div class="border-b border-[#334155]/40 pb-4">
-              <h4 class="text-base font-bold text-slate-100 flex items-center gap-2">
+          <div id="qStep2" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <i data-lucide="target" class="w-5 h-5 text-purple-600"></i>
                 <span>¿A qué puesto o cargo estás aspirando?</span>
               </h4>
@@ -649,12 +571,12 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Cargo Objetivo / Profesión *</label>
-                <input type="text" id="bldRole" required placeholder="Ej: Técnico en Soporte TI / Analista de Datos / Asistente Administrativo" class="w-full bg-[#0B0F17] border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:bg-[#0B0F17] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder:text-slate-500">
+                <label class="block font-semibold text-slate-700 mb-1">Cargo Objetivo / Profesión *</label>
+                <input type="text" id="bldRole" required placeholder="Ej: Técnico en Soporte TI / Analista de Datos / Asistente Administrativo" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
               </div>
               <div>
-                <label class="block font-semibold text-slate-200 mb-1">Nivel de Inglés</label>
-                <select id="bldEnglish" class="w-full bg-[#0B0F17] border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:bg-[#0B0F17] focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 font-medium placeholder:text-slate-500">
+                <label class="block font-semibold text-slate-700 mb-1">Nivel de Inglés</label>
+                <select id="bldEnglish" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500 font-medium">
                   <option value="A1">A1 - Básico inicial</option>
                   <option value="A2">A2 - Básico elemental</option>
                   <option value="B1">B1 - Intermedio cotidiano</option>
@@ -666,18 +588,18 @@
 
               <div class="sm:col-span-2">
                 <div class="flex items-center justify-between mb-1">
-                  <label class="block font-semibold text-slate-200">Cuéntanos sobre ti, tus fortalezas o qué buscas (¡con tus propias palabras!):</label>
+                  <label class="block font-semibold text-slate-700">Cuéntanos sobre ti, tus fortalezas o qué buscas (¡con tus propias palabras!):</label>
                   <button type="button" onclick="autoGenerateSummary()" class="text-purple-600 hover:text-purple-700 font-semibold text-[11px] flex items-center gap-1">
                     <i data-lucide="sparkles" class="w-3 h-3"></i> Sugerir borrador rápido
                   </button>
                 </div>
-                <textarea id="bldSummary" rows="3" placeholder="Ej: Tengo 3 años de experiencia en soporte y redes. Me gusta solucionar problemas de computadores, atender usuarios y aprender sobre servidores y nube..." class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-3 text-slate-100 focus:bg-white focus:outline-none focus:border-purple-500 leading-relaxed"></textarea>
+                <textarea id="bldSummary" rows="3" placeholder="Ej: Tengo 3 años de experiencia en soporte y redes. Me gusta solucionar problemas de computadores, atender usuarios y aprender sobre servidores y nube..." class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-purple-500 leading-relaxed"></textarea>
                 <p class="text-[11px] text-slate-400 mt-1">💡 La IA tomará esto y redactará un <b>Resumen Ejecutivo</b> persuasivo de 3-4 oraciones para los reclutadores.</p>
               </div>
             </div>
 
             <div class="flex justify-between pt-2">
-              <button type="button" onclick="prevStep(1)" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+              <button type="button" onclick="prevStep(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span>Atrás</span>
               </button>
@@ -689,10 +611,10 @@
           </div>
 
           <!-- PASO 3: EXPERIENCIA LABORAL GUIADA -->
-          <div id="qStep3" class="q-step hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-[#334155]/60 shadow-xl space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#334155]/40 pb-4">
+          <div id="qStep3" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h4 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   <i data-lucide="briefcase" class="w-5 h-5 text-indigo-600"></i>
                   <span>¿En qué empresas, proyectos o prácticas has trabajado?</span>
                 </h4>
@@ -717,7 +639,7 @@
             </div>
 
             <div class="flex justify-between pt-2">
-              <button type="button" onclick="prevStep(2)" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+              <button type="button" onclick="prevStep(2)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span>Atrás</span>
               </button>
@@ -729,20 +651,20 @@
           </div>
 
           <!-- PASO 4: EDUCACIÓN & CERTIFICACIONES -->
-          <div id="qStep4" class="q-step hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-[#334155]/60 shadow-xl space-y-6">
-            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-[#334155]/40 pb-4">
+          <div id="qStep4" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
               <div>
-                <h4 class="text-base font-bold text-slate-100 flex items-center gap-2">
+                <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
                   <i data-lucide="graduation-cap" class="w-5 h-5 text-amber-600"></i>
                   <span>¿Cuál es tu formación académica y qué certificados tienes?</span>
                 </h4>
                 <p class="text-xs text-slate-500 mt-1">Registra tus estudios universitarios, tecnológicos (SENA), cursos técnicos o diplomados.</p>
               </div>
               <div class="flex gap-2">
-                <button type="button" onclick="addEducationRow()" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                <button type="button" onclick="addEducationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
                   <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Título / Estudio
                 </button>
-                <button type="button" onclick="addCertificationRow()" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
+                <button type="button" onclick="addCertificationRow()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition">
                   <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Certificación
                 </button>
               </div>
@@ -760,7 +682,7 @@
             </div>
 
             <div class="flex justify-between pt-2">
-              <button type="button" onclick="prevStep(3)" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+              <button type="button" onclick="prevStep(3)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span>Atrás</span>
               </button>
@@ -772,9 +694,9 @@
           </div>
 
           <!-- PASO 5: HABILIDADES & GENERACIÓN CON IA GROQ -->
-          <div id="qStep5" class="q-step hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-[#334155]/60 shadow-xl space-y-6">
-            <div class="border-b border-[#334155]/40 pb-4">
-              <h4 class="text-base font-bold text-slate-100 flex items-center gap-2">
+          <div id="qStep5" class="q-step hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xs space-y-6">
+            <div class="border-b border-slate-100 pb-4">
+              <h4 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <i data-lucide="cpu" class="w-5 h-5 text-emerald-600"></i>
                 <span>¿Qué herramientas, programas o habilidades dominas?</span>
               </h4>
@@ -782,17 +704,17 @@
             </div>
 
             <div class="text-xs space-y-3">
-              <label class="block font-semibold text-slate-200">Herramientas & Habilidades (separadas por comas):</label>
-              <textarea id="bldSkills" rows="3" placeholder="Ej: Excel avanzado, Soporte técnico, Windows 11, Redes LAN, Python, Atención al cliente, Mesa de ayuda, Active Directory" class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-3 text-slate-100 focus:bg-white focus:outline-none focus:border-emerald-500"></textarea>
+              <label class="block font-semibold text-slate-700">Herramientas & Habilidades (separadas por comas):</label>
+              <textarea id="bldSkills" rows="3" placeholder="Ej: Excel avanzado, Soporte técnico, Windows 11, Redes LAN, Python, Atención al cliente, Mesa de ayuda, Active Directory" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 text-slate-800 focus:bg-white focus:outline-none focus:border-emerald-500"></textarea>
 
               <div class="flex flex-wrap items-center gap-1.5 pt-1">
                 <span class="text-slate-400 font-medium">Sugerencias rápidas:</span>
-                <button type="button" onclick="addSkillTag('Soporte TI y Mantenimiento')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Soporte TI</button>
-                <button type="button" onclick="addSkillTag('Mesa de Ayuda (Help Desk)')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Help Desk</button>
-                <button type="button" onclick="addSkillTag('Windows 11 & Linux')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Windows & Linux</button>
-                <button type="button" onclick="addSkillTag('Redes LAN / WLAN')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Redes LAN</button>
-                <button type="button" onclick="addSkillTag('Excel Avanzado & Reportes')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Excel Avanzado</button>
-                <button type="button" onclick="addSkillTag('Atención al Usuario')" class="bg-[#1E293B] hover:bg-emerald-100 text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60 transition">+ Atención al Usuario</button>
+                <button type="button" onclick="addSkillTag('Soporte TI y Mantenimiento')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Soporte TI</button>
+                <button type="button" onclick="addSkillTag('Mesa de Ayuda (Help Desk)')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Help Desk</button>
+                <button type="button" onclick="addSkillTag('Windows 11 & Linux')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Windows & Linux</button>
+                <button type="button" onclick="addSkillTag('Redes LAN / WLAN')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Redes LAN</button>
+                <button type="button" onclick="addSkillTag('Excel Avanzado & Reportes')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Excel Avanzado</button>
+                <button type="button" onclick="addSkillTag('Atención al Usuario')" class="bg-slate-100 hover:bg-emerald-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200 transition">+ Atención al Usuario</button>
               </div>
             </div>
 
@@ -841,13 +763,13 @@
             </div>
 
             <!-- Cloudflare Turnstile Anti-Bot Protection for AI -->
-            <div class="bg-white p-4 rounded-xl border border-[#334155]/60 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
               <div class="flex items-center gap-2.5">
                 <div class="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
                   <i data-lucide="shield-check" class="w-5 h-5"></i>
                 </div>
                 <div>
-                  <h6 class="font-bold text-xs text-slate-100">Verificación de Seguridad Anti-Bot</h6>
+                  <h6 class="font-bold text-xs text-slate-800">Verificación de Seguridad Anti-Bot</h6>
                   <p class="text-[11px] text-slate-500">Protegido por Cloudflare Turnstile para verificar solicitudes legítimas.</p>
                 </div>
               </div>
@@ -856,7 +778,7 @@
 
             <!-- Botones de Acción -->
             <div class="flex flex-wrap items-center justify-between gap-3 pt-2">
-              <button type="button" onclick="prevStep(4)" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
+              <button type="button" onclick="prevStep(4)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition">
                 <i data-lucide="arrow-left" class="w-4 h-4"></i>
                 <span>Atrás</span>
               </button>
@@ -885,17 +807,17 @@
             <i data-lucide="cpu" class="w-8 h-8"></i>
           </div>
           <div class="space-y-1">
-            <h4 class="text-base font-bold text-slate-100" id="aiLoadingTitle">Optimizando Perfil ATS con Inteligencia Artificial...</h4>
+            <h4 class="text-base font-bold text-slate-800" id="aiLoadingTitle">Optimizando Perfil ATS con Inteligencia Artificial...</h4>
             <p class="text-xs text-slate-500" id="aiLoadingSubtitle">Consultando modelo Groq 120B para redactar viñetas de alto impacto y palabras clave corporativas.</p>
           </div>
-          <div class="w-64 max-w-full mx-auto bg-[#1E293B] rounded-full h-2 overflow-hidden border border-[#334155]/60">
+          <div class="w-64 max-w-full mx-auto bg-slate-100 rounded-full h-2 overflow-hidden border border-slate-200">
             <div class="bg-gradient-to-r from-purple-500 to-emerald-500 h-2 rounded-full w-2/3 animate-pulse"></div>
           </div>
         </div>
 
         <!-- RESULTADOS GENERADOS POR IA (VISTA PREVIA Y DESCARGAS) -->
-        <div id="aiCvResultsPanel" class="hidden bg-[#111827] p-6 sm:p-8 rounded-2xl border border-emerald-500/30 shadow-2xl space-y-6">
-          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-[#334155]/40 pb-4">
+        <div id="aiCvResultsPanel" class="hidden bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
             <div>
               <div class="flex items-center gap-2">
                 <span class="bg-purple-100 text-purple-800 text-[11px] font-bold px-2.5 py-0.5 rounded-full border border-purple-200">
@@ -905,7 +827,7 @@
                   <i data-lucide="check-check" class="w-3.5 h-3.5"></i> 98% Compatibilidad ATS
                 </span>
               </div>
-              <h3 class="text-xl font-black text-white mt-2" id="aiResName">Candidato Profesional</h3>
+              <h3 class="text-xl font-black text-slate-900 mt-2" id="aiResName">Candidato Profesional</h3>
               <p class="text-xs font-semibold text-emerald-700" id="aiResHeadline"></p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
@@ -917,7 +839,7 @@
                 <i data-lucide="file-text" class="w-4 h-4"></i>
                 <span>Descargar Word (.DOCX)</span>
               </a>
-              <button type="button" onclick="goToStep(1)" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-3 py-2.5 rounded-xl text-xs font-semibold transition" title="Modificar datos">
+              <button type="button" onclick="goToStep(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl text-xs font-semibold transition" title="Modificar datos">
                 <i data-lucide="edit-2" class="w-4 h-4"></i>
               </button>
             </div>
@@ -927,15 +849,15 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-xs">
             <div class="md:col-span-2 space-y-4">
               <div>
-                <h5 class="font-bold text-slate-200 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-1.5 flex items-center gap-1.5">
                   <i data-lucide="sparkles" class="w-3.5 h-3.5 text-purple-600"></i>
                   <span>Resumen Profesional Optimizado por IA</span>
                 </h5>
-                <p id="aiResSummary" class="text-slate-200 leading-relaxed bg-[#1E293B]/70 p-4 rounded-xl border border-[#334155]/40"></p>
+                <p id="aiResSummary" class="text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100"></p>
               </div>
 
               <div>
-                <h5 class="font-bold text-slate-200 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <i data-lucide="briefcase" class="w-3.5 h-3.5 text-indigo-600"></i>
                   <span>Experiencia Laboral (Viñetas con Verbos de Acción y Métricas)</span>
                 </h5>
@@ -945,7 +867,7 @@
 
             <div class="space-y-4">
               <div>
-                <h5 class="font-bold text-slate-200 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-600"></i>
                   <span>Habilidades & Competencias ATS</span>
                 </h5>
@@ -953,7 +875,7 @@
               </div>
 
               <div>
-                <h5 class="font-bold text-slate-200 uppercase tracking-wide mb-2 flex items-center gap-1.5">
+                <h5 class="font-bold text-slate-700 uppercase tracking-wide mb-2 flex items-center gap-1.5">
                   <i data-lucide="graduation-cap" class="w-3.5 h-3.5 text-amber-600"></i>
                   <span>Educación & Idiomas</span>
                 </h5>
@@ -982,8 +904,8 @@
 
     <!-- TAB 3: SOURCES & COMPANIES -->
     <div id="tab-sources" class="tab-content hidden space-y-4">
-      <div class="bg-[#111827] p-6 rounded-xl border border-[#334155]/60 shadow-xl space-y-4">
-        <h3 class="font-bold text-base text-slate-100 flex items-center gap-2">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h3 class="font-bold text-base text-slate-800 flex items-center gap-2">
           <i data-lucide="building" class="w-5 h-5 text-emerald-600"></i>
           Directorio de Fuentes y Portales Corporativos Prioritarios
         </h3>
@@ -997,10 +919,10 @@
 
     <!-- TAB 4: CANDIDATE PROFILE -->
     <div id="tab-profile" class="tab-content hidden space-y-4">
-      <div class="bg-[#111827] p-6 rounded-xl border border-[#334155]/60 shadow-xl space-y-6">
+      <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm space-y-6">
         <div class="flex items-start justify-between">
           <div>
-            <h2 class="text-xl font-bold text-white" id="profName">Modo Invitado</h2>
+            <h2 class="text-xl font-bold text-slate-900" id="profName">Modo Invitado</h2>
             <p class="text-sm text-emerald-600 font-semibold" id="profHeadline">Inicia sesión o regístrate para configurar tu perfil profesional</p>
             <p class="text-xs text-slate-500 mt-1" id="profLocation">Sin sesión activa</p>
           </div>
@@ -1011,7 +933,7 @@
 
         <div>
           <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Resumen Profesional</h3>
-          <p class="text-xs text-slate-200 leading-relaxed bg-[#1E293B]/70 p-3 rounded-lg border border-[#334155]/40" id="profSummary"></p>
+          <p class="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100" id="profSummary"></p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1021,16 +943,16 @@
           </div>
           <div>
             <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Certificaciones Oficiales</h3>
-            <ul id="profCerts" class="text-xs space-y-1 text-slate-200"></ul>
+            <ul id="profCerts" class="text-xs space-y-1 text-slate-700"></ul>
           </div>
         </div>
 
-        <div class="border-t border-[#334155]/60 pt-4">
+        <div class="border-t border-slate-100 pt-4">
           <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider mb-2">Preferencias Salariales & Modalidad</h3>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-[#1E293B]/70 p-3.5 rounded-xl border border-[#334155]/60">
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs bg-slate-50 p-3.5 rounded-xl border border-slate-200">
             <div>
               <span class="text-slate-500 block">Salario Mínimo Aceptable:</span>
-              <span class="font-bold text-slate-100 text-sm" id="profMinSalary">$1.500.000 COP</span>
+              <span class="font-bold text-slate-800 text-sm" id="profMinSalary">$1.500.000 COP</span>
             </div>
             <div>
               <span class="text-slate-500 block">Salario Deseado / Objetivo:</span>
@@ -1047,7 +969,7 @@
 
   <!-- Modal de Progreso Autopilot en Tiempo Real -->
   <div id="autopilotModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#334155]/60 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
       
       <!-- Modal Header -->
       <div class="bg-slate-900 text-white p-4 sm:p-5 flex items-start justify-between border-b border-slate-800">
@@ -1073,25 +995,25 @@
       </div>
 
       <!-- Modal Body -->
-      <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-200">
+      <div class="p-5 sm:p-6 overflow-y-auto space-y-5 text-xs text-slate-700">
         
         <!-- Animated Progress Bar -->
         <div class="space-y-2">
           <div class="flex justify-between items-center text-[11px] font-medium text-slate-500">
-            <span id="modalProgressText" class="flex items-center gap-1.5 font-semibold text-slate-200">
+            <span id="modalProgressText" class="flex items-center gap-1.5 font-semibold text-slate-700">
               <i data-lucide="compass" class="w-3.5 h-3.5 text-emerald-500 animate-spin"></i>
               <span>Iniciando agente de navegación autónomo...</span>
             </span>
             <span id="modalProgressPercent" class="font-bold text-emerald-600 font-mono">15%</span>
           </div>
-          <div class="w-full bg-[#1E293B] rounded-full h-2.5 overflow-hidden border border-[#334155]/60">
+          <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden border border-slate-200">
             <div id="modalProgressBar" class="bg-gradient-to-r from-emerald-500 to-sky-500 h-2.5 rounded-full transition-all duration-500" style="width: 15%"></div>
           </div>
         </div>
 
         <!-- Live Step Timeline Cards -->
-        <div class="bg-[#1E293B]/70 border border-[#334155]/60 rounded-xl p-4 space-y-3">
-          <h4 class="font-bold text-white uppercase tracking-wider font-displayr text-[11px] flex items-center justify-between">
+        <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 space-y-3">
+          <h4 class="font-bold text-slate-800 uppercase tracking-wider text-[11px] flex items-center justify-between">
             <span class="flex items-center gap-1.5">
               <i data-lucide="list-checks" class="w-4 h-4 text-emerald-600"></i>
               Detalle del Proceso Paso a Paso
@@ -1104,9 +1026,9 @@
         </div>
 
         <!-- Live Screenshot Box (if captured) -->
-        <div id="modalScreenshotBox" class="hidden border border-[#334155]/60 rounded-xl p-3.5 bg-white space-y-2 shadow-xs">
+        <div id="modalScreenshotBox" class="hidden border border-slate-200 rounded-xl p-3.5 bg-white space-y-2 shadow-xs">
           <div class="flex items-center justify-between">
-            <span class="font-semibold text-slate-100 text-[11px] flex items-center gap-1.5">
+            <span class="font-semibold text-slate-800 text-[11px] flex items-center gap-1.5">
               <i data-lucide="camera" class="w-3.5 h-3.5 text-slate-500"></i>
               Captura del Formulario en Vivo
             </span>
@@ -1115,7 +1037,7 @@
               <i data-lucide="external-link" class="w-3 h-3"></i>
             </a>
           </div>
-          <div class="rounded-lg overflow-hidden border border-[#334155]/60 bg-[#1E293B] max-h-56 overflow-y-auto">
+          <div class="rounded-lg overflow-hidden border border-slate-200 bg-slate-100 max-h-56 overflow-y-auto">
             <img id="modalScreenshotImg" src="" alt="Captura del portal" class="w-full object-cover object-top hover:object-contain transition-all">
           </div>
         </div>
@@ -1146,11 +1068,11 @@
       </div>
 
       <!-- Modal Footer -->
-      <div class="bg-[#1E293B]/70 border-t border-[#334155]/60 px-6 py-3 flex items-center justify-between">
+      <div class="bg-slate-50 border-t border-slate-200 px-6 py-3 flex items-center justify-between">
         <p class="text-[11px] text-slate-500" id="modalFooterNote">
           JOB-HUNTER-CO cumple estrictamente con el principio de veracidad ética.
         </p>
-        <button id="modalFooterCloseBtn" onclick="closeAutopilotModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-100 font-semibold px-4 py-1.5 rounded-lg text-xs transition">
+        <button id="modalFooterCloseBtn" onclick="closeAutopilotModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-4 py-1.5 rounded-lg text-xs transition">
           Cerrar
         </button>
       </div>
@@ -1160,7 +1082,7 @@
 
   <!-- Modal de Carta de Presentación y Contacto Directo -->
   <div id="coverLetterModal" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-[#334155]/60 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
+    <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-150">
       <div class="bg-slate-900 text-white p-4 flex items-center justify-between border-b border-slate-800">
         <div class="flex items-center gap-2.5">
           <div class="p-2 bg-indigo-500/20 text-indigo-400 rounded-lg">
@@ -1176,12 +1098,12 @@
         </button>
       </div>
 
-      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-200">
+      <div class="p-5 overflow-y-auto space-y-4 text-xs text-slate-700">
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Asunto de correo recomendado:</label>
           <div class="flex items-center gap-2">
-            <input id="clModalSubject" type="text" readonly class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg px-2.5 py-1.5 font-medium text-slate-100">
-            <button onclick="copySubject()" class="bg-[#1E293B] hover:bg-[#334155] text-slate-200 px-2.5 py-1.5 rounded-lg font-semibold shrink-0" title="Copiar asunto">
+            <input id="clModalSubject" type="text" readonly class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 font-medium text-slate-800">
+            <button onclick="copySubject()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-2.5 py-1.5 rounded-lg font-semibold shrink-0" title="Copiar asunto">
               <i data-lucide="copy" class="w-3.5 h-3.5"></i>
             </button>
           </div>
@@ -1189,7 +1111,7 @@
 
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Carta de presentación personalizada:</label>
-          <textarea id="clModalText" rows="10" class="w-full bg-[#1E293B]/70 border border-[#334155]/60 rounded-lg p-3 font-mono text-[11px] leading-relaxed text-slate-100 focus:outline-none" readonly></textarea>
+          <textarea id="clModalText" rows="10" class="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-[11px] leading-relaxed text-slate-800 focus:outline-none" readonly></textarea>
         </div>
 
         <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3 flex items-start gap-2 text-indigo-900">
@@ -1200,7 +1122,7 @@
         </div>
       </div>
 
-      <div class="bg-[#1E293B]/70 border-t border-[#334155]/60 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+      <div class="bg-slate-50 border-t border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
         <a id="clModalCvLink" href="#" target="_blank" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-semibold px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5 transition">
           <i data-lucide="download" class="w-3.5 h-3.5"></i>
           <span>Descargar CV ATS (PDF)</span>
@@ -1222,10 +1144,10 @@
 
   <!-- Modal de Autenticación Supabase (Login & Sign Up) -->
   <div id="authModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-[#111827] rounded-2xl max-w-md w-full shadow-2xl border border-[#334155] text-slate-100 overflow-hidden">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden">
       <div class="bg-slate-900 text-white p-5 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="bg-emerald-500 text-white p-1.5 rounded-lg font-black text-sm">JH</div>
+          <div class="bg-emerald-500 text-slate-900 p-1.5 rounded-lg font-black text-sm">JH</div>
           <div>
             <h3 class="font-bold text-sm text-white" id="authModalTitle">Acceso a JOB-HUNTER SaaS</h3>
             <p class="text-xs text-slate-400">Postulaciones y Hojas de Vida ATS independientes</p>
@@ -1237,26 +1159,26 @@
       </div>
 
       <!-- Auth Tabs -->
-      <div class="flex border-b border-[#334155]/60 text-xs font-semibold">
+      <div class="flex border-b border-slate-200 text-xs font-semibold">
         <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50">Iniciar Sesión</button>
-        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-100">Crear Cuenta Nueva</button>
+        <button id="authTabRegister" onclick="switchAuthTab('register')" class="flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800">Crear Cuenta Nueva</button>
       </div>
 
       <!-- Auth Form -->
       <form id="authForm" onsubmit="handleAuthSubmit(event)" class="p-6 space-y-4 text-xs">
         <div id="authNameField" class="hidden space-y-1">
-          <label class="font-semibold text-slate-200">Nombre Completo:</label>
-          <input type="text" id="authFullName" placeholder="Ej: Carlos Gómez Morales" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          <label class="font-semibold text-slate-700">Nombre Completo:</label>
+          <input type="text" id="authFullName" placeholder="Ej: Carlos Gómez Morales" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
         </div>
 
         <div class="space-y-1">
-          <label class="font-semibold text-slate-200">Correo Electrónico:</label>
-          <input type="email" id="authEmail" required placeholder="tu@correo.com" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          <label class="font-semibold text-slate-700">Correo Electrónico:</label>
+          <input type="email" id="authEmail" required placeholder="tu@correo.com" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
         </div>
 
         <div class="space-y-1">
-          <label class="font-semibold text-slate-200">Contraseña:</label>
-          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2.5 text-slate-100 focus:outline-none focus:border-emerald-500">
+          <label class="font-semibold text-slate-700">Contraseña:</label>
+          <input type="password" id="authPassword" required minlength="6" placeholder="Mínimo 6 caracteres" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:border-emerald-500">
         </div>
 
         <div id="authFeedback" class="hidden p-3 rounded-lg text-xs leading-relaxed"></div>
@@ -1281,7 +1203,7 @@
 
   <!-- Modal de Configuración de Perfil ATS Personal -->
   <div id="profileModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-[#334155]/60 overflow-hidden max-h-[90vh] flex flex-col">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col">
       <div class="bg-slate-900 text-white p-4 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <div class="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
@@ -1300,34 +1222,34 @@
       <form id="profileForm" onsubmit="handleSaveProfile(event)" class="p-6 space-y-4 text-xs overflow-y-auto">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="font-semibold text-slate-200">Nombre Completo:</label>
-            <input type="text" id="mProfName" required class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+            <label class="font-semibold text-slate-700">Nombre Completo:</label>
+            <input type="text" id="mProfName" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
           <div>
-            <label class="font-semibold text-slate-200">Teléfono / WhatsApp:</label>
-            <input type="text" id="mProfPhone" placeholder="+57 300 000 0000" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <label class="font-semibold text-slate-200">Ciudad:</label>
-            <input type="text" id="mProfCity" placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
-          </div>
-          <div>
-            <label class="font-semibold text-slate-200">Departamento / Región:</label>
-            <input type="text" id="mProfDepartment" placeholder="Ej: Cundinamarca / Antioquia" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+            <label class="font-semibold text-slate-700">Teléfono / WhatsApp:</label>
+            <input type="text" id="mProfPhone" placeholder="+57 300 000 0000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="font-semibold text-slate-200">Cargo Objetivo (Titular):</label>
-            <input type="text" id="mProfTargetRole" placeholder="Ej: Técnico de Soporte TI / Sistemas" required class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+            <label class="font-semibold text-slate-700">Ciudad:</label>
+            <input type="text" id="mProfCity" placeholder="Ej: Bogotá / Medellín / Remoto" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
           <div>
-            <label class="font-semibold text-slate-200">Nivel de Inglés:</label>
-            <select id="mProfEnglish" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+            <label class="font-semibold text-slate-700">Departamento / Región:</label>
+            <input type="text" id="mProfDepartment" placeholder="Ej: Cundinamarca / Antioquia" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <label class="font-semibold text-slate-700">Cargo Objetivo (Titular):</label>
+            <input type="text" id="mProfTargetRole" placeholder="Ej: Técnico de Soporte TI / Sistemas" required class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
+          </div>
+          <div>
+            <label class="font-semibold text-slate-700">Nivel de Inglés:</label>
+            <select id="mProfEnglish" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
               <option value="A1">A1 - Principiante</option>
               <option value="A2">A2 - Básico</option>
               <option value="B1">B1 - Intermedio</option>
@@ -1340,27 +1262,27 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="font-semibold text-slate-200">Salario Mínimo Esperado (COP):</label>
-            <input type="number" id="mProfSalaryMin" step="100000" value="2500000" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+            <label class="font-semibold text-slate-700">Salario Mínimo Esperado (COP):</label>
+            <input type="number" id="mProfSalaryMin" step="100000" value="2500000" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
           </div>
           <div class="flex items-center gap-2 pt-5">
             <input type="checkbox" id="mProfRemoteOnly" checked class="w-4 h-4 text-emerald-600 rounded">
-            <label for="mProfRemoteOnly" class="text-slate-200 font-medium">Priorizar ofertas 100% remotas</label>
+            <label for="mProfRemoteOnly" class="text-slate-700 font-medium">Priorizar ofertas 100% remotas</label>
           </div>
         </div>
 
         <div>
-          <label class="font-semibold text-slate-200">Habilidades Técnicas Clave (separadas por coma):</label>
-          <input type="text" id="mProfSkills" placeholder="Soporte Técnico, Windows Server, Linux, Redes TCP/IP, Active Directory, Python" class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100">
+          <label class="font-semibold text-slate-700">Habilidades Técnicas Clave (separadas por coma):</label>
+          <input type="text" id="mProfSkills" placeholder="Soporte Técnico, Windows Server, Linux, Redes TCP/IP, Active Directory, Python" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800">
         </div>
 
         <div>
-          <label class="font-semibold text-slate-200">Resumen Profesional (Extracto ATS):</label>
-          <textarea id="mProfSummary" rows="3" placeholder="Técnico apasionado por el soporte de sistemas, redes e infraestructura..." class="w-full bg-[#1E293B]/70 border border-[#334155] rounded-lg p-2 text-slate-100"></textarea>
+          <label class="font-semibold text-slate-700">Resumen Profesional (Extracto ATS):</label>
+          <textarea id="mProfSummary" rows="3" placeholder="Técnico apasionado por el soporte de sistemas, redes e infraestructura..." class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800"></textarea>
         </div>
 
-        <div class="flex items-center justify-end gap-2 pt-3 border-t border-[#334155]/60">
-          <button type="button" onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-100 font-semibold px-4 py-2 rounded-lg transition">Cancelar</button>
+        <div class="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="closeProfileModal()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold px-4 py-2 rounded-lg transition">Cancelar</button>
           <button type="submit" id="btnSaveProfile" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-5 py-2 rounded-lg shadow-sm transition flex items-center gap-1.5">
             <i data-lucide="check" class="w-4 h-4"></i>
             <span>Guardar y Actualizar ATS</span>
@@ -1486,12 +1408,12 @@
 
       if (mode === 'login') {
         tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
-        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-100';
+        tabReg.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
         nameField.classList.add('hidden');
         submitText.innerText = 'Entrar a Mi Panel';
       } else {
         tabReg.className = 'flex-1 py-3 text-center border-b-2 border-emerald-500 text-emerald-700 bg-emerald-50/50 font-semibold';
-        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-100';
+        tabLogin.className = 'flex-1 py-3 text-center border-b-2 border-transparent text-slate-500 hover:text-slate-800';
         nameField.classList.remove('hidden');
         submitText.innerText = 'Registrarme y Configurar Perfil';
       }
@@ -1507,7 +1429,7 @@
       const feedback = document.getElementById('authFeedback');
       const btn = document.getElementById('btnAuthSubmit');
       
-      feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-[#1E293B] text-slate-200';
+      feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-slate-100 text-slate-700';
       feedback.innerText = 'Procesando...';
       feedback.classList.remove('hidden');
       btn.disabled = true;
@@ -1842,7 +1764,7 @@
                 <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                   <i data-lucide="lock" class="w-6 h-6"></i>
                 </div>
-                <h3 class="text-base font-bold text-slate-100">Modo Invitado / Sin Iniciar Sesión</h3>
+                <h3 class="text-base font-bold text-slate-800">Modo Invitado / Sin Iniciar Sesión</h3>
                 <p class="text-xs text-slate-500">Inicia sesión o regístrate con tu correo para acceder a tu panel personalizado de postulaciones, generar CVs ATS con tus habilidades y hacer seguimiento privado.</p>
                 <div class="flex justify-center gap-2 pt-1">
                   <button onclick="openAuthModal('login')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
@@ -1886,7 +1808,7 @@
                  <a href="/cv_downloads/${a.cv_path.split(/[\\\\/]/).pop()}" target="_blank" class="text-purple-700 hover:text-purple-900 font-semibold inline-flex items-center gap-1 text-[11px] bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 rounded shadow-xs" title="Ver CV ATS Personalizado (${cvLabel})">
                    <span>${cvFlag}</span> <span>${cvLabel}</span>
                  </a>
-                 <button onclick="prepareCv('${a.job_id}', '${a.cv_path.toLowerCase().includes('-en-') ? 'es' : 'en'}')" class="text-[10px] text-slate-400 hover:text-purple-700 px-1 py-0.5 rounded hover:bg-[#1E293B]" title="Cambiar idioma del CV (EN / ES)">🔄</button>
+                 <button onclick="prepareCv('${a.job_id}', '${a.cv_path.toLowerCase().includes('-en-') ? 'es' : 'en'}')" class="text-[10px] text-slate-400 hover:text-purple-700 px-1 py-0.5 rounded hover:bg-slate-100" title="Cambiar idioma del CV (EN / ES)">🔄</button>
                </div>`
             : `<button onclick="prepareCv('${a.job_id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100">Generar CV</button>`;
 
@@ -1900,22 +1822,22 @@
           const hasSalaryNumber = /\d{6,}/.test(salaryText.replace(/\D/g, ''));
           const salaryBadge = hasSalaryNumber 
             ? `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">💰 ${salaryText}</span>` 
-            : `<span class="bg-[#1E293B]/70 text-slate-500 border border-[#334155]/60 px-2 py-0.5 rounded text-[11px]">💰 ${salaryText}</span>`;
+            : `<span class="bg-slate-50 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[11px]">💰 ${salaryText}</span>`;
 
           const dateBadge = a.publication_date 
             ? `<div class="text-[10px] text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-1 font-mono">⏱️ ${a.publication_date}</div>` 
             : '';
 
           return `
-            <tr class="hover:bg-[#1E293B]/50 border-b border-[#334155]/30 transition">
+            <tr class="hover:bg-slate-50/80 transition">
               <td class="py-3 px-4 font-bold">
                 <span class="px-2 py-0.5 rounded-full text-xs ${badgeClass}">
                   ${a.match_score}%
                 </span>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-200">${a.company}</td>
+              <td class="py-3 px-4 font-semibold text-slate-800">${a.company}</td>
               <td class="py-3 px-4">
-                <div class="font-semibold text-white flex flex-wrap items-center">
+                <div class="font-medium text-slate-900 flex flex-wrap items-center">
                   <span>${a.position}</span>
                   ${remoteBadge}
                 </div>
@@ -1933,7 +1855,7 @@
               </td>
               <td class="py-3 px-4">${cvBtn}</td>
               <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                <a href="${a.url}" target="_blank" class="text-slate-500 hover:text-slate-100 p-1 rounded inline-block" title="Ver Oferta">
+                <a href="${a.url}" target="_blank" class="text-slate-500 hover:text-slate-800 p-1 rounded inline-block" title="Ver Oferta">
                   <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 </a>
                 <button onclick="applyApp('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', false)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded text-[11px] transition inline-flex items-center gap-1 shadow-xs" title="Enviar postulación real directamente con Autopilot">
@@ -1985,7 +1907,7 @@
             badgeColor = 'bg-indigo-100 text-indigo-800 border-indigo-300';
             badgeLabel = '🌐 Postulación en Portal del Empleador';
           } else if (item.reason === 'FORMULARIO_NO_RECONOCIDO') {
-            badgeColor = 'bg-[#1E293B] text-slate-100 border-[#334155]';
+            badgeColor = 'bg-slate-100 text-slate-800 border-slate-300';
             badgeLabel = '📝 Apertura en Pantalla Requerida';
           }
 
@@ -1994,7 +1916,7 @@
             <div class="flex items-start justify-between">
               <div>
                 <span class="px-2.5 py-0.5 rounded text-[10px] font-bold border ${badgeColor}">${badgeLabel}</span>
-                <h4 class="font-bold text-sm text-slate-100 mt-1.5">${item.position}</h4>
+                <h4 class="font-bold text-sm text-slate-800 mt-1.5">${item.position}</h4>
                 <p class="text-xs text-slate-500">${item.company}</p>
               </div>
               <button onclick="openInteractiveBrowser('${item.id}', '${escapeJsArg(item.url)}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 bg-indigo-50 px-2 py-1 rounded border border-indigo-100">
@@ -2003,26 +1925,26 @@
               </button>
             </div>
 
-            <p class="text-xs text-slate-200 bg-amber-50/70 p-2.5 rounded border border-amber-100 leading-relaxed">${item.question_prompt || 'Intervención requerida para completar el formulario.'}</p>
+            <p class="text-xs text-slate-700 bg-amber-50/70 p-2.5 rounded border border-amber-100 leading-relaxed">${item.question_prompt || 'Intervención requerida para completar el formulario.'}</p>
 
             ${item.screenshot_path ? `
-              <div class="border border-[#334155]/60 rounded-lg overflow-hidden bg-[#1E293B]">
+              <div class="border border-slate-200 rounded-lg overflow-hidden bg-slate-100">
                 <img src="/screenshots/${item.screenshot_path.split(/[\\\\/]/).pop()}" alt="Captura del formulario" class="w-full max-h-52 object-cover object-top hover:max-h-none transition-all duration-300 cursor-zoom-in">
               </div>
             ` : ''}
 
-            <div class="bg-[#1E293B]/70 p-2 rounded border border-[#334155]/60 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-              <span class="text-[11px] font-semibold text-slate-200 whitespace-nowrap">Código OTP / Acceso:</span>
-              <input type="text" id="otp-input-${item.id}" placeholder="Pega el código de tu correo aquí" class="flex-1 text-xs border border-[#334155] rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+            <div class="bg-slate-50 p-2 rounded border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <span class="text-[11px] font-semibold text-slate-700 whitespace-nowrap">Código OTP / Acceso:</span>
+              <input type="text" id="otp-input-${item.id}" placeholder="Pega el código de tu correo aquí" class="flex-1 text-xs border border-slate-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#334155]/60">
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
               <button onclick="openInteractiveBrowser('${item.id}', '${escapeJsArg(item.url)}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
                 <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 <span>Abrir y Completar en Pantalla</span>
               </button>
               <div class="flex items-center gap-2">
-                <button onclick="resolveHIL('${item.id}', 'DO_NOT_APPLY')" class="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-[#1E293B] transition">
+                <button onclick="resolveHIL('${item.id}', 'DO_NOT_APPLY')" class="px-3 py-1.5 rounded text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                   Descartar
                 </button>
                 <button onclick="resolveHILAndRetry('${item.id}', '${item.application_id}', '${escapeJsArg(item.company)}', '${escapeJsArg(item.position)}')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
@@ -2280,7 +2202,7 @@
           }
         }
         skillsContainer.innerHTML = allSkills.length > 0 
-          ? allSkills.map(s => `<span class="bg-[#1E293B] text-slate-200 px-2 py-0.5 rounded text-[11px] border border-[#334155]/60">${s}</span>`).join('')
+          ? allSkills.map(s => `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200">${s}</span>`).join('')
           : '<span class="text-xs text-slate-400 italic">No hay habilidades registradas aún.</span>';
 
         // Certs
@@ -2455,11 +2377,11 @@
 
       const stepsList = document.getElementById('modalStepsList');
       stepsList.innerHTML = `
-        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-[#334155]/60 shadow-xs">
+        <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
           <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
           <div class="flex-1">
             <div class="flex items-center justify-between">
-              <span class="font-semibold text-slate-100 text-xs">1. Entorno de Navegación</span>
+              <span class="font-semibold text-slate-800 text-xs">1. Entorno de Navegación</span>
               <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
             </div>
             <p class="text-slate-500 text-[11px] mt-0.5">Cargando contexto Chromium con perfil persistente y modo seguro...</p>
@@ -2479,11 +2401,11 @@
             <span>Conectando con el portal de la vacante...</span>
           `;
           stepsList.innerHTML += `
-            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-[#334155]/60 shadow-xs">
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
               <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-100 text-xs">2. Acceso a la Vacante</span>
+                  <span class="font-semibold text-slate-800 text-xs">2. Acceso a la Vacante</span>
                   <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
                 </div>
                 <p class="text-slate-500 text-[11px] mt-0.5">Estableciendo conexión y esperando carga del DOM del portal...</p>
@@ -2499,11 +2421,11 @@
             <span>Verificando sesión, seguridad y protecciones...</span>
           `;
           stepsList.innerHTML += `
-            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-[#334155]/60 shadow-xs">
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
               <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-100 text-xs">3. Verificación de Seguridad y Sesión</span>
+                  <span class="font-semibold text-slate-800 text-xs">3. Verificación de Seguridad y Sesión</span>
                   <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
                 </div>
                 <p class="text-slate-500 text-[11px] mt-0.5">Comprobando login, desafíos anti-bot y preguntas críticas...</p>
@@ -2519,11 +2441,11 @@
             <span>Mapeando formulario y adaptando CV ATS...</span>
           `;
           stepsList.innerHTML += `
-            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-[#334155]/60 shadow-xs">
+            <div class="flex items-start gap-3 p-3 rounded-lg bg-white border border-slate-200 shadow-xs">
               <div class="mt-0.5 text-sky-600 animate-spin"><i data-lucide="loader-2" class="w-4 h-4"></i></div>
               <div class="flex-1">
                 <div class="flex items-center justify-between">
-                  <span class="font-semibold text-slate-100 text-xs">4. Mapeo y Diligenciamiento</span>
+                  <span class="font-semibold text-slate-800 text-xs">4. Mapeo y Diligenciamiento</span>
                   <span class="text-[10px] text-sky-700 font-semibold bg-sky-50 px-2 py-0.5 rounded border border-sky-200">En curso</span>
                 </div>
                 <p class="text-slate-500 text-[11px] mt-0.5">Extrayendo campos y vinculando información auténtica del candidato...</p>
@@ -2548,7 +2470,7 @@
       if (steps && steps.length > 0) {
         stepsList.innerHTML = steps.map(s => {
           let icon = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-600"></i>';
-          let cardBg = 'bg-white border-[#334155]/60';
+          let cardBg = 'bg-white border-slate-200';
           let badge = '<span class="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Completado</span>';
           
           if (s.status === 'warning') {
@@ -2569,7 +2491,7 @@
               <div class="mt-0.5 shrink-0">${icon}</div>
               <div class="flex-1">
                 <div class="flex items-center justify-between gap-2">
-                  <span class="font-semibold text-slate-100 text-xs">${s.name}</span>
+                  <span class="font-semibold text-slate-800 text-xs">${s.name}</span>
                   <div class="flex items-center gap-1.5">
                     ${badge}
                     <span class="text-[10px] text-slate-400 font-mono">${s.time || ''}</span>
@@ -3025,9 +2947,9 @@
           if (i === currentStep) {
             tabEl.className = 'py-1 rounded-lg text-emerald-700 font-bold bg-emerald-50 border border-emerald-200';
           } else if (i < currentStep) {
-            tabEl.className = 'py-1 rounded-lg text-slate-200 font-semibold bg-[#1E293B]/70 hover:bg-[#1E293B]';
+            tabEl.className = 'py-1 rounded-lg text-slate-700 font-semibold bg-slate-50 hover:bg-slate-100';
           } else {
-            tabEl.className = 'py-1 rounded-lg text-slate-400 hover:bg-[#1E293B]/70';
+            tabEl.className = 'py-1 rounded-lg text-slate-400 hover:bg-slate-50';
           }
         }
       }
@@ -3062,7 +2984,7 @@
       const achStr = Array.isArray(exp.achievements) ? exp.achievements.join('\n') : (exp.achievements || '');
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-[#1E293B]/70 p-4 rounded-xl border border-[#334155]/60 space-y-3 text-xs relative';
+      div.className = 'bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs relative';
       div.innerHTML = `
         <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-3 right-3 text-slate-400 hover:text-rose-600 transition" title="Eliminar">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
@@ -3070,24 +2992,24 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Cargo *</label>
-            <input type="text" class="exp-role w-full bg-[#0B0F17] border border-[#334155] rounded p-2 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${exp.role || ''}" required placeholder="Ej: Analista de Soporte TI">
+            <input type="text" class="exp-role w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.role || ''}" required placeholder="Ej: Analista de Soporte TI">
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Empresa *</label>
-            <input type="text" class="exp-company w-full bg-[#0B0F17] border border-[#334155] rounded p-2 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${exp.company || ''}" required placeholder="Ej: Tech Services S.A.S.">
+            <input type="text" class="exp-company w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.company || ''}" required placeholder="Ej: Tech Services S.A.S.">
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Período *</label>
-            <input type="text" class="exp-period w-full bg-[#0B0F17] border border-[#334155] rounded p-2 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${exp.period || ''}" required placeholder="Ej: 2023 - 2025">
+            <input type="text" class="exp-period w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.period || ''}" required placeholder="Ej: 2023 - 2025">
           </div>
           <div>
             <label class="block font-semibold text-slate-600 mb-1">Ubicación</label>
-            <input type="text" class="exp-location w-full bg-[#0B0F17] border border-[#334155] rounded p-2 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${exp.location || ''}" placeholder="Ej: Bogotá, Medellín o Remoto">
+            <input type="text" class="exp-location w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.location || ''}" placeholder="Ej: Bogotá, Medellín o Remoto">
           </div>
         </div>
         <div>
           <label class="block font-semibold text-slate-600 mb-1">Logros y Responsabilidades (un logro por línea)</label>
-          <textarea rows="2" class="exp-achievements w-full bg-[#0B0F17] border border-[#334155] rounded p-2 text-slate-100 focus:border-emerald-500 focus:outline-none" placeholder="Ej: Optimización de procesos operativos y reducción de tiempos de respuesta.&#10;Gestión y resolución de requerimientos con 98% de satisfacción.">${achStr}</textarea>
+          <textarea rows="2" class="exp-achievements w-full bg-white border border-slate-200 rounded p-2 text-slate-800" placeholder="Ej: Optimización de procesos operativos y reducción de tiempos de respuesta.&#10;Gestión y resolución de requerimientos con 98% de satisfacción.">${achStr}</textarea>
         </div>
       `;
       c.appendChild(div);
@@ -3099,11 +3021,11 @@
       const id = 'edu_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-[#1E293B]/70 p-3 rounded-lg border border-[#334155]/60 flex items-center justify-between gap-2 text-xs';
+      div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="edu-degree bg-[#0B0F17] border border-[#334155] rounded p-1.5 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${edu.degree || ''}" placeholder="Título (ej: Ingeniería / Tecnología / Profesional)">
-          <input type="text" class="edu-institution bg-[#0B0F17] border border-[#334155] rounded p-1.5 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${edu.institution || ''}" placeholder="Institución (ej: Universidad / Instituto / SENA)">
+          <input type="text" class="edu-degree bg-white border border-slate-200 rounded p-1.5" value="${edu.degree || ''}" placeholder="Título (ej: Ingeniería / Tecnología / Profesional)">
+          <input type="text" class="edu-institution bg-white border border-slate-200 rounded p-1.5" value="${edu.institution || ''}" placeholder="Institución (ej: Universidad / Instituto / SENA)">
         </div>
         <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -3118,11 +3040,11 @@
       const id = 'cert_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-[#1E293B]/70 p-3 rounded-lg border border-[#334155]/60 flex items-center justify-between gap-2 text-xs';
+      div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="cert-title bg-[#0B0F17] border border-[#334155] rounded p-1.5 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${cert.title || ''}" placeholder="Certificación (ej: AWS / Scrum / Excel Avanzado)">
-          <input type="text" class="cert-issuer bg-[#0B0F17] border border-[#334155] rounded p-1.5 text-slate-100 focus:border-emerald-500 focus:outline-none" value="${cert.issuer || ''}" placeholder="Emisor (ej: Microsoft / Google / Cisco / SENA)">
+          <input type="text" class="cert-title bg-white border border-slate-200 rounded p-1.5" value="${cert.title || ''}" placeholder="Certificación (ej: AWS / Scrum / Excel Avanzado)">
+          <input type="text" class="cert-issuer bg-white border border-slate-200 rounded p-1.5" value="${cert.issuer || ''}" placeholder="Emisor (ej: Microsoft / Google / Cisco / SENA)">
         </div>
         <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
           <i data-lucide="x" class="w-4 h-4"></i>
@@ -3282,12 +3204,12 @@
         expContainer.innerHTML = '';
         (opt.experience || []).forEach(exp => {
           const div = document.createElement('div');
-          div.className = 'bg-[#1E293B]/70 p-3.5 rounded-xl border border-[#334155]/60';
+          div.className = 'bg-slate-50 p-3.5 rounded-xl border border-slate-200';
           const bullets = Array.isArray(exp.achievements) ? exp.achievements : [exp.achievements];
           const bulletsHtml = bullets.map(b => `<li class="flex items-start gap-1.5"><span class="text-emerald-500 font-bold">&bull;</span><span>${b}</span></li>`).join('');
           div.innerHTML = `
             <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-              <span class="font-bold text-slate-100">${exp.title || 'Cargo'}</span>
+              <span class="font-bold text-slate-800">${exp.title || 'Cargo'}</span>
               <span class="text-[11px] font-semibold text-slate-500">${exp.period || ''}</span>
             </div>
             <p class="text-xs text-indigo-700 font-medium mb-1.5">${exp.company || ''}</p>
@@ -3303,9 +3225,9 @@
         for (const [category, skillsList] of Object.entries(techSkills)) {
           if (Array.isArray(skillsList) && skillsList.length > 0) {
             const catDiv = document.createElement('div');
-            catDiv.className = 'bg-[#1E293B]/70 p-2.5 rounded-lg border border-[#334155]/40';
-            const chips = skillsList.map(s => `<span class="bg-white border border-[#334155]/60 text-slate-200 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
-            catDiv.innerHTML = `<p class="font-bold text-slate-200 text-[11px] mb-1">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
+            catDiv.className = 'bg-slate-50 p-2.5 rounded-lg border border-slate-100';
+            const chips = skillsList.map(s => `<span class="bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
+            catDiv.innerHTML = `<p class="font-bold text-slate-700 text-[11px] mb-1">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
             skillsContainer.appendChild(catDiv);
           }
         }
@@ -3315,7 +3237,7 @@
         eduContainer.innerHTML = '';
         (opt.education || []).forEach(edu => {
           const p = document.createElement('div');
-          p.className = 'text-slate-200 bg-[#1E293B]/70 p-2 rounded-lg border border-[#334155]/40';
+          p.className = 'text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100';
           p.innerHTML = `<p class="font-bold">${edu.degree || 'Estudios'}</p><p class="text-[11px] text-slate-500">${edu.institution || ''} ${edu.year ? '('+edu.year+')' : ''}</p>`;
           eduContainer.appendChild(p);
         });
