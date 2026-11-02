@@ -590,7 +590,7 @@
                     <i data-lucide="plus" class="w-3 h-3 text-emerald-400"></i> Añadir Experiencia
                   </button>
                 </div>
-                <div id="builderExperiences" class="space-y-3"></div>
+                <div id="experienceRowsContainer" class="space-y-3"></div>
               </div>
 
               <!-- STEP 4: EDUCACION & CERTIFICACIONES -->
@@ -607,8 +607,8 @@
                   </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div id="builderEducation" class="space-y-2"></div>
-                  <div id="builderCertifications" class="space-y-2"></div>
+                  <div id="educationRowsContainer" class="space-y-2"></div>
+                  <div id="certificationsRowsContainer" class="space-y-2"></div>
                 </div>
               </div>
 
@@ -621,8 +621,12 @@
                 </div>
                 <!-- Cloudflare Turnstile CAPTCHA container -->
                 <div class="flex flex-col items-center justify-center p-3 rounded-xl bg-[#0B0F17] border border-[#334155]/60">
-                  <div id="aiTurnstileWidget"></div>
+                  <div id="aiTurnstileContainer"></div>
                 </div>
+                <button type="button" onclick="generateAiAtsCv()" id="btnSubmitInteractiveCv" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition">
+                  <i data-lucide="sparkles" class="w-4 h-4"></i>
+                  <span>⚡ Generar Hoja de Vida Optimizada ATS (Groq 120B)</span>
+                </button>
               </div>
 
             </form>
@@ -639,7 +643,7 @@
                 <i data-lucide="save" class="w-3.5 h-3.5"></i>
                 <span>Save Draft</span>
               </button>
-              <button type="button" onclick="nextStep()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-md shadow-emerald-500/20">
+              <button type="button" onclick="nextStep()" id="btnNextStep" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-bold text-xs flex items-center gap-2 transition shadow-md shadow-emerald-500/20">
                 <span>Next / Review</span>
                 <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
               </button>
@@ -921,6 +925,7 @@
             <p><b>Teléfono:</b> <span id="upResPhone" class="text-slate-400">-</span></p>
             <p><b>Correo:</b> <span id="upResEmail" class="text-slate-400">-</span></p>
             <p><b>Ubicación:</b> <span id="upResLocation" class="text-slate-400">-</span></p>
+            <p><b>Nivel de Inglés:</b> <span id="upResEnglish" class="text-slate-400">-</span></p>
           </div>
           <div class="bg-[#0B0F17] p-3 rounded-xl border border-[#334155]/60 space-y-1">
             <h4 class="font-bold text-slate-300 uppercase tracking-wide flex items-center gap-1.5 text-[11px]">
@@ -968,6 +973,10 @@
             <div class="bg-[#0B0F17] p-4 rounded-xl border border-[#334155]/60 space-y-2">
               <h5 class="font-bold text-xs text-slate-300 uppercase tracking-wide font-mono">Taxonomía de Habilidades</h5>
               <div id="aiResSkills" class="space-y-2 text-xs"></div>
+            </div>
+            <div class="bg-[#0B0F17] p-4 rounded-xl border border-[#334155]/60 space-y-2">
+              <h5 class="font-bold text-xs text-slate-300 uppercase tracking-wide font-mono">Educación & Idiomas Validados</h5>
+              <div id="aiResEducation" class="space-y-2 text-xs"></div>
             </div>
           </div>
         </div>
@@ -2015,9 +2024,9 @@
 
     // Fetch Applications
     async function loadApplications() {
-      const source = document.getElementById('filterSource').value;
-      const status = document.getElementById('filterStatus').value;
-      const minScore = document.getElementById('filterScore').value;
+      const source = document.getElementById('filterSource')?.value || '';
+      const status = document.getElementById('filterStatus')?.value || '';
+      const minScore = document.getElementById('filterScore')?.value || '';
       const filterRemote = document.getElementById('filterRemote')?.value || '';
       const filterSalary = document.getElementById('filterSalary')?.value || '';
 
@@ -2066,7 +2075,7 @@
           });
         }
 
-        document.getElementById('appsCount').innerText = apps.length;
+        const appsCountEl = document.getElementById('appsCount'); if (appsCountEl) appsCountEl.innerText = apps.length;
 
         if (apps.length === 0) {
           if (!currentUserId) {
@@ -2434,17 +2443,28 @@
     // Fetch Profile & Location Preferences
     async function loadProfile() {
       try {
+        const safeSetTxt = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = val || '';
+        };
+        const safeSetHtml = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.innerHTML = val || '';
+        };
+
         if (!currentUserId) {
-          const nameDisp = document.getElementById('candidateNameDisplay');
-          const roleDisp = document.getElementById('candidateRoleDisplay');
-          if (nameDisp) nameDisp.innerText = 'Invitado';
-          if (roleDisp) roleDisp.innerText = '(Sin iniciar sesión)';
-          document.getElementById('profName').innerText = 'Modo Invitado';
-          document.getElementById('profHeadline').innerText = 'Inicia sesión o regístrate para ver y editar tu perfil';
-          document.getElementById('profLocation').innerText = 'Sin sesión activa';
-          document.getElementById('profSummary').innerText = 'Crea tu cuenta gratuita para personalizar tu hoja de vida ATS con tus propias habilidades y experiencia.';
-          document.getElementById('profSkills').innerHTML = '<span class="text-xs text-slate-400 italic">Inicia sesión para cargar tus habilidades</span>';
-          document.getElementById('profCerts').innerHTML = '<li class="text-xs text-slate-400 italic">Inicia sesión para ver certificaciones</li>';
+          safeSetTxt('candidateNameDisplay', 'Invitado');
+          safeSetTxt('candidateRoleDisplay', '(Sin iniciar sesión)');
+          safeSetTxt('profName', 'Modo Invitado');
+          safeSetTxt('profNameDisplay', 'Modo Invitado');
+          safeSetTxt('profEmailDisplay', '-');
+          safeSetTxt('profPhoneDisplay', '-');
+          safeSetTxt('profLocDisplay', 'Sin sesión activa');
+          safeSetTxt('profHeadline', 'Inicia sesión o regístrate para ver y editar tu perfil');
+          safeSetTxt('profLocation', 'Sin sesión activa');
+          safeSetTxt('profSummary', 'Crea tu cuenta gratuita para personalizar tu hoja de vida ATS con tus propias habilidades y experiencia.');
+          safeSetHtml('profSkills', '<span class="text-xs text-slate-400 italic">Inicia sesión para cargar tus habilidades</span>');
+          safeSetHtml('profCerts', '<li class="text-xs text-slate-400 italic">Inicia sesión para ver certificaciones</li>');
           return;
         }
 
@@ -2452,16 +2472,17 @@
         const res = await fetch(url);
         const p = await res.json();
         
-        const nameDisp = document.getElementById('candidateNameDisplay');
-        const roleDisp = document.getElementById('candidateRoleDisplay');
-        if (nameDisp) nameDisp.innerText = p.name || 'Mi Perfil';
-        if (roleDisp) roleDisp.innerText = `(${p.target_role || p.headline || 'Candidato'})`;
-
-        document.getElementById('profName').innerText = p.name || 'Mi Perfil';
-        document.getElementById('profHeadline').innerText = p.headline || p.target_role || 'Candidato';
+        safeSetTxt('candidateNameDisplay', p.name || 'Mi Perfil');
+        safeSetTxt('candidateRoleDisplay', `(${p.target_role || p.headline || 'Candidato'})`);
+        safeSetTxt('profName', p.name || 'Mi Perfil');
+        safeSetTxt('profNameDisplay', p.name || 'Mi Perfil');
+        safeSetTxt('profEmailDisplay', p.email || '-');
+        safeSetTxt('profPhoneDisplay', p.phone || '-');
         const contactParts = [p.location || (p.city ? `${p.city}, ${p.country || 'Colombia'}` : ''), p.phone, p.email].filter(Boolean);
-        document.getElementById('profLocation').innerText = contactParts.join(' | ') || 'Colombia';
-        document.getElementById('profSummary').innerText = p.summary || '';
+        safeSetTxt('profLocDisplay', contactParts.join(' | ') || 'Colombia');
+        safeSetTxt('profHeadline', p.headline || p.target_role || 'Candidato');
+        safeSetTxt('profLocation', contactParts.join(' | ') || 'Colombia');
+        safeSetTxt('profSummary', p.summary || '');
 
         // Populate search preferences if available
         if (p.search_preferences) {
@@ -2882,7 +2903,7 @@
     async function applyApp(appId, company, position, dryRun = null, verificationCode = null) {
       // Si dryRun no se especifica explícitamente, leer del selector de modo
       if (dryRun === null) {
-        const mode = document.getElementById('scanMode').value;
+        const mode = document.getElementById('scanMode')?.value || 'PILOT';
         dryRun = (mode !== 'AUTOPILOT');
       }
       const modeLabel = dryRun ? '🔍 Simulación (Dry-Run)' : '🚀 ENVÍO REAL';
@@ -3074,8 +3095,10 @@
 
     async function triggerBatchApply() {
       const btn = document.getElementById('btnBatchApply');
-      const originalHtml = btn.innerHTML;
-      btn.disabled = true;
+      const originalHtml = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+      }
       btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Postulando en lote...</span>`;
       lucide.createIcons();
       showToast('🚀 Iniciando postulación automática en lote para las mejores vacantes...');
@@ -3109,44 +3132,38 @@
     let extractedProfileCache = null;
 
     function switchCvMode(mode) {
-      const upSec = document.getElementById('cvUploadSection');
-      const bldSec = document.getElementById('cvBuilderSection');
-      const btnUp = document.getElementById('btnModeUpload');
-      const btnBld = document.getElementById('btnModeBuilder');
-
-      if (mode === 'upload') {
-        upSec.classList.remove('hidden');
-        bldSec.classList.add('hidden');
-        btnUp.className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm';
-        btnBld.className = 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm';
-      } else {
-        upSec.classList.add('hidden');
-        bldSec.classList.remove('hidden');
-        btnBld.className = 'bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm';
-        btnUp.className = 'bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition shadow-sm';
-        initBuilderDefaults();
+      if (mode === 'builder') {
+        openTab('tab-cv-builder');
+        goToStep(1);
+        const formEl = document.getElementById('interactiveCvForm');
+        if (formEl) formEl.scrollIntoView({ behavior: 'smooth' });
       }
-      lucide.createIcons();
     }
 
     function handleCvFileSelect(e) {
       const file = e.target.files[0];
       if (!file) return;
       selectedCvFile = file;
-      document.getElementById('selectedFileNameText').innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
-      document.getElementById('selectedFileName').classList.remove('hidden');
+      const nameEl = document.getElementById('selectedFileNameText');
+      if (nameEl) nameEl.innerText = `${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+      const pillEl = document.getElementById('selectedFileName');
+      if (pillEl) pillEl.classList.remove('hidden');
       const btn = document.getElementById('btnProcessCv');
-      btn.disabled = false;
-      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      if (btn) {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      }
       lucide.createIcons();
     }
 
     async function processUploadedCv() {
       if (!selectedCvFile) return;
       const btn = document.getElementById('btnProcessCv');
-      const original = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Analizando y convirtiendo a ATS...</span>`;
+      const original = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Analizando y convirtiendo a ATS...</span>`;
+      }
       lucide.createIcons();
 
       const formData = new FormData();
@@ -3161,23 +3178,46 @@
         const data = await res.json();
         if (!res.ok) throw new Error(data.detail || 'Error procesando archivo');
 
-        extractedProfileCache = data.parsed_profile;
+        extractedProfileCache = data.parsed_profile || {};
 
-        // Render Results
-        document.getElementById('cvUploadResults').classList.remove('hidden');
-        document.getElementById('uploadResName').innerText = data.parsed_profile.name || 'Candidato';
-        document.getElementById('uploadResHeadline').innerText = data.parsed_profile.headline || 'Perfil Profesional';
-        document.getElementById('upResPhone').innerText = data.parsed_profile.phone || 'No detectado';
-        document.getElementById('upResEmail').innerText = data.parsed_profile.email || 'No detectado';
-        document.getElementById('upResLocation').innerText = data.parsed_profile.location || 'Colombia';
-        document.getElementById('upResEnglish').innerText = data.parsed_profile.english_level || 'B2';
+        // Immediately set download URLs on extracted card and header
+        if (data.pdf_download_url) {
+          const btnPdf = document.getElementById('btnDownloadExtractedPdf');
+          if (btnPdf) btnPdf.href = data.pdf_download_url;
+          const hdrPdf = document.getElementById('hdrBtnExportPdf');
+          if (hdrPdf) hdrPdf.setAttribute('onclick', `window.open('${data.pdf_download_url}', '_blank')`);
+        }
+        if (data.docx_download_url) {
+          const btnDocx = document.getElementById('btnDownloadExtractedDocx');
+          if (btnDocx) btnDocx.href = data.docx_download_url;
+          const hdrDocx = document.getElementById('hdrBtnExportDocx');
+          if (hdrDocx) hdrDocx.setAttribute('onclick', `window.open('${data.docx_download_url}', '_blank')`);
+        }
+
+        // Render Results safely
+        const resultsEl = document.getElementById('cvUploadResults');
+        if (resultsEl) resultsEl.classList.remove('hidden');
+
+        const safeSetTxt = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.innerText = val || '-';
+        };
+
+        const prof = data.parsed_profile || {};
+        safeSetTxt('uploadResName', prof.name || 'Candidato');
+        safeSetTxt('uploadResHeadline', prof.headline || prof.target_role || 'Perfil Profesional');
+        safeSetTxt('upResPhone', prof.phone || 'No detectado');
+        safeSetTxt('upResEmail', prof.email || 'No detectado');
+        safeSetTxt('upResLocation', prof.location || prof.city || 'Colombia');
+        safeSetTxt('upResEnglish', prof.english_level || 'B2');
 
         const skillsEl = document.getElementById('upResSkills');
-        const skillsList = data.parsed_profile.technical_skills?.destacadas || [];
-        skillsEl.innerHTML = skillsList.map(s => `<span class="bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded text-[11px] border border-emerald-200">${s}</span>`).join('');
-
-        document.getElementById('btnDownloadExtractedPdf').href = data.pdf_download_url;
-        document.getElementById('btnDownloadExtractedDocx').href = data.docx_download_url;
+        if (skillsEl) {
+          const skillsList = prof.technical_skills?.destacadas ||
+                             (Array.isArray(prof.technical_skills) ? prof.technical_skills : []) ||
+                             (Array.isArray(prof.skills) ? prof.skills : []);
+          skillsEl.innerHTML = (skillsList || []).map(s => `<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
+        }
 
         showToast('✅ ¡Hoja de vida procesada y convertida a ATS con éxito!');
         if (currentUserId) {
@@ -3186,45 +3226,90 @@
       } catch (err) {
         showToast('Error al procesar CV: ' + err.message);
       } finally {
-        btn.disabled = false;
-        btn.innerHTML = original;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = original;
+        }
         lucide.createIcons();
       }
     }
 
     function populateBuilderFromExtracted() {
-      if (!extractedProfileCache) return;
-      switchCvMode('builder');
+      if (!extractedProfileCache) {
+        showToast('Primero selecciona y extrae tu hoja de vida.');
+        return;
+      }
+      openTab('tab-cv-builder');
+      goToStep(1);
       const p = extractedProfileCache;
-      document.getElementById('bldName').value = p.name || '';
-      document.getElementById('bldEmail').value = p.email || '';
-      document.getElementById('bldPhone').value = p.phone || '';
-      document.getElementById('bldCity').value = p.city || '';
-      document.getElementById('bldDepartment').value = p.department || '';
-      document.getElementById('bldRole').value = p.headline || p.target_role || '';
-      document.getElementById('bldEnglish').value = p.english_level || 'B2';
-      document.getElementById('bldLinkedin').value = p.linkedin || '';
-      document.getElementById('bldSummary').value = p.summary || '';
 
-      const skillsList = p.technical_skills?.destacadas || [];
-      document.getElementById('bldSkills').value = Array.isArray(skillsList) ? skillsList.join(', ') : skillsList;
+      const safeSetVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+      };
 
-      const expContainer = document.getElementById('experienceRowsContainer');
-      expContainer.innerHTML = '';
-      (p.experience || []).forEach(exp => addExperienceRow(exp));
+      safeSetVal('bldName', p.name || '');
+      safeSetVal('bldEmail', p.email || '');
+      safeSetVal('bldPhone', p.phone || '');
+      safeSetVal('bldCity', p.city || p.location || '');
+      safeSetVal('bldDepartment', p.department || p.country || 'Colombia');
+      safeSetVal('bldRole', p.headline || p.target_role || '');
+      safeSetVal('bldEnglish', p.english_level || 'B2');
+      safeSetVal('bldLinkedin', p.linkedin || '');
+      safeSetVal('bldSummary', p.summary || '');
 
-      const eduContainer = document.getElementById('educationRowsContainer');
-      eduContainer.innerHTML = '';
-      (p.education || []).forEach(edu => addEducationRow(edu));
+      const skillsList = p.technical_skills?.destacadas || p.technical_skills?.all || (Array.isArray(p.skills) ? p.skills : []);
+      const skillsStr = Array.isArray(skillsList) ? skillsList.join(', ') : (typeof skillsList === 'string' ? skillsList : '');
+      safeSetVal('bldSkills', skillsStr);
 
-      const certContainer = document.getElementById('certificationsRowsContainer');
-      certContainer.innerHTML = '';
-      (p.certifications || []).forEach(c => addCertificationRow(c));
+      const dispRole = document.getElementById('dispRoleTitle');
+      if (dispRole && (p.headline || p.target_role)) {
+        dispRole.innerText = p.headline || p.target_role;
+      }
+
+      // Populate experiences
+      const expContainer = document.getElementById('experienceRowsContainer') || document.getElementById('builderExperiences');
+      if (expContainer) {
+        expContainer.innerHTML = '';
+        if (Array.isArray(p.experience) && p.experience.length > 0) {
+          p.experience.forEach(exp => addExperienceRow(exp));
+        } else {
+          addExperienceRow();
+        }
+      }
+
+      // Populate education
+      const eduContainer = document.getElementById('educationRowsContainer') || document.getElementById('builderEducation');
+      if (eduContainer) {
+        eduContainer.innerHTML = '';
+        if (Array.isArray(p.education) && p.education.length > 0) {
+          p.education.forEach(edu => addEducationRow(edu));
+        } else {
+          addEducationRow();
+        }
+      }
+
+      // Populate certifications
+      const certContainer = document.getElementById('certificationsRowsContainer') || document.getElementById('builderCertifications');
+      if (certContainer) {
+        certContainer.innerHTML = '';
+        if (Array.isArray(p.certifications) && p.certifications.length > 0) {
+          p.certifications.forEach(c => addCertificationRow(c));
+        }
+      }
+
+      // Scroll smoothly to form
+      const formEl = document.getElementById('interactiveCvForm');
+      if (formEl) {
+        formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+
+      showToast('✅ Hoja de vida cargada en el creador interactivo.');
+      lucide.createIcons();
     }
 
     function initBuilderDefaults() {
-      // Do not hardcode personal candidate data. Start clean with an empty editable row.
-      const expContainer = document.getElementById('experienceRowsContainer');
+      const expContainer = document.getElementById('experienceRowsContainer') || document.getElementById('builderExperiences');
       if (expContainer && expContainer.children.length === 0) {
         addExperienceRow({
           role: '',
@@ -3234,7 +3319,7 @@
           achievements: []
         });
       }
-      const eduContainer = document.getElementById('educationRowsContainer');
+      const eduContainer = document.getElementById('educationRowsContainer') || document.getElementById('builderEducation');
       if (eduContainer && eduContainer.children.length === 0) {
         addEducationRow({
           degree: '',
@@ -3248,26 +3333,45 @@
     let currentStep = 1;
 
     function goToStep(step) {
-      if (step < 1 || step > 5) return;
+      if (typeof step !== 'number' || step < 1 || step > 5) return;
       currentStep = step;
       for (let i = 1; i <= 5; i++) {
         const stepEl = document.getElementById(`qStep${i}`);
-        const tabEl = document.getElementById(`tabStep${i}`);
         if (stepEl) stepEl.classList.toggle('hidden', i !== currentStep);
+        
+        const tabEl = document.getElementById(`tabStep${i}`);
         if (tabEl) {
-          if (i === currentStep) {
-            tabEl.className = 'py-1 rounded-lg text-emerald-700 font-bold bg-emerald-50 border border-emerald-200';
-          } else if (i < currentStep) {
-            tabEl.className = 'py-1 rounded-lg text-slate-700 font-semibold bg-slate-50 hover:bg-slate-100';
-          } else {
-            tabEl.className = 'py-1 rounded-lg text-slate-400 hover:bg-slate-50';
+          const circle = tabEl.querySelector('div > div');
+          const p = tabEl.querySelector('p');
+          if (circle && p) {
+            if (i === currentStep) {
+              circle.className = 'w-6 h-6 rounded-full ring-2 ring-emerald-400 bg-[#111827] text-emerald-400 flex items-center justify-center text-xs font-bold';
+              circle.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>';
+              p.className = 'text-[10px] font-bold text-emerald-400';
+            } else if (i < currentStep) {
+              circle.className = 'w-6 h-6 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center text-xs font-bold';
+              circle.innerHTML = '✓';
+              p.className = 'text-[10px] font-medium text-slate-300 group-hover:text-white';
+            } else {
+              circle.className = 'w-6 h-6 rounded-full bg-[#1E293B] text-slate-400 flex items-center justify-center text-xs font-bold';
+              circle.innerHTML = `${i}`;
+              p.className = 'text-[10px] font-medium text-slate-500 group-hover:text-slate-300';
+            }
           }
         }
       }
-      const progressBar = document.getElementById('qProgressBar');
-      if (progressBar) progressBar.style.width = `${(currentStep / 5) * 100}%`;
+      const stageBadge = document.getElementById('stageBadge');
+      if (stageBadge) stageBadge.innerText = `STAGE 0${currentStep} / 05`;
       const stepIndicator = document.getElementById('stepIndicator');
       if (stepIndicator) stepIndicator.textContent = `Paso ${currentStep} de 5`;
+      const nextBtn = document.getElementById('btnNextStep');
+      if (nextBtn) {
+        if (currentStep === 5) {
+          nextBtn.innerHTML = `<span>⚡ Generar ATS (Groq 120B)</span><i data-lucide="sparkles" class="w-3.5 h-3.5"></i>`;
+        } else {
+          nextBtn.innerHTML = `<span>Next / Review</span><i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>`;
+        }
+      }
       if (currentStep === 5) {
         setTimeout(renderAiTurnstile, 150);
       }
@@ -3276,51 +3380,62 @@
 
     function nextStep(step) {
       if (currentStep === 1) {
-        const name = document.getElementById('bldName').value.trim();
-        const email = document.getElementById('bldEmail').value.trim();
+        const name = document.getElementById('bldName')?.value?.trim();
+        const email = document.getElementById('bldEmail')?.value?.trim();
         if (!name || !email) {
           return showToast('Por favor escribe al menos tu Nombre y Correo.');
         }
       }
-      goToStep(step);
+      if (typeof step === 'number') {
+        goToStep(step);
+      } else if (currentStep < 5) {
+        goToStep(currentStep + 1);
+      } else {
+        generateAiAtsCv();
+      }
     }
 
     function prevStep(step) {
-      goToStep(step);
+      if (typeof step === 'number') {
+        goToStep(step);
+      } else {
+        goToStep(Math.max(1, currentStep - 1));
+      }
     }
 
     function addExperienceRow(exp = {}) {
-      const c = document.getElementById('experienceRowsContainer');
+      const c = document.getElementById('experienceRowsContainer') || document.getElementById('builderExperiences');
+      if (!c) return;
       const id = 'exp_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const achStr = Array.isArray(exp.achievements) ? exp.achievements.join('\n') : (exp.achievements || '');
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3 text-xs relative';
+      div.className = 'bg-[#0B0F17] p-4 rounded-xl border border-[#334155] space-y-3 text-xs relative shadow-inner';
       div.innerHTML = `
-        <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-3 right-3 text-slate-400 hover:text-rose-600 transition" title="Eliminar">
+        <button type="button" onclick="document.getElementById('${id}').remove()" class="absolute top-3 right-3 text-slate-400 hover:text-rose-400 transition" title="Eliminar">
           <i data-lucide="trash-2" class="w-4 h-4"></i>
         </button>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
           <div>
-            <label class="block font-semibold text-slate-600 mb-1">Cargo *</label>
-            <input type="text" class="exp-role w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.role || ''}" required placeholder="Ej: Analista de Soporte TI">
+            <label class="block font-semibold text-slate-300 mb-1">Cargo *</label>
+            <input type="text" class="exp-role w-full bg-[#111827] border border-[#334155] rounded-lg p-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${exp.role || ''}" required placeholder="Ej: Analista de Soporte TI">
           </div>
           <div>
-            <label class="block font-semibold text-slate-600 mb-1">Empresa *</label>
-            <input type="text" class="exp-company w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.company || ''}" required placeholder="Ej: Tech Services S.A.S.">
+            <label class="block font-semibold text-slate-300 mb-1">Empresa *</label>
+            <input type="text" class="exp-company w-full bg-[#111827] border border-[#334155] rounded-lg p-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${exp.company || ''}" required placeholder="Ej: Tech Services S.A.S.">
           </div>
           <div>
-            <label class="block font-semibold text-slate-600 mb-1">Período *</label>
-            <input type="text" class="exp-period w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.period || ''}" required placeholder="Ej: 2023 - 2025">
+            <label class="block font-semibold text-slate-300 mb-1">Período *</label>
+            <input type="text" class="exp-period w-full bg-[#111827] border border-[#334155] rounded-lg p-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${exp.period || ''}" required placeholder="Ej: 2023 - 2025">
           </div>
           <div>
-            <label class="block font-semibold text-slate-600 mb-1">Ubicación</label>
-            <input type="text" class="exp-location w-full bg-white border border-slate-200 rounded p-2 text-slate-800" value="${exp.location || ''}" placeholder="Ej: Bogotá, Medellín o Remoto">
+            <label class="block font-semibold text-slate-300 mb-1">Ubicación</label>
+            <input type="text" class="exp-location w-full bg-[#111827] border border-[#334155] rounded-lg p-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${exp.location || ''}" placeholder="Ej: Bogotá, Medellín o Remoto">
           </div>
         </div>
         <div>
-          <label class="block font-semibold text-slate-600 mb-1">Logros y Responsabilidades (un logro por línea)</label>
-          <textarea rows="2" class="exp-achievements w-full bg-white border border-slate-200 rounded p-2 text-slate-800" placeholder="Ej: Optimización de procesos operativos y reducción de tiempos de respuesta.&#10;Gestión y resolución de requerimientos con 98% de satisfacción.">${achStr}</textarea>
+          <label class="block font-semibold text-slate-300 mb-1">Logros y Responsabilidades (un logro por línea)</label>
+          <textarea rows="2" class="exp-achievements w-full bg-[#111827] border border-[#334155] rounded-lg p-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" placeholder="Ej: Optimización de procesos operativos y reducción de tiempos de respuesta.&#10;Gestión y resolución de requerimientos con 98% de satisfacción.">${achStr}</textarea>
         </div>
       `;
       c.appendChild(div);
@@ -3328,17 +3443,18 @@
     }
 
     function addEducationRow(edu = {}) {
-      const c = document.getElementById('educationRowsContainer');
+      const c = document.getElementById('educationRowsContainer') || document.getElementById('builderEducation');
+      if (!c) return;
       const id = 'edu_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
+      div.className = 'bg-[#0B0F17] p-3 rounded-xl border border-[#334155] flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="edu-degree bg-white border border-slate-200 rounded p-1.5" value="${edu.degree || ''}" placeholder="Título (ej: Ingeniería / Tecnología / Profesional)">
-          <input type="text" class="edu-institution bg-white border border-slate-200 rounded p-1.5" value="${edu.institution || ''}" placeholder="Institución (ej: Universidad / Instituto / SENA)">
+          <input type="text" class="edu-degree bg-[#111827] border border-[#334155] rounded-lg p-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${edu.degree || ''}" placeholder="Título (ej: Ingeniería / Tecnología / Profesional)">
+          <input type="text" class="edu-institution bg-[#111827] border border-[#334155] rounded-lg p-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${edu.institution || ''}" placeholder="Institución (ej: Universidad / Instituto / SENA)">
         </div>
-        <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
+        <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-400 p-1 transition" title="Eliminar">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       `;
@@ -3347,17 +3463,18 @@
     }
 
     function addCertificationRow(cert = {}) {
-      const c = document.getElementById('certificationsRowsContainer');
+      const c = document.getElementById('certificationsRowsContainer') || document.getElementById('builderCertifications');
+      if (!c) return;
       const id = 'cert_' + Date.now() + Math.random().toString(36).substr(2, 4);
       const div = document.createElement('div');
       div.id = id;
-      div.className = 'bg-slate-50 p-3 rounded-lg border border-slate-200 flex items-center justify-between gap-2 text-xs';
+      div.className = 'bg-[#0B0F17] p-3 rounded-xl border border-[#334155] flex items-center justify-between gap-2 text-xs';
       div.innerHTML = `
         <div class="grid grid-cols-2 gap-2 flex-1">
-          <input type="text" class="cert-title bg-white border border-slate-200 rounded p-1.5" value="${cert.title || ''}" placeholder="Certificación (ej: AWS / Scrum / Excel Avanzado)">
-          <input type="text" class="cert-issuer bg-white border border-slate-200 rounded p-1.5" value="${cert.issuer || ''}" placeholder="Emisor (ej: Microsoft / Google / Cisco / SENA)">
+          <input type="text" class="cert-title bg-[#111827] border border-[#334155] rounded-lg p-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${cert.title || ''}" placeholder="Certificación (ej: AWS / Scrum / Excel Avanzado)">
+          <input type="text" class="cert-issuer bg-[#111827] border border-[#334155] rounded-lg p-1.5 text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500" value="${cert.issuer || ''}" placeholder="Emisor (ej: Microsoft / Google / Cisco / SENA)">
         </div>
-        <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-600 p-1">
+        <button type="button" onclick="document.getElementById('${id}').remove()" class="text-slate-400 hover:text-rose-400 p-1 transition" title="Eliminar">
           <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       `;
@@ -3367,6 +3484,7 @@
 
     function addSkillTag(tag) {
       const txt = document.getElementById('bldSkills');
+      if (!txt) return;
       const current = txt.value.split(',').map(s => s.trim()).filter(Boolean);
       if (!current.includes(tag)) {
         current.push(tag);
@@ -3375,45 +3493,46 @@
     }
 
     function autoGenerateSummary() {
-      const role = document.getElementById('bldRole').value.trim() || 'Profesional';
-      const city = document.getElementById('bldCity').value.trim() || 'Colombia';
+      const role = document.getElementById('bldRole')?.value?.trim() || 'Profesional';
+      const city = document.getElementById('bldCity')?.value?.trim() || 'Colombia';
       const text = `Profesional enfocado en ${role} con sólida formación y experiencia práctica en gestión operativa, resolución ágil de problemas y orientación al logro. Destacada capacidad analítica para optimizar procesos, trabajar en equipos multidisciplinarios y cumplir metas estratégicas en ${city} o en modalidad 100% remota.`;
-      document.getElementById('bldSummary').value = text;
+      const sumEl = document.getElementById('bldSummary');
+      if (sumEl) sumEl.value = text;
       showToast('✨ Resumen profesional sugerido con palabras clave ATS.');
     }
 
     function getBuilderPayload() {
-      const skillsArray = document.getElementById('bldSkills').value.split(',').map(s => s.trim()).filter(Boolean);
+      const skillsArray = (document.getElementById('bldSkills')?.value || '').split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
       
-      const expRows = document.querySelectorAll('#experienceRowsContainer > div');
+      const expRows = document.querySelectorAll('#experienceRowsContainer > div, #builderExperiences > div');
       const experiences = [];
       expRows.forEach(row => {
-        const role = row.querySelector('.exp-role')?.value.trim();
-        const company = row.querySelector('.exp-company')?.value.trim();
-        const period = row.querySelector('.exp-period')?.value.trim();
-        const location = row.querySelector('.exp-location')?.value.trim();
-        const achRaw = row.querySelector('.exp-achievements')?.value.trim() || '';
+        const role = row.querySelector('.exp-role')?.value?.trim();
+        const company = row.querySelector('.exp-company')?.value?.trim();
+        const period = row.querySelector('.exp-period')?.value?.trim();
+        const location = row.querySelector('.exp-location')?.value?.trim();
+        const achRaw = row.querySelector('.exp-achievements')?.value?.trim() || '';
         const achievements = achRaw.split('\n').map(a => a.trim()).filter(Boolean);
         if (role && company) {
           experiences.push({ role, company, period, location, achievements });
         }
       });
 
-      const eduRows = document.querySelectorAll('#educationRowsContainer > div');
+      const eduRows = document.querySelectorAll('#educationRowsContainer > div, #builderEducation > div');
       const education = [];
       eduRows.forEach(row => {
-        const degree = row.querySelector('.edu-degree')?.value.trim();
-        const institution = row.querySelector('.edu-institution')?.value.trim();
+        const degree = row.querySelector('.edu-degree')?.value?.trim();
+        const institution = row.querySelector('.edu-institution')?.value?.trim();
         if (degree) {
           education.push({ degree, institution, period: 'Completado', status: 'Graduado' });
         }
       });
 
-      const certRows = document.querySelectorAll('#certificationsRowsContainer > div');
+      const certRows = document.querySelectorAll('#certificationsRowsContainer > div, #builderCertifications > div');
       const certifications = [];
       certRows.forEach(row => {
-        const title = row.querySelector('.cert-title')?.value.trim();
-        const issuer = row.querySelector('.cert-issuer')?.value.trim();
+        const title = row.querySelector('.cert-title')?.value?.trim();
+        const issuer = row.querySelector('.cert-issuer')?.value?.trim();
         if (title) {
           certifications.push({ title, issuer, date: '2025' });
         }
@@ -3421,30 +3540,30 @@
 
       return {
         user_id: currentUserId || null,
-        name: document.getElementById('bldName').value.trim(),
-        email: document.getElementById('bldEmail').value.trim(),
-        phone: document.getElementById('bldPhone').value.trim(),
-        city: document.getElementById('bldCity').value.trim(),
-        department: document.getElementById('bldDepartment').value.trim(),
+        name: document.getElementById('bldName')?.value?.trim() || '',
+        email: document.getElementById('bldEmail')?.value?.trim() || '',
+        phone: document.getElementById('bldPhone')?.value?.trim() || '',
+        city: document.getElementById('bldCity')?.value?.trim() || '',
+        department: document.getElementById('bldDepartment')?.value?.trim() || '',
         country: 'Colombia',
-        headline: document.getElementById('bldRole').value.trim(),
-        target_role: document.getElementById('bldRole').value.trim(),
-        english_level: document.getElementById('bldEnglish').value,
-        linkedin: document.getElementById('bldLinkedin').value.trim(),
-        summary: document.getElementById('bldSummary').value.trim(),
+        headline: document.getElementById('bldRole')?.value?.trim() || '',
+        target_role: document.getElementById('bldRole')?.value?.trim() || '',
+        english_level: document.getElementById('bldEnglish')?.value || 'B2',
+        linkedin: document.getElementById('bldLinkedin')?.value?.trim() || '',
+        summary: document.getElementById('bldSummary')?.value?.trim() || '',
         technical_skills: { "destacadas": skillsArray },
         experience: experiences,
         education: education,
         certifications: certifications,
         languages: [
           { "language": "Español", "level": "Nativo" },
-          { "language": "Inglés", "level": document.getElementById('bldEnglish').value }
+          { "language": "Inglés", "level": document.getElementById('bldEnglish')?.value || 'B2' }
         ]
       };
     }
 
     async function handleInteractiveCvSubmit(e) {
-      e.preventDefault();
+      if (e) e.preventDefault();
       await generateInteractiveCv('pdf');
     }
 
@@ -3466,7 +3585,7 @@
         english_level: payload.english_level,
         linkedin: payload.linkedin,
         raw_bio: payload.summary,
-        skills_raw: document.getElementById('bldSkills').value,
+        skills_raw: document.getElementById('bldSkills')?.value || '',
         experiences: payload.experience,
         education: payload.education,
         certifications: payload.certifications,
@@ -3475,7 +3594,7 @@
 
       const loadingPanel = document.getElementById('aiCvLoadingPanel');
       const resultsPanel = document.getElementById('aiCvResultsPanel');
-      const btnGenerate = document.getElementById('btnGenerateAiCv');
+      const btnGenerate = document.getElementById('btnGenerateAiCv') || document.getElementById('btnSubmitInteractiveCv');
 
       if (loadingPanel) loadingPanel.classList.remove('hidden');
       if (resultsPanel) resultsPanel.classList.add('hidden');
@@ -3485,7 +3604,7 @@
       }
 
       const selectedModel = document.getElementById('selectedAiModel')?.value || 'openai/gpt-oss-120b';
-      const selectedModelText = document.getElementById('selectedAiModel')?.selectedOptions[0]?.text || 'Groq 120B';
+      const selectedModelText = document.getElementById('selectedAiModel')?.selectedOptions?.[0]?.text || 'Groq 120B';
       showToast(`🤖 Optimizando perfil ATS con IA (${selectedModelText})...`);
 
       try {
@@ -3505,66 +3624,89 @@
 
         const opt = data.optimized_profile || {};
         
-        // Populate AI Results Panel
-        document.getElementById('aiResName').textContent = opt.name || payload.name;
-        document.getElementById('aiResHeadline').textContent = opt.headline || opt.target_role || payload.target_role;
-        document.getElementById('aiResSummary').textContent = opt.summary || 'Resumen optimizado generado exitosamente.';
+        // Populate AI Results Panel safely
+        const setTxt = (id, val) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = val || '';
+        };
+
+        setTxt('aiResName', opt.name || payload.name || 'Candidato');
+        setTxt('aiResHeadline', opt.headline || opt.target_role || payload.target_role || 'Perfil Profesional');
+        setTxt('aiResSummary', opt.summary || 'Resumen optimizado generado exitosamente.');
 
         // Render AI Experiences
         const expContainer = document.getElementById('aiResExperiences');
-        expContainer.innerHTML = '';
-        (opt.experience || []).forEach(exp => {
-          const div = document.createElement('div');
-          div.className = 'bg-slate-50 p-3.5 rounded-xl border border-slate-200';
-          const bullets = Array.isArray(exp.achievements) ? exp.achievements : [exp.achievements];
-          const bulletsHtml = bullets.map(b => `<li class="flex items-start gap-1.5"><span class="text-emerald-500 font-bold">&bull;</span><span>${b}</span></li>`).join('');
-          div.innerHTML = `
-            <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
-              <span class="font-bold text-slate-800">${exp.title || 'Cargo'}</span>
-              <span class="text-[11px] font-semibold text-slate-500">${exp.period || ''}</span>
-            </div>
-            <p class="text-xs text-indigo-700 font-medium mb-1.5">${exp.company || ''}</p>
-            <ul class="text-xs text-slate-600 space-y-1">${bulletsHtml}</ul>
-          `;
-          expContainer.appendChild(div);
-        });
+        if (expContainer) {
+          expContainer.innerHTML = '';
+          (opt.experience || []).forEach(exp => {
+            const div = document.createElement('div');
+            div.className = 'bg-[#0B0F17] p-3.5 rounded-xl border border-[#334155]/60';
+            const bullets = Array.isArray(exp.achievements) ? exp.achievements : [exp.achievements];
+            const bulletsHtml = bullets.map(b => `<li class="flex items-start gap-1.5"><span class="text-emerald-400 font-bold">&bull;</span><span>${b}</span></li>`).join('');
+            div.innerHTML = `
+              <div class="flex flex-wrap items-center justify-between gap-1 mb-1">
+                <span class="font-bold text-white">${exp.title || 'Cargo'}</span>
+                <span class="text-[11px] font-semibold text-emerald-400 font-mono">${exp.period || ''}</span>
+              </div>
+              <p class="text-xs text-indigo-400 font-medium mb-1.5">${exp.company || ''}</p>
+              <ul class="text-xs text-slate-300 space-y-1">${bulletsHtml}</ul>
+            `;
+            expContainer.appendChild(div);
+          });
+        }
 
         // Render AI Skills
         const skillsContainer = document.getElementById('aiResSkills');
-        skillsContainer.innerHTML = '';
-        const techSkills = opt.technical_skills || {};
-        for (const [category, skillsList] of Object.entries(techSkills)) {
-          if (Array.isArray(skillsList) && skillsList.length > 0) {
-            const catDiv = document.createElement('div');
-            catDiv.className = 'bg-slate-50 p-2.5 rounded-lg border border-slate-100';
-            const chips = skillsList.map(s => `<span class="bg-white border border-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
-            catDiv.innerHTML = `<p class="font-bold text-slate-700 text-[11px] mb-1">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
-            skillsContainer.appendChild(catDiv);
+        if (skillsContainer) {
+          skillsContainer.innerHTML = '';
+          const techSkills = opt.technical_skills || {};
+          for (const [category, skillsList] of Object.entries(techSkills)) {
+            if (Array.isArray(skillsList) && skillsList.length > 0) {
+              const catDiv = document.createElement('div');
+              catDiv.className = 'bg-[#0B0F17] p-2.5 rounded-lg border border-[#334155]/60';
+              const chips = skillsList.map(s => `<span class="bg-[#111827] border border-[#334155] text-emerald-300 px-2 py-0.5 rounded text-[11px] font-mono">${s}</span>`).join(' ');
+              catDiv.innerHTML = `<p class="font-bold text-slate-300 text-[11px] mb-1 font-mono">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
+              skillsContainer.appendChild(catDiv);
+            }
           }
         }
 
         // Render AI Education & Languages
         const eduContainer = document.getElementById('aiResEducation');
-        eduContainer.innerHTML = '';
-        (opt.education || []).forEach(edu => {
-          const p = document.createElement('div');
-          p.className = 'text-slate-700 bg-slate-50 p-2 rounded-lg border border-slate-100';
-          p.innerHTML = `<p class="font-bold">${edu.degree || 'Estudios'}</p><p class="text-[11px] text-slate-500">${edu.institution || ''} ${edu.year ? '('+edu.year+')' : ''}</p>`;
-          eduContainer.appendChild(p);
-        });
-        (opt.languages || []).forEach(lang => {
-          const l = document.createElement('span');
-          l.className = 'inline-block bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-semibold mr-1 mt-1';
-          l.textContent = `${lang.language}: ${lang.level}`;
-          eduContainer.appendChild(l);
-        });
+        if (eduContainer) {
+          eduContainer.innerHTML = '';
+          (opt.education || []).forEach(edu => {
+            const p = document.createElement('div');
+            p.className = 'text-slate-300 bg-[#0B0F17] p-2 rounded-lg border border-[#334155]/60';
+            p.innerHTML = `<p class="font-bold text-white">${edu.degree || 'Estudios'}</p><p class="text-[11px] text-slate-400">${edu.institution || ''} ${edu.year ? '('+edu.year+')' : ''}</p>`;
+            eduContainer.appendChild(p);
+          });
+          (opt.languages || []).forEach(lang => {
+            const l = document.createElement('span');
+            l.className = 'inline-block bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] font-semibold mr-1 mt-1 font-mono';
+            l.textContent = `${lang.language}: ${lang.level}`;
+            eduContainer.appendChild(l);
+          });
+        }
 
-        // Set download buttons
-        document.getElementById('btnAiDownloadPdf').href = data.pdf_download_url;
-        document.getElementById('btnAiDownloadDocx').href = data.docx_download_url;
+        // Set download buttons (both in AI panel and Extracted card)
+        if (data.pdf_download_url) {
+          const btnPdf = document.getElementById('btnDownloadPdf') || document.getElementById('btnAiDownloadPdf');
+          if (btnPdf) btnPdf.href = data.pdf_download_url;
+          const hdrPdf = document.getElementById('hdrBtnExportPdf');
+          if (hdrPdf) hdrPdf.setAttribute('onclick', `window.open('${data.pdf_download_url}', '_blank')`);
+        }
+        if (data.docx_download_url) {
+          const btnDocx = document.getElementById('btnDownloadDocx') || document.getElementById('btnAiDownloadDocx');
+          if (btnDocx) btnDocx.href = data.docx_download_url;
+          const hdrDocx = document.getElementById('hdrBtnExportDocx');
+          if (hdrDocx) hdrDocx.setAttribute('onclick', `window.open('${data.docx_download_url}', '_blank')`);
+        }
 
         // Automatically open PDF download in new tab
-        window.open(data.pdf_download_url, '_blank');
+        if (data.pdf_download_url) {
+          window.open(data.pdf_download_url, '_blank');
+        }
 
         if (loadingPanel) loadingPanel.classList.add('hidden');
         if (resultsPanel) {
@@ -3585,6 +3727,7 @@
           btnGenerate.disabled = false;
           btnGenerate.classList.remove('opacity-50', 'cursor-not-allowed');
         }
+        lucide.createIcons();
       }
     }
 
@@ -3644,13 +3787,8 @@
         loadHIL();
       }, 20000);
     });
-  </script>
-</body>
-</html>
 
-
-  <!-- STITCH SYNTHETIX COCKPIT INTERACTIVE EXTENSIONS -->
-  <script>
+    // --- STITCH SYNTHETIX COCKPIT INTERACTIVE EXTENSIONS ---
     function copyEnhancedText() {
       const el = document.getElementById('dispAiEnhancedText');
       if (el) {
