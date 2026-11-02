@@ -2732,6 +2732,18 @@
     }
 
     // Trigger Scan with Dynamic Location
+    async function reloadScanResults(location, search, remote) {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        await loadApplications({ location, search, remote });
+        if (document.querySelectorAll('#publicVacanciesGrid article').length > 0) return true;
+        await new Promise(resolve => setTimeout(resolve, 1200));
+      }
+      await loadApplications({ location, search: '', remote });
+      if (document.querySelectorAll('#publicVacanciesGrid article').length > 0) return true;
+      await loadApplications({ location: '', search: '', remote });
+      return document.querySelectorAll('#publicVacanciesGrid article').length > 0;
+    }
+
     async function triggerScan() {
       if (activeScanId) {
         showToast('Ya hay un escaneo en curso.');
@@ -2792,7 +2804,7 @@
               const scan = await statusRes.json();
               await Promise.all([loadStats(), loadHIL()]);
               if (scan.status === 'completed') {
-                await loadApplications({ location: scanLocation, search: scanSearch, remote });
+                await reloadScanResults(scanLocation, scanSearch, remote);
                 const errorCount = scan.source_errors?.length || 0;
                 const message = `Escaneo completado: ${scan.total_discovered || 0} vacantes encontradas.`;
                 showToast(errorCount ? `${message} ${errorCount} fuentes no respondieron.` : message);
