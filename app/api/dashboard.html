@@ -1047,16 +1047,16 @@
         <div class="flex flex-wrap items-center gap-2 pt-1">
           <span class="text-[11px] font-semibold text-slate-400">Accesos Rápidos:</span>
           <button type="button" onclick="setPresetLocation('remoto')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 transition flex items-center gap-1">
-            🌐 100% Remoto (Prioritario)
+            100% Remoto
           </button>
           <button type="button" onclick="setPresetLocation('valledupar')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/20 transition flex items-center gap-1">
-            📍 Valledupar, Cesar
+            Valledupar, Cesar
           </button>
           <button type="button" onclick="setPresetLocation('bogota')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-500/10 text-sky-300 border border-sky-500/30 hover:bg-sky-500/20 transition flex items-center gap-1">
-            🏢 Bogotá D.C.
+            Bogotá D.C.
           </button>
           <button type="button" onclick="setPresetLocation('medellin')" class="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/30 hover:bg-indigo-500/20 transition flex items-center gap-1">
-            🏢 Medellín, Antioquia
+            Medellín, Antioquia
           </button>
         </div>
 
@@ -1065,8 +1065,8 @@
           <div>
             <label class="block text-[11px] font-semibold text-slate-400 mb-1">País</label>
             <select id="cfgCountry" onchange="onCountryOrRegionChanged()" class="w-full border border-[#334155] rounded-lg p-2 text-xs bg-[#0B0F17] text-slate-100 font-medium focus:outline-none focus:border-emerald-500">
-              <option value="Colombia" selected>🇨🇴 Colombia</option>
-              <option value="Remote">🌐 Internacional / Remoto Global</option>
+              <option value="Colombia" selected>Colombia</option>
+              <option value="Remote">Internacional / Remoto Global</option>
             </select>
           </div>
           <div>
@@ -1088,7 +1088,7 @@
               <option value="Bogotá">Bogotá</option>
               <option value="Medellín">Medellín</option>
               <option value="Remoto">Remoto</option>
-              <option value="__CUSTOM__">✏️ Otra ciudad...</option>
+              <option value="__CUSTOM__">Otra ciudad...</option>
             </select>
             <input id="cfgCustomCity" type="text" placeholder="Escribe tu municipio..." class="hidden mt-1.5 w-full border border-[#334155] rounded-lg p-2 text-xs bg-[#0B0F17] text-slate-100 focus:outline-none focus:border-emerald-500">
           </div>
@@ -1135,9 +1135,10 @@
       </div>
 
       <!-- Applications Table -->
-      <div class="bg-[#111827] rounded-xl shadow-xl border border-[#334155]/60 overflow-hidden">
+      <div id="publicVacanciesGrid" class="hidden grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"></div>
+      <div id="applicationsTableContainer" class="bg-[#111827] rounded-xl shadow-xl border border-[#334155]/60 overflow-hidden">
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse text-xs">
+          <table class="w-full min-w-[900px] text-left border-collapse text-xs">
             <thead class="bg-[#1E293B]/80 text-slate-300 border-b border-[#334155]/60 text-xs uppercase font-semibold tracking-wider font-mono">
               <tr>
                 <th class="py-3 px-4">Match ATS</th>
@@ -2048,6 +2049,10 @@
       const filterSalary = document.getElementById('filterSalary')?.value || '';
 
       if (!currentUserId) {
+        const grid = document.getElementById('publicVacanciesGrid');
+        const table = document.getElementById('applicationsTableContainer');
+        if (grid) grid.classList.remove('hidden');
+        if (table) table.classList.add('hidden');
         const params = new URLSearchParams({ limit: '100' });
         if (source) params.set('source', source);
         try {
@@ -2074,17 +2079,17 @@
 
           const count = document.getElementById('appsCount');
           if (count) count.textContent = String(jobs.length);
-          const tbody = document.getElementById('applicationsTableBody');
           if (jobs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-400">
-              <p class="font-semibold text-slate-700">Aún no hay vacantes encontradas</p>
-              <p class="mt-1 text-xs">Inicia una búsqueda para consultar ofertas disponibles. Inicia sesión para guardar vacantes y preparar tu CV.</p>
-            </td></tr>`;
+            grid.innerHTML = `<div class="md:col-span-2 xl:col-span-3 rounded-2xl border border-dashed border-[#334155] bg-[#111827] px-6 py-12 text-center">
+              <i data-lucide="briefcase-business" class="mx-auto h-8 w-8 text-slate-500"></i>
+              <p class="mt-3 font-semibold text-slate-200">Aún no hay vacantes para mostrar</p>
+              <p class="mt-1 text-sm text-slate-400">Inicia una búsqueda para consultar ofertas disponibles.</p>
+            </div>`;
             lucide.createIcons();
             return;
           }
 
-          tbody.innerHTML = jobs.map(job => {
+          grid.innerHTML = jobs.map(job => {
             const company = escapeHtml(job.company || 'Empresa no informada');
             const title = escapeHtml(job.title || 'Cargo sin título');
             const location = escapeHtml(job.location || 'Ubicación no informada');
@@ -2093,28 +2098,37 @@
             const jobSource = escapeHtml(job.source || 'Fuente externa');
             const href = safeExternalJobUrl(job.url);
             const remote = /remoto|teletrabajo|home office|virtual/i.test(`${job.title} ${job.location || ''}`);
-            return `<tr class="hover:bg-slate-50/80 transition">
-              <td class="py-3 px-4 text-slate-400">—</td>
-              <td class="py-3 px-4 font-semibold text-slate-800">${company}</td>
-              <td class="py-3 px-4">
-                <div class="font-medium text-slate-900">${title}</div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${remote ? '🌐 Remoto' : `📍 ${location}`}</div>
-              </td>
-              <td class="py-3 px-4 whitespace-nowrap"><span class="text-[11px] text-slate-600">${salary}</span>${date ? `<div class="text-[10px] text-sky-700 mt-1">${date}</div>` : ''}</td>
-              <td class="py-3 px-4 uppercase text-[11px] font-medium text-slate-500">${jobSource}</td>
-              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">Encontrada</span></td>
-              <td class="py-3 px-4"><button type="button" onclick="openAuthModal('login')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Inicia sesión</button></td>
-              <td class="py-3 px-4 text-right whitespace-nowrap">${href ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">Ver oferta ↗</a>` : '<span class="text-xs text-slate-400">Enlace no disponible</span>'}</td>
-            </tr>`;
+            return `<article class="group flex min-h-56 flex-col rounded-2xl border border-[#334155]/70 bg-[#111827] p-5 shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-emerald-500/40 hover:shadow-emerald-950/20">
+              <div class="flex items-start justify-between gap-3">
+                <div class="min-w-0">
+                  <p class="truncate text-xs font-medium text-slate-400">${company}</p>
+                  <h3 class="mt-1 line-clamp-2 text-base font-semibold leading-snug text-white">${title}</h3>
+                </div>
+                <span class="shrink-0 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">${remote ? 'Remoto' : 'Vacante'}</span>
+              </div>
+              <div class="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-400">
+                <span class="inline-flex items-center gap-1.5"><i data-lucide="map-pin" class="h-3.5 w-3.5 text-slate-500"></i>${location}</span>
+                <span class="inline-flex items-center gap-1.5"><i data-lucide="wallet" class="h-3.5 w-3.5 text-slate-500"></i>${salary}</span>
+                ${date ? `<span class="inline-flex items-center gap-1.5"><i data-lucide="calendar-days" class="h-3.5 w-3.5 text-slate-500"></i>${date}</span>` : ''}
+              </div>
+              <div class="mt-auto flex items-center justify-between gap-3 border-t border-[#1E293B] pt-4">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-wider text-slate-500">${jobSource}</span>
+                ${href ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-500 px-3 py-2 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400">Ver vacante<i data-lucide="arrow-up-right" class="h-3.5 w-3.5"></i></a>` : '<span class="text-xs text-slate-500">Enlace no disponible</span>'}
+              </div>
+            </article>`;
           }).join('');
           lucide.createIcons();
         } catch (e) {
           console.error('Error cargando vacantes públicas:', e);
-          const tbody = document.getElementById('applicationsTableBody');
-          if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-600">No se pudieron cargar las vacantes. Intenta actualizar la lista.</td></tr>`;
+          if (grid) grid.innerHTML = `<div class="md:col-span-2 xl:col-span-3 rounded-2xl border border-rose-500/30 bg-[#111827] px-6 py-10 text-center text-sm text-rose-300">No se pudieron cargar las vacantes. Intenta actualizar la lista.</div>`;
         }
         return;
       }
+
+      const grid = document.getElementById('publicVacanciesGrid');
+      const table = document.getElementById('applicationsTableContainer');
+      if (grid) grid.classList.add('hidden');
+      if (table) table.classList.remove('hidden');
 
       let url = '/api/applications/?limit=100';
       if (currentUserId) url += `&user_id=${currentUserId}`;
@@ -2177,63 +2191,63 @@
           else if (a.status === 'INTERVIEW') badgeClass = 'badge-entrevista';
 
           let cvLabel = 'PDF ATS';
-          let cvFlag = '📄';
+          let cvIcon = 'file-text';
           if (a.cv_path) {
             const lowerPath = a.cv_path.toLowerCase();
             if (lowerPath.includes('-en-')) {
               cvLabel = 'ATS (EN)';
-              cvFlag = '🇺🇸';
+              cvIcon = 'languages';
             } else if (lowerPath.includes('-es-')) {
               cvLabel = 'ATS (ES)';
-              cvFlag = '🇨🇴';
+              cvIcon = 'languages';
             }
           }
 
           const cvBtn = a.cv_path 
             ? `<div class="inline-flex items-center gap-1">
-                 <a href="/cv_downloads/${a.cv_path.split(/[\\\\/]/).pop()}" target="_blank" class="text-purple-700 hover:text-purple-900 font-semibold inline-flex items-center gap-1 text-[11px] bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-0.5 rounded shadow-xs" title="Ver CV ATS Personalizado (${cvLabel})">
-                   <span>${cvFlag}</span> <span>${cvLabel}</span>
+                 <a href="/cv_downloads/${a.cv_path.split(/[\\\\/]/).pop()}" target="_blank" class="text-purple-300 hover:text-purple-200 font-semibold inline-flex items-center gap-1 text-[11px] bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/20 px-2 py-1 rounded" title="Ver CV ATS Personalizado (${cvLabel})">
+                   <i data-lucide="${cvIcon}" class="h-3.5 w-3.5"></i><span>${cvLabel}</span>
                  </a>
-                 <button onclick="prepareCv('${a.job_id}', '${a.cv_path.toLowerCase().includes('-en-') ? 'es' : 'en'}')" class="text-[10px] text-slate-400 hover:text-purple-700 px-1 py-0.5 rounded hover:bg-slate-100" title="Cambiar idioma del CV (EN / ES)">🔄</button>
+                 <button onclick="prepareCv('${a.job_id}', '${a.cv_path.toLowerCase().includes('-en-') ? 'es' : 'en'}')" class="text-[10px] text-slate-400 hover:text-purple-300 p-1 rounded hover:bg-[#1E293B]" title="Cambiar idioma del CV (EN / ES)"><i data-lucide="languages" class="h-3.5 w-3.5"></i></button>
                </div>`
-            : `<button onclick="prepareCv('${a.job_id}')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded hover:bg-indigo-100">Generar CV</button>`;
+            : `<button onclick="prepareCv('${a.job_id}')" class="text-xs text-indigo-300 hover:text-indigo-200 font-medium bg-indigo-500/10 border border-indigo-500/20 px-2 py-1 rounded hover:bg-indigo-500/20">Generar CV</button>`;
 
           const locText = `${a.position} ${a.location || ''}`.toLowerCase();
           const isRemote = locText.includes('remoto') || locText.includes('teletrabajo') || locText.includes('home office') || locText.includes('virtual');
           const remoteBadge = isRemote 
-            ? `<span class="bg-purple-100 text-purple-700 font-semibold px-1.5 py-0.5 rounded text-[10px] border border-purple-200 inline-flex items-center gap-1 ml-1.5">🌐 100% Remoto</span>` 
-            : `<span class="text-slate-400 text-[10px] ml-1">📍 ${a.location || 'Presencial'}</span>`;
+            ? `<span class="bg-purple-500/10 text-purple-300 font-semibold px-1.5 py-0.5 rounded text-[10px] border border-purple-500/20 inline-flex items-center gap-1 ml-1.5"><i data-lucide="wifi" class="h-3 w-3"></i>Remoto</span>`
+            : `<span class="text-slate-400 text-[10px] ml-1 inline-flex items-center gap-1"><i data-lucide="map-pin" class="h-3 w-3"></i>${escapeHtml(a.location || 'Presencial')}</span>`;
 
           const salaryText = a.salary || 'A convenir';
           const hasSalaryNumber = /\d{6,}/.test(salaryText.replace(/\D/g, ''));
           const salaryBadge = hasSalaryNumber 
-            ? `<span class="bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold px-2 py-0.5 rounded text-[11px] inline-flex items-center gap-1">💰 ${salaryText}</span>` 
-            : `<span class="bg-slate-50 text-slate-500 border border-slate-200 px-2 py-0.5 rounded text-[11px]">💰 ${salaryText}</span>`;
+            ? `<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/20 font-semibold px-2 py-1 rounded text-[11px] inline-flex items-center gap-1"><i data-lucide="wallet" class="h-3 w-3"></i>${escapeHtml(salaryText)}</span>`
+            : `<span class="bg-[#1E293B] text-slate-400 border border-[#334155] px-2 py-1 rounded text-[11px] inline-flex items-center gap-1"><i data-lucide="wallet" class="h-3 w-3"></i>${escapeHtml(salaryText)}</span>`;
 
           const dateBadge = a.publication_date 
-            ? `<div class="text-[10px] text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-1 font-mono">⏱️ ${a.publication_date}</div>` 
+            ? `<div class="text-[10px] text-sky-300 bg-sky-500/10 border border-sky-500/20 px-1.5 py-0.5 rounded inline-flex items-center gap-1 mt-1 font-mono"><i data-lucide="calendar-days" class="h-3 w-3"></i>${escapeHtml(a.publication_date)}</div>`
             : '';
 
           return `
-            <tr class="hover:bg-slate-50/80 transition">
+            <tr class="hover:bg-[#1E293B]/50 transition">
               <td class="py-3 px-4 font-bold">
                 <span class="px-2 py-0.5 rounded-full text-xs ${badgeClass}">
                   ${a.match_score}%
                 </span>
               </td>
-              <td class="py-3 px-4 font-semibold text-slate-800">${a.company}</td>
+              <td class="py-3 px-4 font-semibold text-slate-200">${escapeHtml(a.company)}</td>
               <td class="py-3 px-4">
-                <div class="font-medium text-slate-900 flex flex-wrap items-center">
-                  <span>${a.position}</span>
+                <div class="font-medium text-slate-100 flex flex-wrap items-center">
+                  <span>${escapeHtml(a.position)}</span>
                   ${remoteBadge}
                 </div>
-                <div class="text-[11px] text-slate-400 mt-0.5">${a.does_not_meet_required_requirement ? '<span class="text-rose-600 font-semibold">Excluido: Requisito obligatorio no cumplido</span>' : 'Afinidad junior comprobada'}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">${a.does_not_meet_required_requirement ? '<span class="text-rose-300 font-semibold">Excluido: requisito obligatorio no cumplido</span>' : 'Afinidad con el perfil'}</div>
               </td>
               <td class="py-3 px-4 whitespace-nowrap">
                 ${salaryBadge}
                 ${dateBadge}
               </td>
-              <td class="py-3 px-4 uppercase text-[11px] font-medium text-slate-500">${a.source}</td>
+              <td class="py-3 px-4 uppercase text-[11px] font-medium text-slate-400">${escapeHtml(a.source)}</td>
               <td class="py-3 px-4">
                 <span class="px-2 py-0.5 rounded text-[10px] font-semibold ${badgeClass}">
                   ${a.status}
@@ -2241,14 +2255,14 @@
               </td>
               <td class="py-3 px-4">${cvBtn}</td>
               <td class="py-3 px-4 text-right space-x-1 whitespace-nowrap">
-                <a href="${a.url}" target="_blank" class="text-slate-500 hover:text-slate-800 p-1 rounded inline-block" title="Ver Oferta">
+                <a href="${safeExternalJobUrl(a.url)}" target="_blank" rel="noopener noreferrer" class="text-slate-400 hover:text-white p-1 rounded inline-block" title="Ver Oferta">
                   <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                 </a>
                 <button onclick="applyApp('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', false)" class="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-2.5 py-1 rounded text-[11px] transition inline-flex items-center gap-1 shadow-xs" title="Enviar postulación real directamente con Autopilot">
                   <i data-lucide="send" class="w-3 h-3"></i>
                   <span>Postular</span>
                 </button>
-                <button onclick="openCoverLetterModal('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', '${escapeJsArg(a.cover_letter || '')}', '${escapeJsArg(a.cv_path || '')}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-2 py-1 rounded text-[11px] font-medium transition inline-flex items-center gap-1" title="Ver Carta de Presentación y Contacto Directo para Entrevista">
+                <button onclick="openCoverLetterModal('${a.id}', '${escapeJsArg(a.company)}', '${escapeJsArg(a.position)}', '${escapeJsArg(a.cover_letter || '')}', '${escapeJsArg(a.cv_path || '')}')" class="bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/20 px-2 py-1 rounded text-[11px] font-medium transition inline-flex items-center gap-1" title="Ver Carta de Presentación y Contacto Directo para Entrevista">
                   <i data-lucide="mail" class="w-3 h-3"></i>
                   <span>Contacto</span>
                 </button>
@@ -2484,28 +2498,28 @@
         if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Cualquier Ciudad / Remoto';
-        showToast('Preset aplicado: 🌐 100% Remoto (Nacional)');
+        showToast('Preset aplicado: 100% Remoto (Nacional)');
       } else if (preset === 'valledupar') {
         c.value = 'Colombia';
         r.value = 'Cesar';
         if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Valledupar';
-        showToast('Preset aplicado: 📍 Valledupar, Cesar');
+        showToast('Preset aplicado: Valledupar, Cesar');
       } else if (preset === 'bogota') {
         c.value = 'Colombia';
         r.value = 'Bogotá D.C.';
         if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Bogotá';
-        showToast('Preset aplicado: 🏢 Bogotá D.C.');
+        showToast('Preset aplicado: Bogotá D.C.');
       } else if (preset === 'nacional') {
         c.value = 'Colombia';
         r.value = 'Nacional';
         if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Nivel Nacional (Todas las ciudades)';
-        showToast('Preset aplicado: 🇨🇴 Toda Colombia');
+        showToast('Preset aplicado: Toda Colombia');
       }
     }
 
