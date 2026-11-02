@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import sessionmaker, Session
 from app.storage.models import Base
 
@@ -31,11 +32,15 @@ def build_engine(url_str: str = None):
             url_str = f"{scheme}://{rest}"
 
         try:
+            connect_args = {}
+            if make_url(url_str).drivername == "postgresql+psycopg":
+                connect_args["prepare_threshold"] = None
             return create_engine(
                 url_str,
                 pool_pre_ping=True,
                 pool_size=10,
                 max_overflow=20,
+                connect_args=connect_args,
                 echo=False
             )
         except Exception as e:

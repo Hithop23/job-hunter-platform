@@ -2041,6 +2041,23 @@
       }
     }
 
+    function getSearchLocation() {
+      const country = document.getElementById('cfgCountry')?.value || '';
+      const region = document.getElementById('cfgRegion')?.value || '';
+      const city = getSelectedCity();
+
+      if (country === 'Remote') return 'Remote';
+      if (city && !['Cualquier Ciudad / Remoto', 'Nivel Nacional (Todas las ciudades)'].includes(city)) {
+        return city;
+      }
+      return region && region !== 'Nacional' ? region : '';
+    }
+
+    function getSearchKeywords() {
+      const quickSearch = document.getElementById('quickSearchInput')?.value.trim() || '';
+      return quickSearch || document.getElementById('cfgKeywords')?.value.trim() || '';
+    }
+
     async function loadApplications() {
       const source = document.getElementById('filterSource')?.value || '';
       const status = document.getElementById('filterStatus')?.value || '';
@@ -2054,7 +2071,13 @@
         if (grid) grid.classList.remove('hidden');
         if (table) table.classList.add('hidden');
         const params = new URLSearchParams({ limit: '100' });
+        const location = getSearchLocation();
+        const search = getSearchKeywords();
+        const includeRemote = document.getElementById('cfgRemote')?.checked ?? true;
         if (source) params.set('source', source);
+        if (location) params.set('location', location);
+        if (search) params.set('search', search);
+        params.set('remote', String(includeRemote));
         try {
           const res = await fetch(`/api/jobs/?${params.toString()}`);
           if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
@@ -2130,11 +2153,18 @@
       if (grid) grid.classList.add('hidden');
       if (table) table.classList.remove('hidden');
 
-      let url = '/api/applications/?limit=100';
-      if (currentUserId) url += `&user_id=${currentUserId}`;
-      if (source) url += `&source=${source}`;
-      if (status) url += `&status=${status}`;
-      if (minScore) url += `&min_score=${minScore}`;
+      const params = new URLSearchParams({ limit: '100' });
+      const location = getSearchLocation();
+      const search = getSearchKeywords();
+      const includeRemote = document.getElementById('cfgRemote')?.checked ?? true;
+      if (currentUserId) params.set('user_id', currentUserId);
+      if (source) params.set('source', source);
+      if (status) params.set('status', status);
+      if (minScore) params.set('min_score', minScore);
+      if (location) params.set('location', location);
+      if (search) params.set('search', search);
+      params.set('remote', String(includeRemote));
+      const url = `/api/applications/?${params.toString()}`;
 
       try {
         const res = await fetch(url);
@@ -2465,6 +2495,7 @@
           citySelect.add(new Option(c, c));
         }
       });
+      loadApplications();
     }
 
     function handleCityDropdownChange(val) {
@@ -2476,15 +2507,18 @@
       } else {
         customInput.classList.add('hidden');
       }
+      loadApplications();
     }
 
     function getSelectedCity() {
       const citySelect = document.getElementById('cfgCity');
       if (!citySelect) return '';
       if (citySelect.value === '__custom__') {
-        return document.getElementById('cfgCustomCity')?.value.trim() || 'Nivel Nacional';
+        return document.getElementById('cfgCustomCity')?.value.trim() || '';
       }
-      return citySelect.value;
+      return ['Cualquier Ciudad / Remoto', 'Nivel Nacional (Todas las ciudades)'].includes(citySelect.value)
+        ? ''
+        : citySelect.value;
     }
 
     function setPresetLocation(preset) {
@@ -2521,6 +2555,7 @@
         document.getElementById('cfgCity').value = 'Nivel Nacional (Todas las ciudades)';
         showToast('Preset aplicado: Toda Colombia');
       }
+      loadApplications();
     }
 
     // Fetch Profile & Location Preferences
@@ -2707,8 +2742,7 @@
       const region = document.getElementById('cfgRegion')?.value || '';
       const city = getSelectedCity();
       const remote = document.getElementById('cfgRemote')?.checked ?? true;
-      const quickSearch = document.getElementById('quickSearchInput')?.value.trim();
-      const query = quickSearch || document.getElementById('cfgKeywords').value.trim();
+      const query = getSearchKeywords();
 
       const btn = document.getElementById('btnScan');
       btn.disabled = true;
@@ -2717,8 +2751,8 @@
       btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Iniciando escaneo...</span>`;
       lucide.createIcons();
 
-      const targetLoc = city || region || country;
-      showToast(`Iniciando escaneo en 10 portales para ${targetLoc}...`);
+      const targetLoc = getSearchLocation();
+      showToast(`Iniciando escaneo en ${remote ? 9 : 6} portales para ${targetLoc || country}...`);
 
       try {
         const params = new URLSearchParams({
@@ -2739,7 +2773,7 @@
         if (res.ok) {
           if (!data.scan_id) throw new Error('El servidor no devolvió el identificador del escaneo.');
           activeScanId = data.scan_id;
-          showToast(`🚀 ${data.message || 'Escaneo en curso en 10 fuentes.'}`);
+          showToast(`🚀 ${data.message || `Escaneo en curso en ${remote ? 9 : 6} fuentes.`}`);
           let polls = 0;
           const finishScan = () => {
             activeScanId = null;
@@ -2756,7 +2790,9 @@
               const scan = await statusRes.json();
               await Promise.all([loadStats(), loadApplications(), loadHIL()]);
               if (scan.status === 'completed') {
-                showToast(`✅ Escaneo completado: ${scan.total_discovered || 0} vacantes encontradas.`);
+                const errorCount = scan.source_errors?.length || 0;
+                const message = `Escaneo completado: ${scan.total_discovered || 0} vacantes encontradas.`;
+                showToast(errorCount ? `${message} ${errorCount} fuentes no respondieron.` : message);
                 finishScan();
                 return;
               }

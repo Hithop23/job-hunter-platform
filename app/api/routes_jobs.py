@@ -1,6 +1,8 @@
 import asyncio
 import json
 import logging
+import re
+import unicodedata
 import uuid
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
@@ -13,7 +15,6 @@ from app.cv.cv_generator import ATSCVGenerator
 from app.cv.cover_letter import CoverLetterGenerator
 from app.adapters.sena.sena_adapter import SENAAdapter
 from app.adapters.spe.spe_adapter import SPEAdapter
-from app.adapters.cnsc.cnsc_adapter import CNSCAdapter
 from app.adapters.computrabajo.computrabajo_adapter import ComputrabajoAdapter
 from app.adapters.indeed.indeed_adapter import IndeedAdapter
 from app.adapters.linkedin.linkedin_adapter import LinkedInAdapter
@@ -25,6 +26,42 @@ from app.notifications.notifier import Notifier
 
 router = APIRouter(prefix="/api/jobs", tags=["Jobs & Discovery"])
 scan_runs: Dict[str, Dict[str, Any]] = {}
+
+def _normalize_location(value: str) -> str:
+    normalized = unicodedata.normalize("NFKD", value or "")
+    without_accents = "".join(char for char in normalized if not unicodedata.combining(char))
+    return re.sub(r"[^a-z0-9]+", " ", without_accents.lower()).strip()
+
+
+def _matches_location(
+    job_location: Optional[str],
+    requested_location: str,
+    include_remote: bool,
+    job_title: str = "",
+) -> bool:
+    normalized_job_location = _normalize_location(job_location or "")
+    normalized_requested = _normalize_location(requested_location)
+    normalized_job_text = f"{normalized_job_location} {_normalize_location(job_title)}"
+    is_remote_job = any(
+        marker in normalized_job_text
+        for marker in ("remote", "remoto", "teletrabajo", "worldwide", "anywhere", "home office", "virtual")
+    )
+
+    if is_remote_job:
+        return include_remote
+    if not normalized_requested:
+        return True
+    if normalized_requested == "remote":
+        return False
+
+    ignored_terms = {"todo", "toda", "el", "la", "los", "las", "de", "del", "alrededores"}
+    requested_terms = [
+        term for term in normalized_requested.split()
+        if len(term) > 1 and term not in ignored_terms
+    ]
+    return bool(requested_terms) and all(
+        term in normalized_job_location for term in requested_terms
+    )
 
 
 async def run_discovery_task(
@@ -72,26 +109,38 @@ async def run_discovery_task(
     adapters = [
         SENAAdapter(db_session),
         SPEAdapter(db_session),
-        CNSCAdapter(db_session),
         CompanyDirectoryAdapter(db_session),
         ComputrabajoAdapter(db_session),
         IndeedAdapter(db_session),
         LinkedInAdapter(db_session),
-        # 🌍 Global remote adapters — worldwide remote job discovery
-        RemoteOKAdapter(db_session),
-        ArbeitnowAdapter(db_session),
-        WeWorkRemotelyAdapter(db_session),
     ]
+    if remote:
+        adapters.extend([
+            RemoteOKAdapter(db_session),
+            ArbeitnowAdapter(db_session),
+            WeWorkRemotelyAdapter(db_session),
+        ])
 
     total_discovered = 0
     total_matched = 0
-
-    effective_location = location or region or country
+    source_errors = []
+    effective_location = location or (
+        region if region and region.casefold() != "nacional" else country
+    )
+    location_filter = location or ""
+    log = logging.getLogger("JOB_HUNTER_SCAN")
 
     for adapter in adapters:
         try:
             jobs = await adapter.discover_jobs(query=query, location=effective_location, limit=10)
             for j in jobs:
+                if not _matches_location(
+                    j.get("location"),
+                    location_filter,
+                    remote,
+                    j.get("title", ""),
+                ):
+                    continue
                 job_obj, is_new = repo.store_job(j)
                 total_discovered += 1
 
@@ -171,17 +220,28 @@ async def run_discovery_task(
                     status=status
                 )
         except Exception as e:
-            repo.log_audit(
-                source=adapter.name,
-                action=f"DISCOVERY_{mode}",
-                result="ERROR",
-                error=str(e)
-            )
+            db_session.rollback()
+            source_errors.append({
+                "source": adapter.name,
+                "message": "No se pudo consultar esta fuente.",
+            })
+            log.warning("Error consultando fuente de vacantes %s", adapter.name, exc_info=True)
+            try:
+                repo.log_audit(
+                    source=adapter.name,
+                    action=f"DISCOVERY_{mode}",
+                    result="ERROR",
+                    error=str(e),
+                )
+            except Exception:
+                db_session.rollback()
+                log.exception("No se pudo guardar la auditoría de la fuente %s", adapter.name)
 
     return {
         "total_discovered": total_discovered,
         "total_matched": total_matched,
-        "location": effective_location
+        "location": effective_location,
+        "source_errors": source_errors,
     }
 
 
@@ -196,7 +256,7 @@ async def _async_discovery_runner(scan_id, mode, query, location, country, regio
         scan_runs[scan_id] = {"status": "completed", **result}
     except Exception as e:
         log.error(f"Error en escaneo en segundo plano: {e}", exc_info=True)
-        scan_runs[scan_id] = {"status": "failed", "error": str(e)}
+        scan_runs[scan_id] = {"status": "failed", "error": "No se pudo completar el escaneo."}
     finally:
         db.close()
 
@@ -246,10 +306,10 @@ async def trigger_scan(
 
     final_country = country or prefs.get("country") or "Colombia"
     final_region = region or prefs.get("region") or "Cesar"
-    final_city = city or prefs.get("city") or "Valledupar"
+    final_city = city if city is not None else prefs.get("city") or "Valledupar"
     final_remote = remote if remote is not None else prefs.get("remote", True)
-    final_query = query or prefs.get("keywords") or "soporte TI sistemas"
-    final_location = location or final_city or final_region or final_country
+    final_query = query.strip() if query is not None else prefs.get("keywords") or "soporte TI sistemas"
+    final_location = location if location is not None else final_city or final_region or final_country
 
     if is_async:
         scan_id = str(uuid.uuid4())
@@ -273,7 +333,7 @@ async def trigger_scan(
             "mode": mode,
             "query": final_query,
             "location": final_location,
-            "message": f"Búsqueda activa iniciada en 10 portales para {final_location}. Las vacantes se irán actualizando automáticamente."
+            "message": f"Búsqueda activa iniciada en {9 if final_remote else 6} portales para {final_location}. Las vacantes se irán actualizando automáticamente."
         }
 
     result = await run_discovery_task(
@@ -290,6 +350,7 @@ async def trigger_scan(
         "status": "completed",
         "total_discovered": result["total_discovered"],
         "total_matched": result["total_matched"],
+        "source_errors": result["source_errors"],
         "mode": mode,
         "query": final_query,
         "country": final_country,
@@ -314,12 +375,22 @@ def list_jobs(
     source: Optional[str] = None,
     company: Optional[str] = None,
     search: Optional[str] = None,
+    location: Optional[str] = None,
+    remote: Optional[bool] = None,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db)
 ):
     repo = Repository(db)
-    jobs = repo.list_jobs(source=source, company=company, search=search, limit=limit, offset=offset)
+    jobs = repo.list_jobs(
+        source=source,
+        company=company,
+        search=search,
+        location=location,
+        remote=remote,
+        limit=limit,
+        offset=offset,
+    )
     return {
         "total": len(jobs),
         "jobs": [

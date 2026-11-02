@@ -1,10 +1,11 @@
 import hashlib
+import unicodedata
 import uuid
 import json
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Dict, Any, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, or_
+from sqlalchemy import and_, func, desc, or_
 from app.storage.models import (
     Job,
     Application,
@@ -14,6 +15,35 @@ from app.storage.models import (
     SystemAuditLog,
     UserProfile,
 )
+
+def _location_filter(column, location: str):
+    normalized_column = func.lower(column)
+    for accented, plain in (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+        ("ü", "u"),
+        ("ñ", "n"),
+    ):
+        normalized_column = func.replace(normalized_column, accented, plain)
+
+    normalized_location = unicodedata.normalize("NFKD", location.strip().lower())
+    normalized_location = "".join(
+        character for character in normalized_location
+        if not unicodedata.combining(character)
+    ).replace("ñ", "n")
+    return normalized_column.like(f"%{normalized_location}%")
+
+
+def _remote_job_filter():
+    remote_markers = ("remote", "remoto", "teletrabajo", "home office", "virtual", "worldwide", "anywhere")
+    return or_(*(
+        column.ilike(f"%{marker}%")
+        for column in (Job.location, Job.title)
+        for marker in remote_markers
+    ))
 
 
 def compute_job_hash(company: str, title: str, url: str) -> str:
@@ -86,6 +116,8 @@ class Repository:
         source: Optional[str] = None,
         company: Optional[str] = None,
         search: Optional[str] = None,
+        location: Optional[str] = None,
+        remote: Optional[bool] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[Job]:
@@ -94,6 +126,16 @@ class Repository:
             q = q.filter(Job.source == source)
         if company:
             q = q.filter(Job.company.ilike(f"%{company}%"))
+        if location:
+            location_filter = _location_filter(Job.location, location)
+            if remote is True:
+                q = q.filter(or_(location_filter, _remote_job_filter()))
+            elif remote is False:
+                q = q.filter(location_filter, ~_remote_job_filter())
+            else:
+                q = q.filter(location_filter)
+        elif remote is False:
+            q = q.filter(~_remote_job_filter())
         if search:
             q = q.filter(
                 or_(
@@ -107,11 +149,27 @@ class Repository:
     # ------------------ APPLICATIONS ------------------
     def create_or_update_application(self, app_data: Dict[str, Any]) -> Application:
         job_id = app_data["job_id"]
-        app = self.db.query(Application).filter(Application.job_id == job_id).first()
+        raw_user_id = app_data.get("user_id")
+        if raw_user_id is not None:
+            try:
+                user_id = str(uuid.UUID(str(raw_user_id)))
+            except (ValueError, TypeError, AttributeError) as exc:
+                raise ValueError("user_id must be a valid UUID") from exc
+        else:
+            user_id = None
+
+        app_query = self.db.query(Application).filter(Application.job_id == job_id)
+        if "user_id" in app_data:
+            if user_id:
+                app_query = app_query.filter(Application.user_id == user_id)
+            else:
+                app_query = app_query.filter(Application.user_id.is_(None))
+        app = app_query.first()
         if not app:
             app = Application(
                 id=app_data.get("id") or str(uuid.uuid4()),
                 job_id=job_id,
+                user_id=user_id,
                 company=app_data["company"],
                 position=app_data["position"],
                 url=app_data["url"],
@@ -171,6 +229,9 @@ class Repository:
         company: Optional[str] = None,
         min_score: Optional[float] = None,
         user_id: Optional[str] = None,
+        search: Optional[str] = None,
+        location: Optional[str] = None,
+        remote: Optional[bool] = None,
         limit: int = 100,
         offset: int = 0,
     ) -> List[Application]:
@@ -189,6 +250,24 @@ class Repository:
             q = q.filter(Application.company.ilike(f"%{company}%"))
         if min_score is not None:
             q = q.filter(Application.match_score >= min_score)
+        if search:
+            q = q.join(Application.job).filter(
+                or_(
+                    Application.position.ilike(f"%{search.strip()}%"),
+                    Application.company.ilike(f"%{search.strip()}%"),
+                    Job.description.ilike(f"%{search.strip()}%"),
+                    Job.requirements.ilike(f"%{search.strip()}%"),
+                )
+            )
+        if location:
+            location_filter = _location_filter(Job.location, location)
+            if remote is True:
+                location_filter = or_(location_filter, _remote_job_filter())
+            elif remote is False:
+                location_filter = and_(location_filter, ~_remote_job_filter())
+            q = q.filter(Application.job.has(location_filter))
+        elif remote is False:
+            q = q.filter(Application.job.has(~_remote_job_filter()))
         return q.order_by(desc(Application.updated_at)).offset(offset).limit(limit).all()
 
     # ------------------ HUMAN REVIEW QUEUE ------------------

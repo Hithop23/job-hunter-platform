@@ -38,12 +38,13 @@ class IndeedAdapter(BaseJobAdapter):
             async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 headers = {"User-Agent": "Mozilla/5.0"}
                 if is_remote:
-                    # Global search — no location, remote filter, last 14 days
-                    url = f"{self.base_url_global}/jobs?q={query}&remotejob=1&fromage=14"
+                    url = f"{self.base_url_global}/jobs"
+                    params = {"q": query, "remotejob": "1", "fromage": "14"}
                 else:
-                    url = f"{self.base_url_co}/jobs?q={query}&l={location}"
+                    url = f"{self.base_url_co}/jobs"
+                    params = {"q": query, "l": location}
 
-                resp = await client.get(url, headers=headers)
+                resp = await client.get(url, headers=headers, params=params)
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, "html.parser")
                     cards = soup.select(".job_seen_beacon, .result")

@@ -39,43 +39,6 @@ class CNSCAdapter(BaseJobAdapter):
         except Exception:
             pass
 
-        # High-relevance CNSC opportunities specifically for Nivel Técnico / Asistencial TI
-        sample_opec = [
-            {
-                "id": "cnsc-opec-204192",
-                "source": "cnsc",
-                "external_id": "OPEC-204192",
-                "company": "Gobernación del Cesar / Alcaldía de Valledupar (Convocatoria Territorial)",
-                "title": "Técnico Operativo — Área de Sistemas e Informática",
-                "location": "Valledupar, Cesar",
-                "url": "https://simo.cnsc.gov.co/#ofertaEmpleo?opec=204192",
-                "description": "Propósito principal: Realizar el mantenimiento preventivo y correctivo del parque computacional, configuración de redes locales y soporte a funcionarios en aplicativos institucionales.",
-                "requirements": "Nivel Técnico: Título de formación técnica laboral o tecnológica en Sistemas, Informática o Telecomunicaciones (SENA o afín). Experiencia: 6 meses de experiencia laboral o relacionada.",
-                "salary": "$2.150.000 COP",
-                "employment_type": "Carrera Administrativa / Empleo Público",
-                "publication_date": "2026-09-10",
-                "closing_date": "2026-10-15"
-            },
-            {
-                "id": "cnsc-opec-205318",
-                "source": "cnsc",
-                "external_id": "OPEC-205318",
-                "company": "Instituto Colombiano de Bienestar Familiar (ICBF) - Regional Cesar",
-                "title": "Auxiliar Administrativo / Soporte de Sistemas",
-                "location": "Valledupar, Cesar",
-                "url": "https://simo.cnsc.gov.co/#ofertaEmpleo?opec=205318",
-                "description": "Atención técnica de estaciones de trabajo, soporte básico de conectividad e inventario de equipos tecnológicos.",
-                "requirements": "Nivel Asistencial: Bachiller o Técnico en Sistemas. Experiencia relacionada mínima de seis (6) meses.",
-                "salary": "$1.850.000 COP",
-                "employment_type": "Carrera Administrativa",
-                "publication_date": "2026-09-12",
-                "closing_date": "2026-10-20"
-            }
-        ]
-
-        for op in sample_opec:
-            jobs.append(self.normalize_job(op))
-
         return jobs
 
     async def get_job_details(self, raw_job: Dict[str, Any]) -> Dict[str, Any]:

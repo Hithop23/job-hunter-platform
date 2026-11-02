@@ -25,6 +25,9 @@ def list_applications(
     company: Optional[str] = None,
     min_score: Optional[float] = None,
     user_id: Optional[str] = Query(None),
+    search: Optional[str] = None,
+    location: Optional[str] = None,
+    remote: Optional[bool] = None,
     limit: int = 50,
     offset: int = 0,
     db: Session = Depends(get_db)
@@ -37,7 +40,16 @@ def list_applications(
         }
     repo = Repository(db)
     apps = repo.list_applications(
-        status=status, source=source, company=company, min_score=min_score, user_id=user_id, limit=limit, offset=offset
+        status=status,
+        source=source,
+        company=company,
+        min_score=min_score,
+        user_id=user_id,
+        search=search,
+        location=location,
+        remote=remote,
+        limit=limit,
+        offset=offset,
     )
     return {
         "total": len(apps),

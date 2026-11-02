@@ -27,15 +27,12 @@ class SENAAdapter(BaseJobAdapter):
         jobs = []
         try:
             self.record_access(action_type="SCAN")
-            # In live production this connects to APE SENA endpoints or public search
-            # We provide both live scraping logic and resilient mock/fallback seed data for zero-downtime
             async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 headers = {
                     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
                 }
-                dpto_param = location.strip().lower()
-                search_url = f"{self.base_url}/spe/ofertas-empleo?q={query}&dpto={dpto_param}" if dpto_param not in ["colombia", "nacional", ""] else f"{self.base_url}/spe/ofertas-empleo?q={query}"
-                resp = await client.get(search_url, headers=headers)
+                search_url = f"{self.base_url}/spe/ofertas-empleo"
+                resp = await client.get(search_url, headers=headers, params={"q": query})
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, "html.parser")
                     items = soup.select(".card-oferta, .job-item, tr.oferta")

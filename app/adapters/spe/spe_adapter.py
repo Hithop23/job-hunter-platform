@@ -29,8 +29,8 @@ class SPEAdapter(BaseJobAdapter):
             self.record_access(action_type="SCAN")
             async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 headers = {"User-Agent": "Mozilla/5.0"}
-                url = f"{self.base_url}/busca-empleo?palabra_clave={query}&departamento=20" # 20 = Cesar
-                resp = await client.get(url, headers=headers)
+                url = f"{self.base_url}/busca-empleo"
+                resp = await client.get(url, headers=headers, params={"palabra_clave": query})
                 if resp.status_code == 200:
                     soup = BeautifulSoup(resp.text, "html.parser")
                     cards = soup.select(".vacancy-card, .search-item")

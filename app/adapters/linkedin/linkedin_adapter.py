@@ -47,8 +47,7 @@ class LinkedInAdapter(BaseJobAdapter):
                     params["f_WT"] = "2"  # 100% Remoto en LinkedIn
                     # No location param → LinkedIn returns global results
                 else:
-                    # Keep Colombia scope for local searches
-                    params["location"] = "Colombia"
+                    params["location"] = location
 
                 resp = await client.get(self.base_url, headers=headers, params=params)
                 if resp.status_code == 200:
@@ -80,56 +79,6 @@ class LinkedInAdapter(BaseJobAdapter):
                             }))
         except Exception:
             pass
-
-        if not jobs:
-            from datetime import datetime, timezone
-            today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-            sample_vacancies = [
-                {
-                    "id": f"li-world-remote-helpdesk-{today_str}",
-                    "source": "linkedin",
-                    "external_id": f"world-helpdesk-{today_str}",
-                    "company": "Empresa Internacional Remota",
-                    "title": "IT Help Desk Technician (Remote / Worldwide)",
-                    "location": "100% Remoto / Worldwide",
-                    "url": "https://www.linkedin.com/jobs/search/?keywords=IT+help+desk+remote&f_WT=2&f_TPR=r604800",
-                    "description": "Provide remote technical support to end users globally. Troubleshoot hardware, software, VPN, Office 365, and connectivity issues via tickets and video calls.",
-                    "requirements": "IT technical diploma or equivalent. 1+ year of IT support experience. English B1+. Remote tools familiarity.",
-                    "salary": "USD 800 - 1,500 / month",
-                    "employment_type": "Remoto Tiempo Completo",
-                    "publication_date": today_str
-                },
-                {
-                    "id": f"li-col-sonda-{today_str}",
-                    "source": "linkedin",
-                    "external_id": f"sonda-{today_str}",
-                    "company": "Sonda IT Colombia",
-                    "title": "Técnico de Soporte en Sitio Nivel 1",
-                    "location": "Valledupar / Cesar, Colombia",
-                    "url": "https://www.linkedin.com/jobs/search/?keywords=Sonda+soporte+tecnico+Valledupar",
-                    "description": "Atención técnica en instalaciones corporativas. Mantenimiento de estaciones de trabajo, cambio de discos, memoria, clonación con Clonezilla y configuración de impresoras.",
-                    "requirements": "Técnico en sistemas SENA o afín. Conocimientos demostrables en hardware, Windows 10/11 y periféricos.",
-                    "salary": "$1.650.000 COP + auxilio de transporte",
-                    "employment_type": "Tiempo Completo",
-                    "publication_date": today_str
-                },
-                {
-                    "id": f"li-col-stefanini-{today_str}",
-                    "source": "linkedin",
-                    "external_id": f"stefanini-{today_str}",
-                    "company": "Stefanini Group Colombia",
-                    "title": "IT Service Desk Junior (100% Remoto)",
-                    "location": "100% Remoto, Colombia",
-                    "url": "https://www.linkedin.com/jobs/search/?keywords=Stefanini+service+desk+remoto",
-                    "description": "Diagnóstico de hardware y software corporativo, mesa de ayuda nivel 1, atención de tickets de servicio y soporte remoto.",
-                    "requirements": "Técnico en sistemas. Experiencia práctica en soporte técnico remoto.",
-                    "salary": "$2.200.000 COP",
-                    "employment_type": "Indefinido",
-                    "publication_date": today_str
-                }
-            ]
-            for s in sample_vacancies:
-                jobs.append(self.normalize_job(s))
 
         return jobs
 

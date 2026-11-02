@@ -31,11 +31,9 @@ class BancolombiaSuccessFactorsAdapter(BaseATSAdapter):
     async def fetch_jobs(self, query: str = "soporte", location: str = "Colombia") -> List[Dict[str, Any]]:
         jobs = []
         base_domain = "https://empleo.grupobancolombia.com"
-        search_terms = ["soporte", "sistemas", "ti", "aprendiz"]
-        
-        # Build search query
-        q_term = query if query and query != "soporte TI sistemas help desk" else "sistemas"
-        search_url = f"{base_domain}/search/?q={q_term}&locationsearch={location}"
+        q_term = query.strip()
+        search_params = httpx.QueryParams({"q": q_term, "locationsearch": location})
+        search_url = f"{base_domain}/search/?{search_params}"
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36",
@@ -139,7 +137,7 @@ class CompanyDirectoryAdapter(BaseJobAdapter):
         try:
             bancolombia_jobs = await self.bancolombia_adapter.fetch_jobs(query=query, location=location)
             if not bancolombia_jobs and location and location.lower() not in ["colombia", "col"]:
-                bancolombia_jobs = await self.bancolombia_adapter.fetch_jobs(query="sistemas", location="Colombia")
+                bancolombia_jobs = await self.bancolombia_adapter.fetch_jobs(query=query, location="Colombia")
             for bj in bancolombia_jobs:
                 jobs.append(self.normalize_job(bj))
         except Exception:

@@ -71,10 +71,18 @@ class ComputrabajoAdapter(BaseJobAdapter):
             clean_loc = location.strip().lower().replace(" ", "-").replace(",", "")
 
             search_urls = []
-            if clean_loc and clean_loc not in ["colombia", "nacional", "todo-el-pais", "remoto", ""]:
-                search_urls.append(f"{self.base_url}/trabajo-de-{clean_query}-en-{clean_loc}")
-            search_urls.append(f"{self.base_url}/trabajo-de-{clean_query}")
-            search_urls.append(f"{self.base_url}/trabajo-de-tecnico-sistemas")
+            has_specific_location = clean_loc and clean_loc not in [
+                "colombia", "nacional", "todo-el-pais", "remoto", ""
+            ]
+            if clean_query:
+                if has_specific_location:
+                    search_urls.append(f"{self.base_url}/trabajo-de-{clean_query}-en-{clean_loc}")
+                search_urls.append(f"{self.base_url}/trabajo-de-{clean_query}")
+            else:
+                if has_specific_location:
+                    search_urls.append(f"{self.base_url}/empleos-en-{clean_loc}")
+                else:
+                    search_urls.append(f"{self.base_url}/empleos")
 
             today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
