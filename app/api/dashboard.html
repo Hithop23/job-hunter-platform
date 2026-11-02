@@ -2058,7 +2058,7 @@
       return quickSearch || document.getElementById('cfgKeywords')?.value.trim() || '';
     }
 
-    async function loadApplications() {
+    async function loadApplications(overrides = {}) {
       const source = document.getElementById('filterSource')?.value || '';
       const status = document.getElementById('filterStatus')?.value || '';
       const minScore = document.getElementById('filterScore')?.value || '';
@@ -2071,9 +2071,9 @@
         if (grid) grid.classList.remove('hidden');
         if (table) table.classList.add('hidden');
         const params = new URLSearchParams({ limit: '100' });
-        const location = getSearchLocation();
-        const search = getSearchKeywords();
-        const includeRemote = document.getElementById('cfgRemote')?.checked ?? true;
+        const location = overrides.location !== undefined ? overrides.location : getSearchLocation();
+        const search = overrides.search !== undefined ? overrides.search : getSearchKeywords();
+        const includeRemote = overrides.remote !== undefined ? overrides.remote : (document.getElementById('cfgRemote')?.checked ?? true);
         if (source) params.set('source', source);
         if (location) params.set('location', location);
         if (search) params.set('search', search);
@@ -2154,9 +2154,9 @@
       if (table) table.classList.remove('hidden');
 
       const params = new URLSearchParams({ limit: '100' });
-      const location = getSearchLocation();
-      const search = getSearchKeywords();
-      const includeRemote = document.getElementById('cfgRemote')?.checked ?? true;
+      const location = overrides.location !== undefined ? overrides.location : getSearchLocation();
+      const search = overrides.search !== undefined ? overrides.search : getSearchKeywords();
+      const includeRemote = overrides.remote !== undefined ? overrides.remote : (document.getElementById('cfgRemote')?.checked ?? true);
       if (currentUserId) params.set('user_id', currentUserId);
       if (source) params.set('source', source);
       if (status) params.set('status', status);
@@ -2752,6 +2752,8 @@
       lucide.createIcons();
 
       const targetLoc = getSearchLocation();
+      const scanLocation = targetLoc;
+      const scanSearch = query;
       showToast(`Iniciando escaneo en ${remote ? 9 : 6} portales para ${targetLoc || country}...`);
 
       try {
@@ -2788,8 +2790,9 @@
               const statusRes = await fetch(`/api/jobs/scan/${encodeURIComponent(activeScanId)}`);
               if (!statusRes.ok) throw new Error(`No se pudo consultar el estado del escaneo (HTTP ${statusRes.status}).`);
               const scan = await statusRes.json();
-              await Promise.all([loadStats(), loadApplications(), loadHIL()]);
+              await Promise.all([loadStats(), loadHIL()]);
               if (scan.status === 'completed') {
+                await loadApplications({ location: scanLocation, search: scanSearch, remote });
                 const errorCount = scan.source_errors?.length || 0;
                 const message = `Escaneo completado: ${scan.total_discovered || 0} vacantes encontradas.`;
                 showToast(errorCount ? `${message} ${errorCount} fuentes no respondieron.` : message);
