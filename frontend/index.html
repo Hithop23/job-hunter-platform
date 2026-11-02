@@ -1705,6 +1705,18 @@
       sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
     }
 
+    async function apiFetch(url, options = {}) {
+      const headers = new Headers(options.headers || {});
+      if (sbClient) {
+        const { data: { session }, error } = await sbClient.auth.getSession();
+        if (error) throw error;
+        if (session?.access_token) {
+          headers.set('Authorization', `Bearer ${session.access_token}`);
+        }
+      }
+      return fetch(url, { ...options, headers });
+    }
+
     function openAuthModal() {
       document.getElementById('authModal').classList.remove('hidden');
       document.getElementById('authFeedback').classList.add('hidden');
@@ -1783,8 +1795,8 @@
           });
           if (error) throw error;
           
-          if (data?.user) {
-            await fetch('/api/stats/profile', {
+          if (data?.user && data?.session) {
+            const response = await apiFetch('/api/stats/profile', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -1794,6 +1806,9 @@
                 target_role: 'Técnico de Soporte TI / Sistemas'
               })
             });
+            if (!response.ok) {
+              throw new Error(`No se pudo crear el perfil (${response.status})`);
+            }
           }
           feedback.className = 'p-3 rounded-lg text-xs leading-relaxed bg-emerald-100 text-emerald-800 font-medium';
           feedback.innerText = '¡Cuenta creada! Revisa tu correo o inicia sesión para ingresar.';
@@ -1881,9 +1896,10 @@
 
     async function loadProfileToModal() {
       if (!currentUserId) return;
-      const url = `/api/stats/profile?user_id=${currentUserId}`;
+      const url = `/api/stats/profile?user_id=${encodeURIComponent(currentUserId)}`;
       try {
-        const res = await fetch(url);
+        const res = await apiFetch(url);
+        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
         const p = await res.json();
         document.getElementById('mProfName').value = p.name || '';
         document.getElementById('mProfPhone').value = p.phone || '';
@@ -1946,11 +1962,12 @@
       };
 
       try {
-        const res = await fetch('/api/stats/profile', {
+        const res = await apiFetch('/api/stats/profile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
+        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
         const data = await res.json();
         showToast('✅ ' + (data.message || 'Perfil guardado correctamente.'));
         closeProfileModal();
@@ -1993,8 +2010,9 @@
     // Fetch Dashboard Stats
     async function loadStats() {
       try {
-        const url = currentUserId ? `/api/stats/dashboard?user_id=${currentUserId}` : '/api/stats/dashboard';
-        const res = await fetch(url);
+        const url = currentUserId ? `/api/stats/dashboard?user_id=${encodeURIComponent(currentUserId)}` : '/api/stats/dashboard';
+        const res = await apiFetch(url);
+        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
         const data = await res.json();
         document.getElementById('statTotalJobs').innerText = data.total_jobs_found || 0;
         document.getElementById('statCompatible').innerText = data.compatible_jobs || 0;
@@ -2468,8 +2486,9 @@
           return;
         }
 
-        const url = `/api/stats/profile?user_id=${currentUserId}`;
-        const res = await fetch(url);
+        const url = `/api/stats/profile?user_id=${encodeURIComponent(currentUserId)}`;
+        const res = await apiFetch(url);
+        if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
         const p = await res.json();
         
         safeSetTxt('candidateNameDisplay', p.name || 'Mi Perfil');
@@ -2533,16 +2552,42 @@
             allSkills = allSkills.concat(p.technical_skills[cat]);
           }
         }
-        skillsContainer.innerHTML = allSkills.length > 0 
-          ? allSkills.map(s => `<span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200">${s}</span>`).join('')
-          : '<span class="text-xs text-slate-400 italic">No hay habilidades registradas aún.</span>';
+        skillsContainer.replaceChildren();
+        if (allSkills.length > 0) {
+          for (const skill of allSkills) {
+            const span = document.createElement('span');
+            span.className = 'bg-slate-100 text-slate-700 px-2 py-0.5 rounded text-[11px] border border-slate-200';
+            span.textContent = String(skill);
+            skillsContainer.appendChild(span);
+          }
+        } else {
+          const emptyMessage = document.createElement('span');
+          emptyMessage.className = 'text-xs text-slate-400 italic';
+          emptyMessage.textContent = 'No hay habilidades registradas aún.';
+          skillsContainer.appendChild(emptyMessage);
+        }
 
         // Certs
         const certsContainer = document.getElementById('profCerts');
         const certs = p.certifications || [];
-        certsContainer.innerHTML = certs.length > 0 
-          ? certs.map(c => `<li>&bull; <b>${c.title}</b> — <span class="text-slate-500">${c.issuer} (${c.date})</span></li>`).join('')
-          : '<li class="text-xs text-slate-400 italic">No hay certificaciones registradas aún.</li>';
+        certsContainer.replaceChildren();
+        if (certs.length > 0) {
+          for (const cert of certs) {
+            const item = document.createElement('li');
+            const title = document.createElement('b');
+            title.textContent = cert.title || '';
+            const issuer = document.createElement('span');
+            issuer.className = 'text-slate-500';
+            issuer.textContent = `${cert.issuer || ''} (${cert.date || ''})`;
+            item.append('• ', title, ' — ', issuer);
+            certsContainer.appendChild(item);
+          }
+        } else {
+          const emptyMessage = document.createElement('li');
+          emptyMessage.className = 'text-xs text-slate-400 italic';
+          emptyMessage.textContent = 'No hay certificaciones registradas aún.';
+          certsContainer.appendChild(emptyMessage);
+        }
       } catch (e) {
         console.error('Error profile:', e);
       }
@@ -2568,7 +2613,7 @@
       };
 
       try {
-        const res = await fetch('/api/stats/preferences', {
+        const res = await apiFetch('/api/stats/preferences', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -2982,15 +3027,16 @@
           window.open(url, '_blank', 'noopener,noreferrer');
         }
         // 2. Also notify backend system launcher
-        const res = await fetch('/api/hil/open-session', {
+        const res = await apiFetch('/api/hil/open-session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: url })
         });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `Error HTTP ${res.status}`);
         showToast(data.message || "Navegador abierto en pantalla.");
       } catch (e) {
-        showToast("Ventana abierta en navegador.");
+        showToast("No se pudo abrir la sesión: " + e.message);
       }
     }
 
@@ -3003,8 +3049,9 @@
           window.open(url, '_blank', 'noopener,noreferrer');
         }
         // 2. Call backend HIL endpoint
-        const res = await fetch(`/api/hil/${reviewId}/open-browser`, { method: 'POST' });
+        const res = await apiFetch(`/api/hil/${reviewId}/open-browser`, { method: 'POST' });
         const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || `Error HTTP ${res.status}`);
         // If URL wasn't provided initially, open whatever the backend returned
         if (!url && data.url) {
           window.open(data.url, '_blank', 'noopener,noreferrer');
@@ -3171,7 +3218,7 @@
       if (currentUserId) formData.append('user_id', currentUserId);
 
       try {
-        const res = await fetch('/api/cv/upload', {
+        const res = await apiFetch('/api/cv/upload', {
           method: 'POST',
           body: formData
         });
@@ -3216,7 +3263,13 @@
           const skillsList = prof.technical_skills?.destacadas ||
                              (Array.isArray(prof.technical_skills) ? prof.technical_skills : []) ||
                              (Array.isArray(prof.skills) ? prof.skills : []);
-          skillsEl.innerHTML = (skillsList || []).map(s => `<span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] font-medium">${s}</span>`).join(' ');
+          skillsEl.replaceChildren();
+          for (const skill of (Array.isArray(skillsList) ? skillsList : [])) {
+            const span = document.createElement('span');
+            span.className = 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded text-[11px] font-medium';
+            span.textContent = String(skill);
+            skillsEl.appendChild(span);
+          }
         }
 
         showToast('✅ ¡Hoja de vida procesada y convertida a ATS con éxito!');
@@ -3608,7 +3661,7 @@
       showToast(`🤖 Optimizando perfil ATS con IA (${selectedModelText})...`);
 
       try {
-        const res = await fetch('/api/cv/ai-builder', {
+        const res = await apiFetch('/api/cv/ai-builder', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -3664,8 +3717,18 @@
             if (Array.isArray(skillsList) && skillsList.length > 0) {
               const catDiv = document.createElement('div');
               catDiv.className = 'bg-[#0B0F17] p-2.5 rounded-lg border border-[#334155]/60';
-              const chips = skillsList.map(s => `<span class="bg-[#111827] border border-[#334155] text-emerald-300 px-2 py-0.5 rounded text-[11px] font-mono">${s}</span>`).join(' ');
-              catDiv.innerHTML = `<p class="font-bold text-slate-300 text-[11px] mb-1 font-mono">${category}</p><div class="flex flex-wrap gap-1">${chips}</div>`;
+              const categoryLabel = document.createElement('p');
+              categoryLabel.className = 'font-bold text-slate-300 text-[11px] mb-1 font-mono';
+              categoryLabel.textContent = category;
+              const chipsContainer = document.createElement('div');
+              chipsContainer.className = 'flex flex-wrap gap-1';
+              for (const skill of skillsList) {
+                const chip = document.createElement('span');
+                chip.className = 'bg-[#111827] border border-[#334155] text-emerald-300 px-2 py-0.5 rounded text-[11px] font-mono';
+                chip.textContent = String(skill);
+                chipsContainer.appendChild(chip);
+              }
+              catDiv.append(categoryLabel, chipsContainer);
               skillsContainer.appendChild(catDiv);
             }
           }
@@ -3740,7 +3803,7 @@
       showToast(`Generando hoja de vida ATS en ${format.toUpperCase()}...`);
 
       try {
-        const res = await fetch('/api/cv/generate', {
+        const res = await apiFetch('/api/cv/generate', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -3829,10 +3892,14 @@
       if (skillsInput && skillsInput.value.trim()) {
         const list = skillsInput.value.split(/[,;\n]+/).map(s => s.trim()).filter(Boolean);
         if (countEl) countEl.innerText = Math.min(28, Math.max(12, list.length + 14));
-        if (verifiedContainer && list.length > 0) {
-          verifiedContainer.innerHTML = list.slice(0, 12).map(s => `
-            <span class="bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full text-xs font-medium">${s}</span>
-          `).join('');
+        if (verifiedContainer) {
+          verifiedContainer.replaceChildren();
+          for (const skill of list.slice(0, 12)) {
+            const span = document.createElement('span');
+            span.className = 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-2.5 py-1 rounded-full text-xs font-medium';
+            span.textContent = skill;
+            verifiedContainer.appendChild(span);
+          }
         }
       }
     }

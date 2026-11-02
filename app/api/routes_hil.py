@@ -2,12 +2,14 @@ import subprocess
 import sys
 from pathlib import Path
 from typing import Optional
+from urllib.parse import urlsplit
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.storage.database import get_db
 from app.storage.repository import Repository
 from app.storage.models import HumanReviewItem, ApplicationStatus
+from app.security.supabase_auth import get_authenticated_user_id
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 router = APIRouter(prefix="/api/hil", tags=["Human in the Loop"])
@@ -20,6 +22,58 @@ class ResolveActionRequest(BaseModel):
 
 class OpenSessionRequest(BaseModel):
     url: Optional[str] = "https://www.linkedin.com/login"
+
+
+ALLOWED_BROWSER_DOMAINS = (
+    "linkedin.com",
+    "computrabajo.com",
+    "elempleo.com",
+    "elempleo.com.co",
+    "indeed.com",
+    "sena.edu.co",
+    "remoteok.com",
+    "remotive.com",
+    "weworkremotely.com",
+    "arbeitnow.com",
+    "greenhouse.io",
+    "lever.co",
+    "myworkdayjobs.com",
+    "ashbyhq.com",
+    "smartrecruiters.com",
+    "taleo.net",
+    "icims.com",
+)
+
+
+def validate_browser_url(target_url: Optional[str]) -> str:
+    if not target_url:
+        raise HTTPException(status_code=400, detail="Debes proporcionar una URL válida")
+
+    try:
+        parsed_url = urlsplit(target_url)
+        hostname = (parsed_url.hostname or "").lower()
+        port = parsed_url.port
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail="URL inválida") from exc
+
+    allowed_domain = any(
+        hostname == domain or hostname.endswith(f".{domain}")
+        for domain in ALLOWED_BROWSER_DOMAINS
+    )
+    if (
+        parsed_url.scheme.lower() != "https"
+        or not hostname
+        or parsed_url.username is not None
+        or parsed_url.password is not None
+        or port not in (None, 443)
+        or not allowed_domain
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Solo se permiten URLs HTTPS de portales de empleo autorizados",
+        )
+
+    return target_url
 
 
 @router.get("/pending")
@@ -50,13 +104,17 @@ from app.browser.desktop_launcher import launch_desktop_browser
 
 
 @router.post("/open-session")
-def open_general_browser_session(req: Optional[OpenSessionRequest] = None):
+def open_general_browser_session(
+    req: Optional[OpenSessionRequest] = None,
+    authenticated_user_id: str = Depends(get_authenticated_user_id),
+):
     """
     Opens a visible desktop browser window using the persistent profile ('data/browser_profile').
     The user can log in to LinkedIn, Computrabajo, etc.
     All cookies and sessions are permanently saved.
     """
     target_url = (req.url if req and req.url else "https://www.linkedin.com/login")
+    target_url = validate_browser_url(target_url)
     res = launch_desktop_browser(target_url)
 
     return {
@@ -69,7 +127,11 @@ def open_general_browser_session(req: Optional[OpenSessionRequest] = None):
 
 
 @router.post("/{review_id}/open-browser")
-def open_browser_for_review(review_id: str, db: Session = Depends(get_db)):
+def open_browser_for_review(
+    review_id: str,
+    authenticated_user_id: str = Depends(get_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
     """
     Opens a visible desktop browser directly at the URL of the paused application,
     allowing the user to solve CAPTCHA, log in, or complete the necessary step on screen.
@@ -79,7 +141,7 @@ def open_browser_for_review(review_id: str, db: Session = Depends(get_db)):
     if not review:
         raise HTTPException(status_code=404, detail="Revisión no encontrada")
 
-    target_url = review.url
+    target_url = validate_browser_url(review.url)
     res = launch_desktop_browser(target_url)
 
     return {

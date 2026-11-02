@@ -5,11 +5,26 @@ from sqlalchemy.orm import Session
 from app.storage.database import get_db
 from app.storage.repository import Repository
 from app.storage.models import Job
+from app.security.supabase_auth import (
+    get_authenticated_user_id,
+    get_optional_authenticated_user_id,
+)
 
 from typing import Optional, Dict, Any, List
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/stats", tags=["Dashboard & Analytics"])
+
+
+def _authorized_user_id(
+    requested_user_id: Optional[str],
+    authenticated_user_id: Optional[str],
+) -> Optional[str]:
+    if requested_user_id and authenticated_user_id is None:
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión")
+    if requested_user_id and requested_user_id != authenticated_user_id:
+        raise HTTPException(status_code=403, detail="No puedes acceder a otro perfil")
+    return authenticated_user_id or requested_user_id
 
 
 class SearchPreferencesPayload(BaseModel):
@@ -44,7 +59,12 @@ class UserProfilePayload(BaseModel):
 
 
 @router.get("/dashboard")
-def get_dashboard_metrics(user_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def get_dashboard_metrics(
+    user_id: Optional[str] = Query(None),
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
+    user_id = _authorized_user_id(user_id, authenticated_user_id)
     repo = Repository(db)
     if not user_id:
         total_jobs = repo.db.query(Job).count()
@@ -65,7 +85,12 @@ def get_dashboard_metrics(user_id: Optional[str] = Query(None), db: Session = De
 
 
 @router.get("/profile")
-def get_profile(user_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def get_profile(
+    user_id: Optional[str] = Query(None),
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
+    user_id = _authorized_user_id(user_id, authenticated_user_id)
     if user_id:
         repo = Repository(db)
         up = repo.get_user_profile(user_id)
@@ -127,7 +152,14 @@ def get_profile(user_id: Optional[str] = Query(None), db: Session = Depends(get_
 
 
 @router.post("/profile")
-def save_profile(payload: UserProfilePayload, db: Session = Depends(get_db)):
+def save_profile(
+    payload: UserProfilePayload,
+    authenticated_user_id: str = Depends(get_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
+    if payload.user_id != authenticated_user_id:
+        raise HTTPException(status_code=403, detail="No puedes modificar otro perfil")
+
     repo = Repository(db)
     saved = repo.upsert_user_profile(payload.dict())
     return {
@@ -146,7 +178,12 @@ def save_profile(payload: UserProfilePayload, db: Session = Depends(get_db)):
 
 
 @router.get("/preferences")
-def get_preferences(user_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
+def get_preferences(
+    user_id: Optional[str] = Query(None),
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
+    user_id = _authorized_user_id(user_id, authenticated_user_id)
     if user_id:
         repo = Repository(db)
         up = repo.get_user_profile(user_id)
@@ -184,49 +221,35 @@ def get_preferences(user_id: Optional[str] = Query(None), db: Session = Depends(
 
 
 @router.put("/preferences")
-def update_preferences(payload: SearchPreferencesPayload, user_id: Optional[str] = Query(None), db: Session = Depends(get_db)):
-    if user_id:
-        repo = Repository(db)
-        repo.upsert_user_profile({
-            "user_id": user_id,
-            "country": payload.country,
-            "department": payload.region,
-            "city": payload.city,
-            "remote_only": payload.remote,
-            "target_role": payload.keywords,
-            "salary_min_cop": int(payload.min_salary or 2500000),
-            "salary_max_cop": int(payload.desired_salary or 3500000)
-        })
-
-    base_dir = Path(__file__).resolve().parent.parent.parent
-    p_path = base_dir / "data" / "profile.json"
-    with open(p_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    
-    data["search_preferences"] = {
+def update_preferences(
+    payload: SearchPreferencesPayload,
+    authenticated_user_id: str = Depends(get_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
+    Repository(db).upsert_user_profile({
+        "user_id": authenticated_user_id,
         "country": payload.country,
-        "region": payload.region,
+        "department": payload.region,
         "city": payload.city,
-        "remote": payload.remote,
-        "willing_to_relocate": payload.willing_to_relocate,
-        "keywords": payload.keywords,
-    }
-    if "salary_preferences" not in data:
-        data["salary_preferences"] = {}
-    if payload.min_salary is not None:
-        data["salary_preferences"]["min_salary"] = payload.min_salary
-    if payload.desired_salary is not None:
-        data["salary_preferences"]["desired_salary"] = payload.desired_salary
-    data["salary_preferences"]["currency"] = "COP"
+        "remote_only": payload.remote,
+        "target_role": payload.keywords,
+        "salary_min_cop": int(payload.min_salary or 2500000),
+        "salary_max_cop": int(payload.desired_salary or 3500000)
+    })
 
-    if payload.city and payload.region and payload.country:
-        data["location"] = f"{payload.city}, {payload.region}, {payload.country}"
-    
-    with open(p_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-    
     return {
         "message": "Preferencias de búsqueda, ubicación y salario guardadas correctamente.",
-        "preferences": data["search_preferences"],
-        "salary_preferences": data["salary_preferences"]
+        "preferences": {
+            "country": payload.country,
+            "region": payload.region,
+            "city": payload.city,
+            "remote": payload.remote,
+            "willing_to_relocate": payload.willing_to_relocate,
+            "keywords": payload.keywords,
+        },
+        "salary_preferences": {
+            "min_salary": payload.min_salary,
+            "desired_salary": payload.desired_salary,
+            "currency": "COP",
+        }
     }

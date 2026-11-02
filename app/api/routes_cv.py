@@ -12,6 +12,7 @@ from app.storage.repository import Repository
 from app.cv.cv_transformer import CVTransformer
 from app.cv.ai_groq import GroqAIEngine
 from app.security.cloudflare_turnstile import verify_turnstile_token
+from app.security.supabase_auth import get_optional_authenticated_user_id
 
 router = APIRouter(prefix="/api/cv", tags=["CV & ATS Generation"])
 
@@ -55,6 +56,7 @@ class AiQuestionnairePayload(BaseModel):
 async def upload_and_transform_cv(
     file: UploadFile = File(...),
     user_id: Optional[str] = Form(None),
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
     db: Session = Depends(get_db)
 ):
     """
@@ -71,6 +73,10 @@ async def upload_and_transform_cv(
             status_code=400,
             detail=f"Formato no compatible ({ext}). Por favor sube un archivo PDF (.pdf) o Word (.docx)."
         )
+    if user_id and authenticated_user_id is None:
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para guardar tu perfil")
+    if user_id and user_id != authenticated_user_id:
+        raise HTTPException(status_code=403, detail="No puedes modificar otro perfil")
 
     content = await file.read()
     if len(content) == 0:
@@ -136,10 +142,19 @@ async def upload_and_transform_cv(
 
 
 @router.post("/generate")
-def generate_custom_ats_cv(payload: GenerateCvPayload, db: Session = Depends(get_db)):
+def generate_custom_ats_cv(
+    payload: GenerateCvPayload,
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
     """
     Generates tailored ATS PDF and DOCX documents from structured form inputs.
     """
+    if payload.user_id and authenticated_user_id is None:
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para guardar tu perfil")
+    if payload.user_id and payload.user_id != authenticated_user_id:
+        raise HTTPException(status_code=403, detail="No puedes modificar otro perfil")
+
     profile_dict = payload.dict()
     clean_name = re.sub(r"[^\w]", "_", profile_dict.get("name", "Candidato")[:12].strip())
     unique_tag = uuid.uuid4().hex[:6]
@@ -188,12 +203,21 @@ def generate_custom_ats_cv(payload: GenerateCvPayload, db: Session = Depends(get
 
 
 @router.post("/ai-builder")
-def ai_questionnaire_builder(payload: AiQuestionnairePayload, db: Session = Depends(get_db)):
+def ai_questionnaire_builder(
+    payload: AiQuestionnairePayload,
+    authenticated_user_id: Optional[str] = Depends(get_optional_authenticated_user_id),
+    db: Session = Depends(get_db),
+):
     """
     Transforms questionnaire answers into an elite ATS-optimized profile using Groq LLM
     (llama/gpt-oss), generating ready-to-download ATS PDF and editable Word DOCX.
     Protected optionally by Cloudflare Turnstile CAPTCHA.
     """
+    if payload.user_id and authenticated_user_id is None:
+        raise HTTPException(status_code=401, detail="Debes iniciar sesión para guardar tu perfil")
+    if payload.user_id and payload.user_id != authenticated_user_id:
+        raise HTTPException(status_code=403, detail="No puedes modificar otro perfil")
+
     if payload.turnstile_token:
         res_cf = verify_turnstile_token(payload.turnstile_token)
         if not res_cf.get("success"):

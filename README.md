@@ -83,6 +83,9 @@ job-hunter-co/
 
 ## 🚀 Instrucciones de Puesta en Marcha
 
+### 0. Configurar autenticación
+Crea el archivo `.env` a partir de `.env.example` y configura `SUPABASE_URL` y `SUPABASE_KEY` en el servidor. La API usa estos valores para verificar los tokens Bearer de Supabase antes de permitir el acceso a perfiles y funciones autenticadas. No expongas la clave `SUPABASE_SERVICE_ROLE_KEY` en el frontend.
+
 ### 1. Activar el entorno virtual e iniciar la aplicación
 En la terminal (PowerShell):
 ```powershell
@@ -99,9 +102,9 @@ python run.py
 
 ### 3. Ejecutar las Pruebas Unitarias Obligatorias
 ```powershell
-.\.venv\Scripts\python -m pytest -v tests/test_all_modules.py
+.\.venv\Scripts\python -m pytest -v
 ```
-Todos los 10 tests de validación pasarán satisfactoriamente:
+La suite valida:
 - Normalización canónica de vacantes
 - Detección y prevención de duplicados (por clave compuesta y hash)
 - Motor de scoring ponderado
@@ -112,3 +115,6 @@ Todos los 10 tests de validación pasarán satisfactoriamente:
 - Control de límites por dominio y cuota diaria
 - Pausa obligatoria e intervención en la cola Human-in-the-Loop
 - Garantía de veracidad de datos del candidato
+- Autorización de perfiles con sesiones verificadas de Supabase
+- Restricción de URLs del navegador interactivo a portales HTTPS permitidos
+- Renderizado de habilidades como texto para evitar inyección HTML
