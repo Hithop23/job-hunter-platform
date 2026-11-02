@@ -444,10 +444,13 @@ class CVTransformer:
             story.append(Paragraph("CERTIFICACIONES OFICIALES", section_style))
             story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#e2e8f0"), spaceBefore=1, spaceAfter=4))
             for c in certs:
-                title = c.get("title", "")
-                issuer = c.get("issuer", "")
-                dt = c.get("date", "")
-                line = f"&bull; <b>{title}</b> &mdash; {issuer} ({dt})" if issuer else f"&bull; <b>{title}</b>"
+                if isinstance(c, dict):
+                    title = c.get("title", "")
+                    issuer = c.get("issuer", "")
+                    dt = c.get("date", "")
+                    line = f"&bull; <b>{title}</b> &mdash; {issuer} ({dt})" if issuer else f"&bull; <b>{title}</b>"
+                else:
+                    line = f"&bull; <b>{str(c)}</b>"
                 story.append(Paragraph(line, bullet_style))
             story.append(Spacer(1, 4))
 
@@ -458,7 +461,10 @@ class CVTransformer:
             story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#e2e8f0"), spaceBefore=1, spaceAfter=4))
             lang_strs = []
             for l in langs:
-                lang_strs.append(f"<b>{l.get('language')}:</b> {l.get('level')}")
+                if isinstance(l, dict):
+                    lang_strs.append(f"<b>{l.get('language')}:</b> {l.get('level')}")
+                else:
+                    lang_strs.append(f"<b>{str(l)}</b>")
             story.append(Paragraph(" | ".join(lang_strs), body_style))
 
         doc.build(story)
@@ -610,10 +616,13 @@ class CVTransformer:
         if certs:
             add_section_header("Certificaciones Oficiales")
             for c in certs:
-                title = c.get("title", "")
-                issuer = c.get("issuer", "")
-                dt = c.get("date", "")
-                line = f"{title} — {issuer} ({dt})" if issuer else title
+                if isinstance(c, dict):
+                    title = c.get("title", "")
+                    issuer = c.get("issuer", "")
+                    dt = c.get("date", "")
+                    line = f"{title} — {issuer} ({dt})" if issuer else title
+                else:
+                    line = str(c)
                 p_c = doc.add_paragraph(line, style="List Bullet")
                 p_c.paragraph_format.space_after = Pt(2)
                 p_c.style.font.size = Pt(9.5)
@@ -622,7 +631,7 @@ class CVTransformer:
         langs = profile.get("languages") or []
         if langs:
             add_section_header("Idiomas")
-            lang_strs = [f"{l.get('language')}: {l.get('level')}" for l in langs]
+            lang_strs = [f"{l.get('language')}: {l.get('level')}" if isinstance(l, dict) else str(l) for l in langs]
             p_l = doc.add_paragraph(" | ".join(lang_strs))
             p_l.style.font.size = Pt(9.5)
 

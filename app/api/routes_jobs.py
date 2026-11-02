@@ -1,5 +1,7 @@
 import asyncio
 import json
+import logging
+import uuid
 from typing import List, Optional, Dict, Any
 from fastapi import APIRouter, Depends, Query, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
@@ -22,6 +24,7 @@ from app.adapters.weworkremotely.wwr_adapter import WeWorkRemotelyAdapter
 from app.notifications.notifier import Notifier
 
 router = APIRouter(prefix="/api/jobs", tags=["Jobs & Discovery"])
+scan_runs: Dict[str, Dict[str, Any]] = {}
 
 
 async def run_discovery_task(
@@ -182,17 +185,18 @@ async def run_discovery_task(
     }
 
 
-async def _async_discovery_runner(mode, query, location, country, region, remote, user_id):
+async def _async_discovery_runner(scan_id, mode, query, location, country, region, remote, user_id):
     from app.storage.database import SessionLocal
-    import logging
     log = logging.getLogger("JOB_HUNTER_SCAN")
     db = SessionLocal()
     try:
-        await run_discovery_task(
+        result = await run_discovery_task(
             db, mode, query, location, country, region, remote, user_id=user_id
         )
+        scan_runs[scan_id] = {"status": "completed", **result}
     except Exception as e:
         log.error(f"Error en escaneo en segundo plano: {e}", exc_info=True)
+        scan_runs[scan_id] = {"status": "failed", "error": str(e)}
     finally:
         db.close()
 
@@ -248,8 +252,13 @@ async def trigger_scan(
     final_location = location or final_city or final_region or final_country
 
     if is_async:
+        scan_id = str(uuid.uuid4())
+        scan_runs[scan_id] = {"status": "running"}
+        while len(scan_runs) > 100:
+            scan_runs.pop(next(iter(scan_runs)))
         background_tasks.add_task(
             _async_discovery_runner,
+            scan_id,
             mode,
             final_query,
             final_location,
@@ -260,6 +269,7 @@ async def trigger_scan(
         )
         return {
             "status": "started",
+            "scan_id": scan_id,
             "mode": mode,
             "query": final_query,
             "location": final_location,
@@ -289,6 +299,14 @@ async def trigger_scan(
         "remote": final_remote,
         "message": f"Escaneo completado: {result['total_discovered']} vacantes evaluadas para {final_location}."
     }
+
+
+@router.get("/scan/{scan_id}")
+def get_scan_status(scan_id: str):
+    scan = scan_runs.get(scan_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Escaneo no encontrado o expirado.")
+    return scan
 
 
 @router.get("/")

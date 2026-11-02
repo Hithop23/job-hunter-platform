@@ -1608,6 +1608,7 @@
     let sbClient = null;
     let currentUser = null;
     let currentUserId = null;
+    let activeScanId = null;
 
     // Cloudflare Turnstile CAPTCHA state
     let cfSiteKey = '1x00000000000000000000AA';
@@ -2024,12 +2025,96 @@
     }
 
     // Fetch Applications
+    function escapeHtml(value) {
+      const element = document.createElement('span');
+      element.textContent = String(value ?? '');
+      return element.innerHTML;
+    }
+
+    function safeExternalJobUrl(value) {
+      try {
+        const url = new URL(value);
+        return ['http:', 'https:'].includes(url.protocol) ? escapeHtml(url.href) : '';
+      } catch {
+        return '';
+      }
+    }
+
     async function loadApplications() {
       const source = document.getElementById('filterSource')?.value || '';
       const status = document.getElementById('filterStatus')?.value || '';
       const minScore = document.getElementById('filterScore')?.value || '';
       const filterRemote = document.getElementById('filterRemote')?.value || '';
       const filterSalary = document.getElementById('filterSalary')?.value || '';
+
+      if (!currentUserId) {
+        const params = new URLSearchParams({ limit: '100' });
+        if (source) params.set('source', source);
+        try {
+          const res = await fetch(`/api/jobs/?${params.toString()}`);
+          if (!res.ok) throw new Error(`Error HTTP ${res.status}`);
+          const data = await res.json();
+          let jobs = data.jobs || [];
+
+          if (filterRemote === 'remote') {
+            jobs = jobs.filter(job => /remoto|teletrabajo|home office|virtual/i.test(`${job.title} ${job.location || ''}`));
+          } else if (filterRemote === 'onsite') {
+            jobs = jobs.filter(job => !/remoto|teletrabajo|home office|virtual/i.test(`${job.title} ${job.location || ''}`));
+          }
+          if (filterSalary === 'specified') {
+            jobs = jobs.filter(job => job.salary && !/convenir|confidencial|no especificado/i.test(job.salary));
+          } else if (filterSalary === '1500000' || filterSalary === '2000000') {
+            const minimum = Number(filterSalary);
+            jobs = jobs.filter(job => {
+              const amounts = (job.salary || '').match(/\d[\d.,']*\d|\d+/g) || [];
+              const values = amounts.map(value => parseFloat(value.replace(/\D/g, ''))).filter(value => value >= 100000);
+              return values.some(value => value >= minimum);
+            });
+          }
+
+          const count = document.getElementById('appsCount');
+          if (count) count.textContent = String(jobs.length);
+          const tbody = document.getElementById('applicationsTableBody');
+          if (jobs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="py-10 text-center text-slate-400">
+              <p class="font-semibold text-slate-700">Aún no hay vacantes encontradas</p>
+              <p class="mt-1 text-xs">Inicia una búsqueda para consultar ofertas disponibles. Inicia sesión para guardar vacantes y preparar tu CV.</p>
+            </td></tr>`;
+            lucide.createIcons();
+            return;
+          }
+
+          tbody.innerHTML = jobs.map(job => {
+            const company = escapeHtml(job.company || 'Empresa no informada');
+            const title = escapeHtml(job.title || 'Cargo sin título');
+            const location = escapeHtml(job.location || 'Ubicación no informada');
+            const salary = escapeHtml(job.salary || 'A convenir');
+            const date = escapeHtml(job.publication_date || '');
+            const jobSource = escapeHtml(job.source || 'Fuente externa');
+            const href = safeExternalJobUrl(job.url);
+            const remote = /remoto|teletrabajo|home office|virtual/i.test(`${job.title} ${job.location || ''}`);
+            return `<tr class="hover:bg-slate-50/80 transition">
+              <td class="py-3 px-4 text-slate-400">—</td>
+              <td class="py-3 px-4 font-semibold text-slate-800">${company}</td>
+              <td class="py-3 px-4">
+                <div class="font-medium text-slate-900">${title}</div>
+                <div class="text-[11px] text-slate-400 mt-0.5">${remote ? '🌐 Remoto' : `📍 ${location}`}</div>
+              </td>
+              <td class="py-3 px-4 whitespace-nowrap"><span class="text-[11px] text-slate-600">${salary}</span>${date ? `<div class="text-[10px] text-sky-700 mt-1">${date}</div>` : ''}</td>
+              <td class="py-3 px-4 uppercase text-[11px] font-medium text-slate-500">${jobSource}</td>
+              <td class="py-3 px-4"><span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">Encontrada</span></td>
+              <td class="py-3 px-4"><button type="button" onclick="openAuthModal('login')" class="text-xs text-indigo-600 hover:text-indigo-800 font-medium">Inicia sesión</button></td>
+              <td class="py-3 px-4 text-right whitespace-nowrap">${href ? `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">Ver oferta ↗</a>` : '<span class="text-xs text-slate-400">Enlace no disponible</span>'}</td>
+            </tr>`;
+          }).join('');
+          lucide.createIcons();
+        } catch (e) {
+          console.error('Error cargando vacantes públicas:', e);
+          const tbody = document.getElementById('applicationsTableBody');
+          if (tbody) tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-rose-600">No se pudieron cargar las vacantes. Intenta actualizar la lista.</td></tr>`;
+        }
+        return;
+      }
 
       let url = '/api/applications/?limit=100';
       if (currentUserId) url += `&user_id=${currentUserId}`;
@@ -2079,27 +2164,7 @@
         const appsCountEl = document.getElementById('appsCount'); if (appsCountEl) appsCountEl.innerText = apps.length;
 
         if (apps.length === 0) {
-          if (!currentUserId) {
-            tbody.innerHTML = `<tr><td colspan="8" class="py-12 text-center">
-              <div class="max-w-md mx-auto space-y-3">
-                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
-                  <i data-lucide="lock" class="w-6 h-6"></i>
-                </div>
-                <h3 class="text-base font-bold text-slate-800">Modo Invitado / Sin Iniciar Sesión</h3>
-                <p class="text-xs text-slate-500">Inicia sesión o regístrate con tu correo para acceder a tu panel personalizado de postulaciones, generar CVs ATS con tus habilidades y hacer seguimiento privado.</p>
-                <div class="flex justify-center gap-2 pt-1">
-                  <button onclick="openAuthModal('login')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
-                    <i data-lucide="log-in" class="w-4 h-4"></i> Iniciar Sesión
-                  </button>
-                  <button onclick="openAuthModal('register')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow-sm inline-flex items-center gap-1.5 transition">
-                    <i data-lucide="user-plus" class="w-4 h-4"></i> Crear Cuenta
-                  </button>
-                </div>
-              </div>
-            </td></tr>`;
-          } else {
-            tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No hay postulaciones registradas en tu cuenta con los filtros seleccionados.</td></tr>`;
-          }
+          tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No hay postulaciones registradas en tu cuenta con los filtros seleccionados.</td></tr>`;
           lucide.createIcons();
           return;
         }
@@ -2366,14 +2431,15 @@
       customInput.classList.add('hidden');
       citySelect.innerHTML = '';
 
-      if (country === 'Remoto') {
+      if (country === 'Remote') {
         const opt1 = new Option("Cualquier Ciudad (100% Remoto)", "Cualquier Ciudad / Remoto");
         const opt2 = new Option("Remoto Nacional (Colombia)", "Remoto Nacional");
         const opt3 = new Option("Remoto Internacional", "Remoto Internacional");
         citySelect.add(opt1);
         citySelect.add(opt2);
         citySelect.add(opt3);
-        document.getElementById('cfgRemote').checked = true;
+        const remoteToggle = document.getElementById('cfgRemote');
+        if (remoteToggle) remoteToggle.checked = true;
         return;
       }
 
@@ -2389,6 +2455,7 @@
 
     function handleCityDropdownChange(val) {
       const customInput = document.getElementById('cfgCustomCity');
+      if (!customInput) return;
       if (val === '__custom__') {
         customInput.classList.remove('hidden');
         customInput.focus();
@@ -2399,8 +2466,9 @@
 
     function getSelectedCity() {
       const citySelect = document.getElementById('cfgCity');
+      if (!citySelect) return '';
       if (citySelect.value === '__custom__') {
-        return document.getElementById('cfgCustomCity').value.trim() || 'Nivel Nacional';
+        return document.getElementById('cfgCustomCity')?.value.trim() || 'Nivel Nacional';
       }
       return citySelect.value;
     }
@@ -2411,30 +2479,30 @@
       const rem = document.getElementById('cfgRemote');
 
       if (preset === 'remoto') {
-        c.value = 'Remoto';
+        c.value = 'Remote';
         r.value = 'Nacional';
-        rem.checked = true;
+        if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Cualquier Ciudad / Remoto';
         showToast('Preset aplicado: 🌐 100% Remoto (Nacional)');
       } else if (preset === 'valledupar') {
         c.value = 'Colombia';
         r.value = 'Cesar';
-        rem.checked = true;
+        if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Valledupar';
         showToast('Preset aplicado: 📍 Valledupar, Cesar');
       } else if (preset === 'bogota') {
         c.value = 'Colombia';
         r.value = 'Bogotá D.C.';
-        rem.checked = true;
+        if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Bogotá';
         showToast('Preset aplicado: 🏢 Bogotá D.C.');
       } else if (preset === 'nacional') {
         c.value = 'Colombia';
         r.value = 'Nacional';
-        rem.checked = true;
+        if (rem) rem.checked = true;
         onCountryOrRegionChanged();
         document.getElementById('cfgCity').value = 'Nivel Nacional (Todas las ciudades)';
         showToast('Preset aplicado: 🇨🇴 Toda Colombia');
@@ -2588,7 +2656,7 @@
         country: document.getElementById('cfgCountry').value,
         region: document.getElementById('cfgRegion').value,
         city: city,
-        remote: document.getElementById('cfgRemote').checked,
+        remote: document.getElementById('cfgRemote')?.checked ?? true,
         keywords: document.getElementById('cfgKeywords').value,
         min_salary: minSalary,
         desired_salary: minSalary >= 2000000 ? minSalary + 500000 : 2200000,
@@ -2616,12 +2684,17 @@
 
     // Trigger Scan with Dynamic Location
     async function triggerScan() {
-      const mode = document.getElementById('scanMode').value;
-      const country = document.getElementById('cfgCountry').value;
-      const region = document.getElementById('cfgRegion').value;
+      if (activeScanId) {
+        showToast('Ya hay un escaneo en curso.');
+        return;
+      }
+      const mode = document.getElementById('scanMode')?.value || 'SCAN';
+      const country = document.getElementById('cfgCountry')?.value || 'Colombia';
+      const region = document.getElementById('cfgRegion')?.value || '';
       const city = getSelectedCity();
-      const remote = document.getElementById('cfgRemote').checked;
-      const query = document.getElementById('cfgKeywords').value;
+      const remote = document.getElementById('cfgRemote')?.checked ?? true;
+      const quickSearch = document.getElementById('quickSearchInput')?.value.trim();
+      const query = quickSearch || document.getElementById('cfgKeywords').value.trim();
 
       const btn = document.getElementById('btnScan');
       btn.disabled = true;
@@ -2650,29 +2723,59 @@
         const data = await res.json();
         
         if (res.ok) {
+          if (!data.scan_id) throw new Error('El servidor no devolvió el identificador del escaneo.');
+          activeScanId = data.scan_id;
           showToast(`🚀 ${data.message || 'Escaneo en curso en 10 fuentes.'}`);
-          // Poll applications and stats periodically as jobs are discovered
           let polls = 0;
-          const pollInterval = setInterval(async () => {
+          const finishScan = () => {
+            activeScanId = null;
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+            btn.innerHTML = originalBtnHtml;
+            lucide.createIcons();
+          };
+          const pollScan = async () => {
             polls++;
-            await loadStats();
-            await loadApplications();
-            await loadHIL();
-            if (polls >= 5) {
-              clearInterval(pollInterval);
-              showToast('✅ Escaneo completado. Lista de vacantes actualizada.');
+            try {
+              const statusRes = await fetch(`/api/jobs/scan/${encodeURIComponent(activeScanId)}`);
+              if (!statusRes.ok) throw new Error(`No se pudo consultar el estado del escaneo (HTTP ${statusRes.status}).`);
+              const scan = await statusRes.json();
+              await Promise.all([loadStats(), loadApplications(), loadHIL()]);
+              if (scan.status === 'completed') {
+                showToast(`✅ Escaneo completado: ${scan.total_discovered || 0} vacantes encontradas.`);
+                finishScan();
+                return;
+              }
+              if (scan.status === 'failed') {
+                showToast(`Error durante el escaneo: ${scan.error || 'falló la búsqueda.'}`);
+                finishScan();
+                return;
+              }
+              if (polls >= 60) {
+                showToast('El escaneo sigue en curso. Puedes consultar las vacantes encontradas en la lista.');
+                finishScan();
+                return;
+              }
+              setTimeout(pollScan, 3500);
+            } catch (e) {
+              console.error('Error consultando el escaneo:', e);
+              showToast(`No se pudo confirmar el estado del escaneo: ${e.message}`);
+              finishScan();
             }
-          }, 3500);
+          };
+          setTimeout(pollScan, 1500);
         } else {
           showToast(data.detail || 'Aviso al consultar portales de empleo.');
         }
       } catch (e) {
         showToast('Error de conexión al escanear: ' + e.message);
       } finally {
-        btn.disabled = false;
-        btn.classList.remove('opacity-50');
-        btn.innerHTML = originalBtnHtml;
-        lucide.createIcons();
+        if (!activeScanId) {
+          btn.disabled = false;
+          btn.classList.remove('opacity-50');
+          btn.innerHTML = originalBtnHtml;
+          lucide.createIcons();
+        }
       }
     }
 
